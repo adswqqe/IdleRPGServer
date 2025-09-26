@@ -1,5 +1,9 @@
+# Custom ignores for Idle RPG Server
+*.user
+appsettings.Development.json
+logs/
+*.db
+.env
+.idea/
 bin/
 obj/
-/packages/
-riderModule.iml
-/_ReSharper.Caches/

@@ -2,6 +2,17 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IdleRPG.API", "IdleRPG.API\IdleRPG.API.csproj", "{65884E85-7131-4A43-823C-92E064C8AE2E}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{DF17C21B-A5F1-4744-BB2E-9C5F9731B531}"
+	ProjectSection(SolutionItems) = preProject
+		docker-compose.yml = docker-compose.yml
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IdleRPG.Domain", "IdleRPG.Domain\IdleRPG.Domain.csproj", "{7BC17BDF-0A6F-4396-92CB-57907BDDC5FB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IdleRPG.Application", "IdleRPG.Application\IdleRPG.Application.csproj", "{A0DCB34A-8876-4EA4-B534-EDA9A63EFE48}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IdleRPG.Infrastructure", "IdleRPG.Infrastructure\IdleRPG.Infrastructure.csproj", "{9482021B-CE56-4101-B199-643030D252DC}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -12,5 +23,17 @@ Global
 		{65884E85-7131-4A43-823C-92E064C8AE2E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{65884E85-7131-4A43-823C-92E064C8AE2E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{65884E85-7131-4A43-823C-92E064C8AE2E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7BC17BDF-0A6F-4396-92CB-57907BDDC5FB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7BC17BDF-0A6F-4396-92CB-57907BDDC5FB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7BC17BDF-0A6F-4396-92CB-57907BDDC5FB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7BC17BDF-0A6F-4396-92CB-57907BDDC5FB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A0DCB34A-8876-4EA4-B534-EDA9A63EFE48}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A0DCB34A-8876-4EA4-B534-EDA9A63EFE48}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A0DCB34A-8876-4EA4-B534-EDA9A63EFE48}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A0DCB34A-8876-4EA4-B534-EDA9A63EFE48}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9482021B-CE56-4101-B199-643030D252DC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9482021B-CE56-4101-B199-643030D252DC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9482021B-CE56-4101-B199-643030D252DC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9482021B-CE56-4101-B199-643030D252DC}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

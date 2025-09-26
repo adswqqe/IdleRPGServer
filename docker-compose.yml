@@ -1,0 +1,47 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:16
+    container_name: idlerpg-postgres
+    environment:
+      POSTGRES_DB: idlerpgdb
+      POSTGRES_USER: gamedev
+      POSTGRES_PASSWORD: dev123!
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - idlerpg-network
+
+  # Redis Cache (미래 확장용)
+  redis:
+    image: redis:7-alpine
+    container_name: idlerpg-redis
+    ports:
+      - "6379:6379"
+    networks:
+      - idlerpg-network
+
+  # pgAdmin (데이터베이스 관리 도구)
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: idlerpg-pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@idlerpg.com
+      PGADMIN_DEFAULT_PASSWORD: admin123
+    ports:
+      - "8082:80"
+    depends_on:
+      - postgres
+    networks:
+      - idlerpg-network
+
+volumes:
+  postgres_data:
+
+networks:
+  idlerpg-network:
+    driver: bridge
