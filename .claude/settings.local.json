@@ -1,13 +1,14 @@
 {
+  "permissions": {
+    "allow": [
+      "Bash(npx:*)",
+      "Bash(git add:*)"
+    ]
+  },
   "enableAllProjectMcpServers": true,
   "enabledMcpjsonServers": [
     "project-filesystem",
     "project-memory",
     "project-unity"
-  ],
-  "permissions": {
-    "allow": [
-      "Bash(npx:*)"
-    ]
-  }
+  ]
 }
