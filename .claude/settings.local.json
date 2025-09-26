@@ -1,0 +1,13 @@
+{
+  "enableAllProjectMcpServers": true,
+  "enabledMcpjsonServers": [
+    "project-filesystem",
+    "project-memory",
+    "project-unity"
+  ],
+  "permissions": {
+    "allow": [
+      "Bash(npx:*)"
+    ]
+  }
+}

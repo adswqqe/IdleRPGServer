@@ -1,0 +1,29 @@
+{
+  "name": "Unity ASP.NET Core 프로젝트 MCP 설정",
+  "mcpServers": {
+    "project-filesystem": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-filesystem"],
+      "env": {
+        "ACCESS_DIRS": "./Assets,./ServerCode,./Documentation,./claude-configs"
+      },
+      "description": "프로젝트 파일 접근"
+    },
+    "project-memory": {
+      "command": "npx",
+      "args": ["-y", "memory-bank-mcp"],
+      "env": {
+        "MEMORY_BANK_PATH": "./.memory-bank"
+      },
+      "description": "프로젝트 상태 관리"
+    },
+    "project-unity": {
+      "command": "npx",
+      "args": ["-y", "unity-mcp"],
+      "env": {
+        "UNITY_PROJECT_PATH": "."
+      },
+      "description": "Unity 프로젝트 관리"
+    }
+  }
+}

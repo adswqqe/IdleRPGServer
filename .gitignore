@@ -7,3 +7,13 @@ logs/
 .idea/
 bin/
 obj/
+# Claude MCP 보안 설정
+claude-configs/.env.home
+claude-configs/.env.work
+claude-configs/secrets/
+claude-configs/*.key
+claude-configs/*token*
+
+# Claude 작업 데이터
+.memory-bank/
+.claude-shared/
