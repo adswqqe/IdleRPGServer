@@ -1,7 +1,6 @@
 version: '3.8'
 
 services:
-  # PostgreSQL Database
   postgres:
     image: postgres:16
     container_name: idlerpg-postgres
@@ -9,23 +8,20 @@ services:
       POSTGRES_DB: idlerpgdb
       POSTGRES_USER: gamedev
       POSTGRES_PASSWORD: dev123!
+      # SSL 설정 추가
+      POSTGRES_HOST_AUTH_METHOD: trust
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-    networks:
-      - idlerpg-network
+    # 추가 설정
+    command: >
+      postgres 
+      -c ssl=off
+      -c log_statement=all
+      -c log_connections=on
+      -c log_disconnections=on
 
-  # Redis Cache (미래 확장용)
-  redis:
-    image: redis:7-alpine
-    container_name: idlerpg-redis
-    ports:
-      - "6379:6379"
-    networks:
-      - idlerpg-network
-
-  # pgAdmin (데이터베이스 관리 도구)
   pgadmin:
     image: dpage/pgadmin4
     container_name: idlerpg-pgadmin
@@ -36,12 +32,6 @@ services:
       - "8082:80"
     depends_on:
       - postgres
-    networks:
-      - idlerpg-network
 
 volumes:
   postgres_data:
-
-networks:
-  idlerpg-network:
-    driver: bridge

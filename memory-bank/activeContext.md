@@ -1,5 +1,241 @@
 # Active Context
 
+## Code Changes (2025-09-27 03:41:08)
+
+### Added Files
+- .claude\settings.local.json
+- .idea\.idea.IdleRPGServer\.idea\encodings.xml
+- .idea\.idea.IdleRPGServer\.idea\indexLayout.xml
+- .idea\.idea.IdleRPGServer\.idea\projectSettingsUpdater.xml
+- .idea\.idea.IdleRPGServer\.idea\vcs.xml
+- .idea\.idea.IdleRPGServer\.idea\workspace.xml
+- .mcp.json
+- claude-configs\unified-mcp-config.json
+- docker-compose.yml
+- IdleRPG.API\appsettings.Development.json
+- IdleRPG.API\appsettings.json
+- IdleRPG.API\bin\Debug\net8.0\appsettings.Development.json
+- IdleRPG.API\bin\Debug\net8.0\appsettings.json
+- IdleRPG.API\bin\Debug\net8.0\IdleRPG.API.deps.json
+- IdleRPG.API\bin\Debug\net8.0\IdleRPG.API.runtimeconfig.json
+- IdleRPG.API\obj\Debug\net8.0\.NETCoreApp,Version=v8.0.AssemblyAttributes.cs
+- IdleRPG.API\obj\Debug\net8.0\IdleRPG.API.AssemblyInfo.cs
+- IdleRPG.API\obj\Debug\net8.0\IdleRPG.API.GlobalUsings.g.cs
+- IdleRPG.API\obj\Debug\net8.0\IdleRPG.API.MvcApplicationPartsAssemblyInfo.cs
+- IdleRPG.API\obj\Debug\net8.0\IdleRPG.API.sourcelink.json
+- IdleRPG.API\obj\Debug\net8.0\staticwebassets.build.json
+- IdleRPG.API\obj\IdleRPG.API.csproj.nuget.dgspec.json
+- IdleRPG.API\obj\project.assets.json
+- IdleRPG.API\obj\project.packagespec.json
+- IdleRPG.API\Program.cs
+- IdleRPG.API\Properties\launchSettings.json
+- IdleRPG.Application\bin\Debug\net8.0\IdleRPG.Application.deps.json
+- IdleRPG.Application\Class1.cs
+- IdleRPG.Application\obj\Debug\net8.0\.NETCoreApp,Version=v8.0.AssemblyAttributes.cs
+- IdleRPG.Application\obj\Debug\net8.0\IdleRPG.Application.AssemblyInfo.cs
+- IdleRPG.Application\obj\Debug\net8.0\IdleRPG.Application.GlobalUsings.g.cs
+- IdleRPG.Application\obj\Debug\net8.0\IdleRPG.Application.sourcelink.json
+- IdleRPG.Application\obj\IdleRPG.Application.csproj.nuget.dgspec.json
+- IdleRPG.Application\obj\project.assets.json
+- IdleRPG.Application\obj\project.packagespec.json
+- IdleRPG.Domain\bin\Debug\net8.0\IdleRPG.Domain.deps.json
+- IdleRPG.Domain\Class1.cs
+- IdleRPG.Domain\obj\Debug\net8.0\.NETCoreApp,Version=v8.0.AssemblyAttributes.cs
+- IdleRPG.Domain\obj\Debug\net8.0\IdleRPG.Domain.AssemblyInfo.cs
+- IdleRPG.Domain\obj\Debug\net8.0\IdleRPG.Domain.GlobalUsings.g.cs
+- IdleRPG.Domain\obj\Debug\net8.0\IdleRPG.Domain.sourcelink.json
+- IdleRPG.Domain\obj\IdleRPG.Domain.csproj.nuget.dgspec.json
+- IdleRPG.Domain\obj\project.assets.json
+- IdleRPG.Domain\obj\project.packagespec.json
+- IdleRPG.Infrastructure\bin\Debug\net8.0\IdleRPG.Infrastructure.deps.json
+- IdleRPG.Infrastructure\bin\Debug\net8.0\IdleRPG.Infrastructure.runtimeconfig.json
+- IdleRPG.Infrastructure\Class1.cs
+- IdleRPG.Infrastructure\obj\Debug\net8.0\.NETCoreApp,Version=v8.0.AssemblyAttributes.cs
+- IdleRPG.Infrastructure\obj\Debug\net8.0\IdleRPG.Infrastructure.AssemblyInfo.cs
+- IdleRPG.Infrastructure\obj\Debug\net8.0\IdleRPG.Infrastructure.GlobalUsings.g.cs
+- IdleRPG.Infrastructure\obj\Debug\net8.0\IdleRPG.Infrastructure.sourcelink.json
+- IdleRPG.Infrastructure\obj\IdleRPG.Infrastructure.csproj.nuget.dgspec.json
+- IdleRPG.Infrastructure\obj\project.assets.json
+- IdleRPG.Infrastructure\obj\project.packagespec.json
+
+
+## Code Changes (2025-09-27 03:41:07)
+
+### Added Files
+- .claude\settings.local.json
+- .idea\.idea.IdleRPGServer\.idea\encodings.xml
+- .idea\.idea.IdleRPGServer\.idea\indexLayout.xml
+- .idea\.idea.IdleRPGServer\.idea\projectSettingsUpdater.xml
+- .idea\.idea.IdleRPGServer\.idea\vcs.xml
+- .idea\.idea.IdleRPGServer\.idea\workspace.xml
+- .mcp.json
+- claude-configs\unified-mcp-config.json
+- docker-compose.yml
+- IdleRPG.API\appsettings.Development.json
+- IdleRPG.API\appsettings.json
+- IdleRPG.API\bin\Debug\net8.0\appsettings.Development.json
+- IdleRPG.API\bin\Debug\net8.0\appsettings.json
+- IdleRPG.API\bin\Debug\net8.0\IdleRPG.API.deps.json
+- IdleRPG.API\bin\Debug\net8.0\IdleRPG.API.runtimeconfig.json
+- IdleRPG.API\obj\Debug\net8.0\.NETCoreApp,Version=v8.0.AssemblyAttributes.cs
+- IdleRPG.API\obj\Debug\net8.0\IdleRPG.API.AssemblyInfo.cs
+- IdleRPG.API\obj\Debug\net8.0\IdleRPG.API.GlobalUsings.g.cs
+- IdleRPG.API\obj\Debug\net8.0\IdleRPG.API.MvcApplicationPartsAssemblyInfo.cs
+- IdleRPG.API\obj\Debug\net8.0\IdleRPG.API.sourcelink.json
+- IdleRPG.API\obj\Debug\net8.0\staticwebassets.build.json
+- IdleRPG.API\obj\IdleRPG.API.csproj.nuget.dgspec.json
+- IdleRPG.API\obj\project.assets.json
+- IdleRPG.API\obj\project.packagespec.json
+- IdleRPG.API\Program.cs
+- IdleRPG.API\Properties\launchSettings.json
+- IdleRPG.Application\bin\Debug\net8.0\IdleRPG.Application.deps.json
+- IdleRPG.Application\Class1.cs
+- IdleRPG.Application\obj\Debug\net8.0\.NETCoreApp,Version=v8.0.AssemblyAttributes.cs
+- IdleRPG.Application\obj\Debug\net8.0\IdleRPG.Application.AssemblyInfo.cs
+- IdleRPG.Application\obj\Debug\net8.0\IdleRPG.Application.GlobalUsings.g.cs
+- IdleRPG.Application\obj\Debug\net8.0\IdleRPG.Application.sourcelink.json
+- IdleRPG.Application\obj\IdleRPG.Application.csproj.nuget.dgspec.json
+- IdleRPG.Application\obj\project.assets.json
+- IdleRPG.Application\obj\project.packagespec.json
+- IdleRPG.Domain\bin\Debug\net8.0\IdleRPG.Domain.deps.json
+- IdleRPG.Domain\Class1.cs
+- IdleRPG.Domain\obj\Debug\net8.0\.NETCoreApp,Version=v8.0.AssemblyAttributes.cs
+- IdleRPG.Domain\obj\Debug\net8.0\IdleRPG.Domain.AssemblyInfo.cs
+- IdleRPG.Domain\obj\Debug\net8.0\IdleRPG.Domain.GlobalUsings.g.cs
+- IdleRPG.Domain\obj\Debug\net8.0\IdleRPG.Domain.sourcelink.json
+- IdleRPG.Domain\obj\IdleRPG.Domain.csproj.nuget.dgspec.json
+- IdleRPG.Domain\obj\project.assets.json
+- IdleRPG.Domain\obj\project.packagespec.json
+- IdleRPG.Infrastructure\bin\Debug\net8.0\IdleRPG.Infrastructure.deps.json
+- IdleRPG.Infrastructure\bin\Debug\net8.0\IdleRPG.Infrastructure.runtimeconfig.json
+- IdleRPG.Infrastructure\Class1.cs
+- IdleRPG.Infrastructure\obj\Debug\net8.0\.NETCoreApp,Version=v8.0.AssemblyAttributes.cs
+- IdleRPG.Infrastructure\obj\Debug\net8.0\IdleRPG.Infrastructure.AssemblyInfo.cs
+- IdleRPG.Infrastructure\obj\Debug\net8.0\IdleRPG.Infrastructure.GlobalUsings.g.cs
+- IdleRPG.Infrastructure\obj\Debug\net8.0\IdleRPG.Infrastructure.sourcelink.json
+- IdleRPG.Infrastructure\obj\IdleRPG.Infrastructure.csproj.nuget.dgspec.json
+- IdleRPG.Infrastructure\obj\project.assets.json
+- IdleRPG.Infrastructure\obj\project.packagespec.json
+
+
+## Code Changes (2025-09-27 03:37:13)
+
+### Added Files
+- .claude\settings.local.json
+- .idea\.idea.IdleRPGServer\.idea\encodings.xml
+- .idea\.idea.IdleRPGServer\.idea\indexLayout.xml
+- .idea\.idea.IdleRPGServer\.idea\projectSettingsUpdater.xml
+- .idea\.idea.IdleRPGServer\.idea\vcs.xml
+- .idea\.idea.IdleRPGServer\.idea\workspace.xml
+- .mcp.json
+- claude-configs\unified-mcp-config.json
+- docker-compose.yml
+- IdleRPG.API\appsettings.Development.json
+- IdleRPG.API\appsettings.json
+- IdleRPG.API\bin\Debug\net8.0\appsettings.Development.json
+- IdleRPG.API\bin\Debug\net8.0\appsettings.json
+- IdleRPG.API\bin\Debug\net8.0\IdleRPG.API.deps.json
+- IdleRPG.API\bin\Debug\net8.0\IdleRPG.API.runtimeconfig.json
+- IdleRPG.API\obj\Debug\net8.0\.NETCoreApp,Version=v8.0.AssemblyAttributes.cs
+- IdleRPG.API\obj\Debug\net8.0\IdleRPG.API.AssemblyInfo.cs
+- IdleRPG.API\obj\Debug\net8.0\IdleRPG.API.GlobalUsings.g.cs
+- IdleRPG.API\obj\Debug\net8.0\IdleRPG.API.MvcApplicationPartsAssemblyInfo.cs
+- IdleRPG.API\obj\Debug\net8.0\IdleRPG.API.sourcelink.json
+- IdleRPG.API\obj\Debug\net8.0\staticwebassets.build.json
+- IdleRPG.API\obj\IdleRPG.API.csproj.nuget.dgspec.json
+- IdleRPG.API\obj\project.assets.json
+- IdleRPG.API\obj\project.packagespec.json
+- IdleRPG.API\Program.cs
+- IdleRPG.API\Properties\launchSettings.json
+- IdleRPG.Application\bin\Debug\net8.0\IdleRPG.Application.deps.json
+- IdleRPG.Application\Class1.cs
+- IdleRPG.Application\obj\Debug\net8.0\.NETCoreApp,Version=v8.0.AssemblyAttributes.cs
+- IdleRPG.Application\obj\Debug\net8.0\IdleRPG.Application.AssemblyInfo.cs
+- IdleRPG.Application\obj\Debug\net8.0\IdleRPG.Application.GlobalUsings.g.cs
+- IdleRPG.Application\obj\Debug\net8.0\IdleRPG.Application.sourcelink.json
+- IdleRPG.Application\obj\IdleRPG.Application.csproj.nuget.dgspec.json
+- IdleRPG.Application\obj\project.assets.json
+- IdleRPG.Application\obj\project.packagespec.json
+- IdleRPG.Domain\bin\Debug\net8.0\IdleRPG.Domain.deps.json
+- IdleRPG.Domain\Class1.cs
+- IdleRPG.Domain\obj\Debug\net8.0\.NETCoreApp,Version=v8.0.AssemblyAttributes.cs
+- IdleRPG.Domain\obj\Debug\net8.0\IdleRPG.Domain.AssemblyInfo.cs
+- IdleRPG.Domain\obj\Debug\net8.0\IdleRPG.Domain.GlobalUsings.g.cs
+- IdleRPG.Domain\obj\Debug\net8.0\IdleRPG.Domain.sourcelink.json
+- IdleRPG.Domain\obj\IdleRPG.Domain.csproj.nuget.dgspec.json
+- IdleRPG.Domain\obj\project.assets.json
+- IdleRPG.Domain\obj\project.packagespec.json
+- IdleRPG.Infrastructure\bin\Debug\net8.0\IdleRPG.Infrastructure.deps.json
+- IdleRPG.Infrastructure\bin\Debug\net8.0\IdleRPG.Infrastructure.runtimeconfig.json
+- IdleRPG.Infrastructure\Class1.cs
+- IdleRPG.Infrastructure\obj\Debug\net8.0\.NETCoreApp,Version=v8.0.AssemblyAttributes.cs
+- IdleRPG.Infrastructure\obj\Debug\net8.0\IdleRPG.Infrastructure.AssemblyInfo.cs
+- IdleRPG.Infrastructure\obj\Debug\net8.0\IdleRPG.Infrastructure.GlobalUsings.g.cs
+- IdleRPG.Infrastructure\obj\Debug\net8.0\IdleRPG.Infrastructure.sourcelink.json
+- IdleRPG.Infrastructure\obj\IdleRPG.Infrastructure.csproj.nuget.dgspec.json
+- IdleRPG.Infrastructure\obj\project.assets.json
+- IdleRPG.Infrastructure\obj\project.packagespec.json
+
+
+## Code Changes (2025-09-27 03:37:11)
+
+### Added Files
+- .claude\settings.local.json
+- .idea\.idea.IdleRPGServer\.idea\encodings.xml
+- .idea\.idea.IdleRPGServer\.idea\indexLayout.xml
+- .idea\.idea.IdleRPGServer\.idea\projectSettingsUpdater.xml
+- .idea\.idea.IdleRPGServer\.idea\vcs.xml
+- .idea\.idea.IdleRPGServer\.idea\workspace.xml
+- .mcp.json
+- claude-configs\unified-mcp-config.json
+- docker-compose.yml
+- IdleRPG.API\appsettings.Development.json
+- IdleRPG.API\appsettings.json
+- IdleRPG.API\bin\Debug\net8.0\appsettings.Development.json
+- IdleRPG.API\bin\Debug\net8.0\appsettings.json
+- IdleRPG.API\bin\Debug\net8.0\IdleRPG.API.deps.json
+- IdleRPG.API\bin\Debug\net8.0\IdleRPG.API.runtimeconfig.json
+- IdleRPG.API\obj\Debug\net8.0\.NETCoreApp,Version=v8.0.AssemblyAttributes.cs
+- IdleRPG.API\obj\Debug\net8.0\IdleRPG.API.AssemblyInfo.cs
+- IdleRPG.API\obj\Debug\net8.0\IdleRPG.API.GlobalUsings.g.cs
+- IdleRPG.API\obj\Debug\net8.0\IdleRPG.API.MvcApplicationPartsAssemblyInfo.cs
+- IdleRPG.API\obj\Debug\net8.0\IdleRPG.API.sourcelink.json
+- IdleRPG.API\obj\Debug\net8.0\staticwebassets.build.json
+- IdleRPG.API\obj\IdleRPG.API.csproj.nuget.dgspec.json
+- IdleRPG.API\obj\project.assets.json
+- IdleRPG.API\obj\project.packagespec.json
+- IdleRPG.API\Program.cs
+- IdleRPG.API\Properties\launchSettings.json
+- IdleRPG.Application\bin\Debug\net8.0\IdleRPG.Application.deps.json
+- IdleRPG.Application\Class1.cs
+- IdleRPG.Application\obj\Debug\net8.0\.NETCoreApp,Version=v8.0.AssemblyAttributes.cs
+- IdleRPG.Application\obj\Debug\net8.0\IdleRPG.Application.AssemblyInfo.cs
+- IdleRPG.Application\obj\Debug\net8.0\IdleRPG.Application.GlobalUsings.g.cs
+- IdleRPG.Application\obj\Debug\net8.0\IdleRPG.Application.sourcelink.json
+- IdleRPG.Application\obj\IdleRPG.Application.csproj.nuget.dgspec.json
+- IdleRPG.Application\obj\project.assets.json
+- IdleRPG.Application\obj\project.packagespec.json
+- IdleRPG.Domain\bin\Debug\net8.0\IdleRPG.Domain.deps.json
+- IdleRPG.Domain\Class1.cs
+- IdleRPG.Domain\obj\Debug\net8.0\.NETCoreApp,Version=v8.0.AssemblyAttributes.cs
+- IdleRPG.Domain\obj\Debug\net8.0\IdleRPG.Domain.AssemblyInfo.cs
+- IdleRPG.Domain\obj\Debug\net8.0\IdleRPG.Domain.GlobalUsings.g.cs
+- IdleRPG.Domain\obj\Debug\net8.0\IdleRPG.Domain.sourcelink.json
+- IdleRPG.Domain\obj\IdleRPG.Domain.csproj.nuget.dgspec.json
+- IdleRPG.Domain\obj\project.assets.json
+- IdleRPG.Domain\obj\project.packagespec.json
+- IdleRPG.Infrastructure\bin\Debug\net8.0\IdleRPG.Infrastructure.deps.json
+- IdleRPG.Infrastructure\bin\Debug\net8.0\IdleRPG.Infrastructure.runtimeconfig.json
+- IdleRPG.Infrastructure\Class1.cs
+- IdleRPG.Infrastructure\obj\Debug\net8.0\.NETCoreApp,Version=v8.0.AssemblyAttributes.cs
+- IdleRPG.Infrastructure\obj\Debug\net8.0\IdleRPG.Infrastructure.AssemblyInfo.cs
+- IdleRPG.Infrastructure\obj\Debug\net8.0\IdleRPG.Infrastructure.GlobalUsings.g.cs
+- IdleRPG.Infrastructure\obj\Debug\net8.0\IdleRPG.Infrastructure.sourcelink.json
+- IdleRPG.Infrastructure\obj\IdleRPG.Infrastructure.csproj.nuget.dgspec.json
+- IdleRPG.Infrastructure\obj\project.assets.json
+- IdleRPG.Infrastructure\obj\project.packagespec.json
+
+
 ## Code Changes (2025-09-26 13:52:16)
 
 ### Added Files
