@@ -2,7 +2,8 @@
   "permissions": {
     "allow": [
       "Bash(npx:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "mcp__memory-bank__memory-bank-status"
     ]
   },
   "enableAllProjectMcpServers": true,

@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "Week 1 - Domain 모델링과 Clean Architecture.md",
+                "file": "🎮 방치형 RPG 서버 개발 완전 가이드 - Week 1 (상세편).md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "Week 1 - Domain 모델링과 Clean Architecture"
+              "title": "🎮 방치형 RPG 서버 개발 완전 가이드 - Week 1 (상세편)"
             }
           }
         ]
@@ -171,6 +171,14 @@
   },
   "active": "7a90613bc37ca5a5",
   "lastOpenFiles": [
+    "🎮 방치형 RPG 서버 개발 완전 가이드 - Week 1.md",
+    "🎮 방치형 RPG 서버 개발 완전 가이드 - Week 1 (상세편).md",
+    "🎮 Unity 개발자의 서버개발 여정 - 메인 인덱스.md",
+    "📚 Unity 개발자를 위한 방치형 RPG 서버 개발 완전 커리큘럼.md",
+    "📖 ASP.NET Core Web API 완전 정복 가이드.md",
+    "실무 개발 팁과 트러블슈팅.md",
+    "Unity 개발자를 위한 방치형 RPG 서버 개발 로드맵.md",
+    "Week 1 - Domain 모델링과 Clean Architecture.md",
     "Week 8 - Production Deployment와 CI/CD.md",
     "⚙️ 개발 환경 구축 완전 가이드.md",
     "Week 7 - Load Testing과 Optimization.md",
@@ -179,25 +187,17 @@
     "Week 4 - Performance Optimization.md",
     "Week 3 - Core Game Logic.md",
     "Week 2 - Authentication과 Authorization.md",
-    "Week 1 - Domain 모델링과 Clean Architecture.md",
-    "Unity 개발자를 위한 방치형 RPG 서버 개발 로드맵.md",
     "GameObject vs Entity.md",
     "Unity와 서버 개념 매핑.md",
     "Repository Pattern.md",
     "Player Entity.md",
     "JWT.md",
     "Entity Framework Core.md",
-    "실무 개발 팁과 트러블슈팅.md",
-    "🎮 Unity 개발자의 서버개발 여정 - 메인 인덱스.md",
-    "🎮 방치형 RPG 서버 개발 완전 가이드 - Week 1.md",
     "Archive/Clean Architecture 개념 정리.md",
     "Archive/Clean Architecture - Domain Layer 상세.md",
     "Archive/Clean Architecture - 방치형 RPG 인벤토리 시스템.md",
     "Archive/Clean Architecture - Application Layer 상세.md",
-    "📚 개발 학습 일지 모음.md",
-    "SignalR.md",
     "Week 8 - Production Deployment와 CI",
-    "📖 Clean Architecture 완전 가이드.md",
     "Archive",
     "scripts",
     "무제.canvas"
