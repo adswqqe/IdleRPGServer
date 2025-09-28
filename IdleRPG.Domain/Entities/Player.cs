@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using IdleRPG.Domain.Repositories;
+using System.ComponentModel.DataAnnotations;
 namespace IdleRPG.Domain.Entities
 {
     public class Player
