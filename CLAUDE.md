@@ -118,3 +118,7 @@ The project is in **initial setup phase** with:
 - JWT Bearer tokens will be implemented for user authentication
 - Game-specific endpoints will require authentication
 - Consider implementing both user accounts and character-specific tokens
+
+## Task Master AI Instructions
+**Import Task Master's development workflow commands and guidelines, treat as if import is in the main CLAUDE.md file.**
+@./.taskmaster/CLAUDE.md
