@@ -12,7 +12,7 @@ public class GameDBContext : DbContext
     public DbSet<ItemTemplate> ItemTemplates { get; set; }
     public DbSet<PlayerInventory> PlayerInventories { get; set; }
     public DbSet<OfflineReward>  OfflineRewards { get; set; }
-
+    public DbSet<RefreshToken> RefreshTokens { get; set; }
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);

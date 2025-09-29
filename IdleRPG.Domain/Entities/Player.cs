@@ -11,6 +11,7 @@ namespace IdleRPG.Domain.Entities
 
         [Required, EmailAddress, MaxLength(50)]
         public string Email { get; set; }
+        public string PasswordHash { get; set; }
 
         public DateTime CreatedAt { get; set; }
         public DateTime LastLogin { get; set; }
