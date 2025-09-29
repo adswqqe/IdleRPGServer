@@ -53,7 +53,7 @@ private void ConfigureOfflineRewardEntity(ModelBuilder modelBuilder)
               .HasDefaultValue(0);
               
         entity.Property(o => o.RewardType)
-              .HasDefaultValue(OfflineRewardType.AutoBattle);
+              .HasSentinel(OfflineRewardType.AutoBattle);
               
         entity.Property(o => o.ExperienceGained)
               .HasDefaultValue(0);
@@ -184,6 +184,9 @@ private void ConfigureOfflineRewardEntity(ModelBuilder modelBuilder)
             entity.Property(p => p.CreatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP");
             entity.Property(p => p.LastLogin).HasDefaultValueSql("CURRENT_TIMESTAMP");
             entity.Property(p => p.IsActive).HasDefaultValue(true);
+
+            entity.Property(p => p.CurrentStage).HasDefaultValue(1);
+            entity.Property(p => p.TotalIdleTime).HasDefaultValue(0);
             
             // 문자열 길이 제한
             entity.Property(p => p.UserName).HasMaxLength(50);

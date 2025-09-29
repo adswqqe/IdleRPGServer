@@ -94,10 +94,9 @@ namespace IdleRPG.Infrastructure.Repositories
             }
         }
         
-        public Task<IEnumerable<Player>> FindAsync(Expression<Func<Player, bool>> predicate)
+        public async Task<IEnumerable<Player>> FindAsync(Expression<Func<Player, bool>> predicate)
         {
-            // TODO 코드 구현해야 함
-            return null;
+            return await _context.Players.Where(predicate).ToListAsync();
         }
 
         // Unity의 Destroy()와 유사

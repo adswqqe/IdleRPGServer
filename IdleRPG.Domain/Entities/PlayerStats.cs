@@ -7,11 +7,16 @@
 
         public int Level { get; set; } = 1;
         public long Experience { get; set; } = 0;
-        public long Gold { get; set; } = 0;
-        public int Gems { get; set; } = 0;
-        public decimal OfflineHours { get; set; } = 0;
-        public long TotalIdleTime { get; set; } = 0;
-        public DateTime UpdateAt { get; set; } = DateTime.UtcNow;
+        public long Gold { get; set; } = 1000;
+        public int Gems { get; set; } = 10;
+        public int VipLevel { get; set; } = 0;
+    
+        // 방치형 게임 전용 스탯
+        public decimal OfflineGoldMultiplier { get; set; } = 1.0m;
+        public decimal OfflineExpMultiplier { get; set; } = 1.0m;
+        public int MaxOfflineHours { get; set; } = 12;
+    
+        public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 
         public bool CanLevelUp()
         {
