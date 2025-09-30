@@ -1,4 +1,4 @@
-﻿using IdleRPG.Application.Services;
+﻿using IdleRPG.Application.Tokens.Services;
 using IdleRPG.Domain.Entities;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;

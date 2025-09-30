@@ -1,5 +1,5 @@
-﻿using IdleRPG.Domain.Entities;
-namespace IdleRPG.Application.Services
+using IdleRPG.Domain.Entities;
+namespace IdleRPG.Application.Tokens.Services
 {
     /// <summary>
     /// JWT 토큰 생성 및 검증 서비스

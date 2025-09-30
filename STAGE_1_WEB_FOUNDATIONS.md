@@ -892,136 +892,321 @@ components:
 
 #### 2.2 데이터베이스 설계와 마이그레이션 (45분)
 
-**2.2.1 정규화 이론 적용**
+**2.2.1 Entity Framework Core를 사용한 데이터베이스 설계**
 
-**제1정규형 (1NF)**: 원자값 저장
-```sql
--- 위반 사례 (배열 저장)
-CREATE TABLE players_bad (
-    id UUID PRIMARY KEY,
-    name VARCHAR(100),
-    skills TEXT  -- "Fireball,Healing,Shield" - 원자적이지 않음
-);
+IdleRPG 프로젝트는 **Code-First** 방식을 사용합니다. 이는 C# 코드로 엔티티를 정의하면 EF Core가 자동으로 데이터베이스 스키마를 생성해주는 방식입니다.
 
--- 올바른 설계
-CREATE TABLE players (
-    id UUID PRIMARY KEY,
-    name VARCHAR(100) NOT NULL
-);
-
-CREATE TABLE player_skills (
-    player_id UUID REFERENCES players(id),
-    skill_id INTEGER,
-    level INTEGER DEFAULT 1,
-    PRIMARY KEY (player_id, skill_id)
-);
-```
-
-**제2정규형 (2NF)**: 부분적 함수 종속 제거
-```sql
--- 위반 사례
-CREATE TABLE character_equipment_bad (
-    character_id UUID,
-    equipment_slot VARCHAR(20),
-    item_id INTEGER,
-    item_name VARCHAR(100),    -- item_id에만 종속적 (부분적 함수 종속)
-    item_attack_power INTEGER  -- item_id에만 종속적
-    PRIMARY KEY (character_id, equipment_slot)
-);
-
--- 올바른 설계
-CREATE TABLE items (
-    id SERIAL PRIMARY KEY,
-    name VARCHAR(100) NOT NULL,
-    attack_power INTEGER DEFAULT 0
-);
-
-CREATE TABLE character_equipment (
-    character_id UUID,
-    equipment_slot VARCHAR(20),
-    item_id INTEGER REFERENCES items(id),
-    PRIMARY KEY (character_id, equipment_slot)
-);
-```
-
-**제3정규형 (3NF)**: 이행적 함수 종속 제거
-```sql
--- 위반 사례
-CREATE TABLE characters_bad (
-    id UUID PRIMARY KEY,
-    player_id UUID,
-    level INTEGER,
-    total_stat_points INTEGER,  -- level에 종속적 (이행적 함수 종속)
-    class_id INTEGER,
-    class_name VARCHAR(50)      -- class_id에 종속적 (이행적 함수 종속)
-);
-
--- 올바른 설계
-CREATE TABLE character_classes (
-    id SERIAL PRIMARY KEY,
-    name VARCHAR(50) NOT NULL UNIQUE
-);
-
-CREATE TABLE characters (
-    id UUID PRIMARY KEY,
-    player_id UUID REFERENCES players(id),
-    level INTEGER DEFAULT 1,
-    class_id INTEGER REFERENCES character_classes(id)
-);
-
--- total_stat_points는 계산으로 도출
-CREATE VIEW character_stats AS
-SELECT
-    c.id,
-    c.level,
-    (c.level - 1) * 5 AS total_stat_points  -- 레벨업마다 5포인트
-FROM characters c;
-```
-
-**2.2.2 인덱스 전략과 쿼리 최적화**
-
-**B-Tree 인덱스의 이론적 배경**:
-
-```
-B-Tree 인덱스 구조 (간단화):
-                [Level=10|Level=20]
-               /                    \
-    [Level=5|Level=8]              [Level=15|Level=25]
-   /       |        \             /         |         \
-[1,2,3] [6,7,8] [9,10,11]  [12,13,14] [18,19,20] [22,23,24]
-
-검색 복잡도: O(log n) vs 전체 스캔 O(n)
-```
-
-Unity 메모리 접근과 데이터베이스 디스크 접근의 차이:
+**현재 프로젝트의 핵심 엔티티들**:
 
 ```csharp
-// Unity: 메모리 접근 (나노초 단위)
-var player = players.Find(p => p.id == targetId); // O(n) but very fast per operation
+// Domain/Entities/Player.cs - 플레이어 엔티티
+public class Player
+{
+    public Guid Id { get; set; } = Guid.NewGuid();
 
-// 데이터베이스: 디스크 접근 (밀리초 단위)
-SELECT * FROM players WHERE id = @targetId;  -- 인덱스 없으면 테이블 스캔
+    [Required, MaxLength(50)]
+    public string UserName { get; set; }
+
+    [Required, EmailAddress, MaxLength(50)]
+    public string Email { get; set; }
+
+    public string PasswordHash { get; set; }
+    public DateTime CreatedAt { get; set; }
+    public DateTime LastLogin { get; set; }
+    public bool IsActive { get; set; }
+
+    public int CurrentStage { get; set; }
+    public long TotalIdleTime { get; set; }
+
+    // Navigation Properties - EF Core의 관계 설정
+    public PlayerStats Stats { get; set; }                // 1:1 관계
+    public List<Character> Characters { get; set; }       // 1:N 관계
+
+    // 비즈니스 로직 - Unity의 메서드와 유사
+    public TimeSpan GetOfflineTime() => DateTime.UtcNow - LastLogin;
+}
+
+// Domain/Entities/Character.cs - 캐릭터 엔티티
+public class Character
+{
+    public Guid Id { get; set; } = Guid.NewGuid();
+    public Guid PlayerId { get; set; }
+    public Player Player { get; set; }  // Navigation Property
+
+    [Required, MaxLength(30)]
+    public string Name { get; set; }
+
+    [Required, MaxLength(20)]
+    public string CharacterClass { get; set; }
+
+    public int Level { get; set; } = 1;
+    public long Experience { get; set; }
+    public int Health { get; set; }
+    public int Mana { get; set; }
+    public int Attack { get; set; }
+    public int Defense { get; set; }
+
+    public DateTime CreateAt { get; set; } = DateTime.UtcNow;
+    public bool IsMain { get; set; } = false;
+
+    public List<PlayerInventory> Inventory { get; set; } = new();
+    public List<OfflineReward> OfflineRewards { get; set; } = new();
+
+    // 도메인 로직 - Unity Component 패턴과 유사
+    public void RecalculateStats()
+    {
+        var baseStats = GetBaseStatsByClass();
+        var levelMultiplier = 1 + (Level - 1) * 0.1f;
+
+        Health = (int)(baseStats.Health * levelMultiplier);
+        Mana = (int)(baseStats.Mana * levelMultiplier);
+        Attack = (int)(baseStats.Attack * levelMultiplier);
+        Defense = (int)(baseStats.Defense * levelMultiplier);
+    }
+
+    private (int Health, int Mana, int Attack, int Defense) GetBaseStatsByClass()
+    {
+        return CharacterClass.ToLower() switch
+        {
+            "warrior" => (120, 30, 25, 20),
+            "mage" => (80, 100, 30, 10),
+            "archer" => (90, 50, 35, 15),
+            _ => (100, 50, 20, 15)
+        };
+    }
+}
+
+// Domain/Entities/RefreshToken.cs - JWT 인증용 토큰
+public class RefreshToken
+{
+    public Guid Id { get; set; } = Guid.NewGuid();
+    public string Token { get; set; }
+    public Guid PlayerId { get; set; }
+    public Player Player { get; set; }
+
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime ExpiresAt { get; set; }
+    public DateTime? RevokedAt { get; set; }
+
+    // Unity의 IsValid 메서드처럼 계산 속성 사용
+    public bool IsActive => RevokedAt == null && ExpiresAt > DateTime.UtcNow;
+}
 ```
 
-**인덱스 설계 전략**:
+**2.2.2 Fluent API를 사용한 고급 설정 (GameDBContext.cs)**
 
-```sql
--- 1. 기본 키 인덱스 (자동 생성)
-CREATE TABLE players (
-    id UUID PRIMARY KEY  -- 자동으로 고유 인덱스 생성
-);
+EF Core는 두 가지 설정 방식을 제공합니다:
+- **Data Annotations**: `[Required]`, `[MaxLength]` 등 속성 사용 (간단한 설정)
+- **Fluent API**: `OnModelCreating`에서 코드로 설정 (복잡한 관계, 인덱스 등)
 
--- 2. 조회 패턴 기반 인덱스
-CREATE INDEX idx_players_level ON players(level);  -- 레벨별 조회
-CREATE INDEX idx_players_last_login ON players(last_login);  -- 활성 사용자 조회
+```csharp
+// Infrastructure/Data/GameDBContext.cs
+public class GameDBContext : DbContext
+{
+    public GameDBContext(DbContextOptions<GameDBContext> options) : base(options) { }
 
--- 3. 복합 인덱스 (쿼리 패턴 고려)
-CREATE INDEX idx_characters_player_level ON characters(player_id, level);
--- WHERE player_id = ? AND level > ? 같은 쿼리에 최적
+    // DbSet - Unity의 List<GameObject>와 유사한 개념
+    public DbSet<Player> Players { get; set; }
+    public DbSet<Character> Characters { get; set; }
+    public DbSet<PlayerStats> PlayerStats { get; set; }
+    public DbSet<ItemTemplate> ItemTemplates { get; set; }
+    public DbSet<PlayerInventory> PlayerInventories { get; set; }
+    public DbSet<OfflineReward> OfflineRewards { get; set; }
+    public DbSet<RefreshToken> RefreshTokens { get; set; }
 
--- 4. 부분 인덱스 (조건부)
-CREATE INDEX idx_active_players ON players(last_login)
-WHERE last_login > NOW() - INTERVAL '30 days';  -- 활성 사용자만
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        base.OnModelCreating(modelBuilder);
+
+        // Player 엔티티 설정
+        modelBuilder.Entity<Player>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+
+            // 유니크 인덱스 - 중복 방지
+            entity.HasIndex(p => p.UserName).IsUnique();
+            entity.HasIndex(p => p.Email).IsUnique();
+
+            // 기본값 설정 - DB 레벨에서 처리
+            entity.Property(p => p.CreatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP");
+            entity.Property(p => p.LastLogin).HasDefaultValueSql("CURRENT_TIMESTAMP");
+            entity.Property(p => p.IsActive).HasDefaultValue(true);
+            entity.Property(p => p.CurrentStage).HasDefaultValue(1);
+            entity.Property(p => p.TotalIdleTime).HasDefaultValue(0);
+
+            // 1:N 관계 설정 - Cascade Delete
+            entity.HasMany(p => p.Characters)
+                  .WithOne(c => c.Player)
+                  .HasForeignKey(c => c.PlayerId)
+                  .OnDelete(DeleteBehavior.Cascade);  // Player 삭제 시 Character도 삭제
+        });
+
+        // Character 엔티티 설정
+        modelBuilder.Entity<Character>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+
+            // 복합 인덱스 - 쿼리 최적화
+            entity.HasIndex(c => c.PlayerId);
+            entity.HasIndex(c => new { c.PlayerId, c.IsMain });  // 메인 캐릭터 빠른 조회
+
+            // 관계 설정
+            entity.HasOne(c => c.Player)
+                  .WithMany(p => p.Characters)
+                  .HasForeignKey(c => c.PlayerId)
+                  .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        // Inventory 엔티티 설정 - 복잡한 관계 예시
+        modelBuilder.Entity<PlayerInventory>(entity =>
+        {
+            entity.HasKey(pi => pi.Id);
+
+            // Character와의 관계
+            entity.HasOne(pi => pi.Character)
+                  .WithMany(c => c.Inventory)
+                  .HasForeignKey(pi => pi.CharacterId)
+                  .OnDelete(DeleteBehavior.Cascade);
+
+            // ItemTemplate과의 관계 (템플릿은 삭제 방지)
+            entity.HasOne(pi => pi.ItemTemplate)
+                  .WithMany()
+                  .HasForeignKey(pi => pi.ItemTemplateId)
+                  .OnDelete(DeleteBehavior.Restrict);
+
+            // 유니크 복합 인덱스 - 같은 슬롯에 중복 아이템 방지
+            entity.HasIndex(pi => new { pi.CharacterId, pi.SlotIndex }).IsUnique();
+
+            // PostgreSQL의 JSONB 타입 사용
+            entity.Property(pi => pi.AdditionalOptions)
+                  .HasColumnType("jsonb")
+                  .HasDefaultValueSql("'{}'");
+        });
+
+        // 시드 데이터 - 초기 데이터 삽입
+        SeedDefaultData(modelBuilder);
+    }
+
+    private void SeedDefaultData(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<ItemTemplate>().HasData(
+            new ItemTemplate
+            {
+                Id = 1001,
+                Name = "나무 검",
+                Type = ItemType.Weapon,
+                Rarity = ItemRarity.Common,
+                BaseStats = """{"attack": 5, "durability": 100}""",
+                SellPrice = 10
+            },
+            new ItemTemplate
+            {
+                Id = 1002,
+                Name = "체력 포션",
+                Type = ItemType.Consumable,
+                Rarity = ItemRarity.Common,
+                BaseStats = """{"healAmount": 50}""",
+                SellPrice = 5,
+                MaxStackSize = 99
+            }
+        );
+    }
+}
+```
+
+**2.2.3 마이그레이션 생성 및 적용 실습**
+
+EF Core 마이그레이션은 **버전 관리된 스키마 변경 히스토리**를 제공합니다.
+
+```bash
+# 1. 마이그레이션 생성 (스키마 변경사항을 C# 코드로 생성)
+cd IdleRPG.Infrastructure
+dotnet ef migrations add Initial --startup-project ../IdleRPG.API
+
+# 2. 생성된 마이그레이션 파일 확인
+# Migrations/20250927150955_Initial.cs 파일이 생성됨
+
+# 3. 데이터베이스에 적용
+dotnet ef database update --startup-project ../IdleRPG.API
+
+# 4. 추가 마이그레이션 (예: PasswordHash 필드 추가)
+dotnet ef migrations add AddPasswordHash --startup-project ../IdleRPG.API
+dotnet ef database update --startup-project ../IdleRPG.API
+```
+
+**생성된 마이그레이션 파일 구조**:
+
+```csharp
+// Migrations/20250927150955_Initial.cs
+public partial class Initial : Migration
+{
+    protected override void Up(MigrationBuilder migrationBuilder)
+    {
+        // 테이블 생성 SQL이 자동 생성됨
+        migrationBuilder.CreateTable(
+            name: "Players",
+            columns: table => new
+            {
+                Id = table.Column<Guid>(type: "uuid", nullable: false),
+                UserName = table.Column<string>(maxLength: 50, nullable: false),
+                Email = table.Column<string>(maxLength: 50, nullable: false),
+                // ... 기타 컬럼들
+            },
+            constraints: table =>
+            {
+                table.PrimaryKey("PK_Players", x => x.Id);
+            });
+
+        // 인덱스 생성
+        migrationBuilder.CreateIndex(
+            name: "IX_Players_UserName",
+            table: "Players",
+            column: "UserName",
+            unique: true);
+    }
+
+    protected override void Down(MigrationBuilder migrationBuilder)
+    {
+        // 롤백 시 실행될 코드
+        migrationBuilder.DropTable(name: "Players");
+    }
+}
+```
+
+**Unity ScriptableObject vs EF Core Entity 비교**:
+
+```
+Unity ScriptableObject (정적 데이터):
+- Assets 폴더에 .asset 파일로 저장
+- Inspector에서 수동 편집
+- 빌드 시 포함됨
+- 런타임에 읽기 전용
+
+EF Core Entity (동적 데이터):
+- PostgreSQL 데이터베이스에 저장
+- 런타임에 CRUD 작업 가능
+- 마이그레이션으로 스키마 버전 관리
+- 수백만 레코드 처리 가능
+```
+
+**2.2.4 인덱스 전략과 성능 최적화**
+
+```csharp
+// 단일 컬럼 인덱스
+entity.HasIndex(p => p.Email).IsUnique();
+
+// 복합 인덱스 - 두 개 이상의 컬럼 조합
+entity.HasIndex(c => new { c.PlayerId, c.Level });
+// 효과적인 쿼리: WHERE PlayerId = ? AND Level > ?
+
+// 필터링된 인덱스 (PostgreSQL 9.2+)
+entity.HasIndex(p => p.LastLogin)
+      .HasFilter("IsActive = true");  // 활성 사용자만 인덱싱
+
+// Unity의 메모리 접근 vs DB 디스크 접근 비교
+// Unity: List.Find() - O(n) 하지만 나노초 단위
+// DB without index: 테이블 스캔 - O(n) 밀리초 단위
+// DB with index: B-Tree 검색 - O(log n) 마이크로초 단위
 ```
 
 #### 2.3 비즈니스 로직 구현 (45분)
@@ -1694,116 +1879,157 @@ public class PlayerData : MonoBehaviour
 }
 
 // 웹 서버: Entity와 Repository를 통한 상태 관리
+
+// 1. Entity (Domain Layer) - 순수한 도메인 모델
 public class Player
 {
     public Guid Id { get; set; }
-    public string Nickname { get; set; }
-    public int Level { get; set; } = 1;
-    public long Experience { get; set; } = 0;
-
-    // 위치 정보 (3D 좌표를 별도 엔티티로 관리)
-    public PlayerPosition? CurrentPosition { get; set; }
-
-    // 게임 상태
-    public bool IsOnline { get; set; }
+    public string UserName { get; set; }
+    public string Email { get; set; }
+    public string PasswordHash { get; set; }
+    public DateTime CreatedAt { get; set; }
     public DateTime LastLogin { get; set; }
-    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public bool IsActive { get; set; }
 
-    // 게임 진행 상태
-    public GameProgress GameProgress { get; set; } = new();
+    // Navigation Properties
+    public PlayerStats Stats { get; set; }
+    public List<Character> Characters { get; set; }
 
-    // 관계형 데이터 (별도 테이블로 관리)
-    public List<Character> Characters { get; set; } = new();
-    public List<InventoryItem> Inventory { get; set; } = new();
-    public List<PlayerSkill> Skills { get; set; } = new();
-    public List<PlayerBuff> ActiveBuffs { get; set; } = new();
+    // 비즈니스 로직
+    public TimeSpan GetOfflineTime() => DateTime.UtcNow - LastLogin;
+}
 
-    // 통계 데이터
-    public PlayerStatistics Statistics { get; set; } = new();
+// 2. Repository Interface (Domain Layer) - Unity의 추상화와 유사
+public interface IPlayerRepository
+{
+    // Unity의 FindObjectOfType<Player>()와 유사
+    Task<Player?> GetByIdAsync(Guid id);
 
-    // 설정 데이터
-    public PlayerSettings Settings { get; set; } = new();
+    // Unity의 Resources.FindObjectsOfTypeAll<Player>()와 유사
+    Task<IEnumerable<Player>> GetAllAsync();
 
-    // 비즈니스 로직 메서드
-    public bool CanLevelUp()
+    // Unity의 Instantiate()와 유사
+    Task<Player> AddAsync(Player player);
+
+    // Unity의 GameObject 수정과 유사
+    Task UpdateAsync(Player player);
+
+    // Unity의 Destroy()와 유사
+    Task DeleteAsync(Guid id);
+
+    // 도메인 특화 쿼리
+    Task<Player?> GetByUsernameAsync(string username);
+    Task<bool> IsUsernameAvailableAsync(string username);
+    Task<List<Player>> GetActivePlayersAsync();
+}
+
+// 3. Repository Implementation (Infrastructure Layer)
+public class PlayerRepository : IPlayerRepository
+{
+    private readonly GameDBContext _context;
+    private readonly ILogger<PlayerRepository> _logger;
+
+    public PlayerRepository(GameDBContext context, ILogger<PlayerRepository> logger)
     {
-        var requiredExp = CalculateRequiredExperience(Level + 1);
-        return Experience >= requiredExp;
+        _context = context;
+        _logger = logger;
     }
 
-    public LevelUpResult LevelUp()
+    // Include로 관련 데이터 즉시 로딩 (Unity의 GetComponent와 유사)
+    public async Task<Player?> GetByIdAsync(Guid id)
     {
-        if (!CanLevelUp())
-            return LevelUpResult.Failed("Not enough experience");
-
-        var oldLevel = Level;
-        var requiredExp = CalculateRequiredExperience(Level + 1);
-
-        Level++;
-        Experience -= requiredExp;
-
-        var newStats = CalculateStatsForLevel(Level);
-        var rewards = CalculateLevelUpRewards(Level);
-
-        return new LevelUpResult
-        {
-            Success = true,
-            OldLevel = oldLevel,
-            NewLevel = Level,
-            NewStats = newStats,
-            Rewards = rewards
-        };
+        return await _context.Players
+            .Include(p => p.Stats)                              // PlayerStats 포함
+            .Include(p => p.Characters.Where(c => c.IsMain))    // 메인 캐릭터만
+            .FirstOrDefaultAsync(p => p.Id == id);
     }
 
-    private long CalculateRequiredExperience(int targetLevel)
+    public async Task<Player> AddAsync(Player player)
     {
-        // 복잡한 경험치 공식
-        return (long)(100 * Math.Pow(targetLevel, 2.1) + 50 * targetLevel);
+        _context.Players.Add(player);
+        await _context.SaveChangesAsync();
+
+        _logger.LogInformation($"Player created: {player.UserName}");
+        return player;
     }
 
-    private PlayerStats CalculateStatsForLevel(int level)
+    public async Task UpdateAsync(Player player)
     {
-        return new PlayerStats
-        {
-            Health = 100 + (level * 25),
-            Mana = 50 + (level * 15),
-            Attack = 10 + (level * 5),
-            Defense = 5 + (level * 3),
-            Speed = 10 + (level * 2)
-        };
+        _context.Players.Update(player);
+        await _context.SaveChangesAsync();
+
+        _logger.LogInformation($"Player updated: {player.UserName}");
     }
 
-    private List<LevelUpReward> CalculateLevelUpRewards(int level)
+    public async Task DeleteAsync(Guid id)
     {
-        var rewards = new List<LevelUpReward>();
-
-        // 기본 보상
-        rewards.Add(new LevelUpReward
+        var player = await GetByIdAsync(id);
+        if (player != null)
         {
-            Type = RewardType.Gold,
-            Amount = level * 100
-        });
+            _context.Players.Remove(player);
+            await _context.SaveChangesAsync();
 
-        // 특별 레벨 보상
-        if (level % 5 == 0)
-        {
-            rewards.Add(new LevelUpReward
-            {
-                Type = RewardType.Item,
-                ItemId = GetLevelMilestoneReward(level)
-            });
+            _logger.LogInformation($"Player deleted: {id}");
         }
+    }
 
-        if (level % 10 == 0)
+    // 복잡한 쿼리 - 읽기 최적화
+    public async Task<List<Player>> GetActivePlayersAsync()
+    {
+        var cutoffTime = DateTime.UtcNow.AddDays(-7);
+
+        return await _context.Players
+            .AsNoTracking()  // 읽기 전용 최적화
+            .Include(p => p.Stats)
+            .Where(p => p.IsActive && p.LastLogin > cutoffTime)
+            .OrderByDescending(p => p.LastLogin)
+            .ToListAsync();
+    }
+
+    public async Task<Player?> GetByUsernameAsync(string username)
+    {
+        return await _context.Players
+            .Include(p => p.Stats)
+            .FirstOrDefaultAsync(p => p.UserName == username);
+    }
+
+    public async Task<bool> IsUsernameAvailableAsync(string username)
+    {
+        return !await _context.Players.AnyAsync(p => p.UserName == username);
+    }
+
+    public async Task<IEnumerable<Player>> GetAllAsync()
+    {
+        return await _context.Players.ToListAsync();
+    }
+}
+
+// 4. Service Layer - Repository 사용 예시
+public class PlayerService
+{
+    private readonly IPlayerRepository _playerRepository;
+
+    public PlayerService(IPlayerRepository playerRepository)
+    {
+        _playerRepository = playerRepository;
+    }
+
+    public async Task<PlayerDto> GetPlayerInfoAsync(Guid playerId)
+    {
+        // Repository를 통해 데이터 조회
+        var player = await _playerRepository.GetByIdAsync(playerId);
+
+        if (player == null)
+            throw new NotFoundException($"Player {playerId} not found");
+
+        // DTO로 변환
+        return new PlayerDto
         {
-            rewards.Add(new LevelUpReward
-            {
-                Type = RewardType.SkillPoint,
-                Amount = 3
-            });
-        }
-
-        return rewards;
+            Id = player.Id,
+            UserName = player.UserName,
+            Level = player.Stats?.Level ?? 1,
+            OfflineTime = player.GetOfflineTime()
+        };
     }
 }
 
@@ -2386,25 +2612,73 @@ public class SkillService : ISkillService
 
 ```csharp
 // IdleRPG.Domain/Entities/Player.cs - Unity 개발자가 이해하기 쉬운 구조
+// 플레이어 계정 엔티티 (1명의 유저 = 1개의 Player)
 public class Player
 {
     public Guid Id { get; set; }
-    public string Nickname { get; set; }
-    public int Level { get; set; } = 1;
-    public long Experience { get; set; } = 0;
-
-    // Unity의 PlayerPrefs와 유사한 개념
-    public int Gold { get; set; } = 100;
-    public int Gems { get; set; } = 0;
+    public string UserName { get; set; }
+    public string Email { get; set; }
+    public string PasswordHash { get; set; }
 
     // Unity의 게임 오브젝트 활성/비활성과 유사
-    public bool IsOnline { get; set; }
+    public bool IsActive { get; set; }
     public DateTime LastLogin { get; set; }
     public DateTime CreatedAt { get; set; }
 
-    // Unity의 인벤토리 시스템
-    public List<Item> Inventory { get; set; } = new();
+    // 1:1 관계 - 플레이어 계정의 통계 정보
+    public PlayerStats Stats { get; set; }
+
+    // 1:N 관계 - 한 플레이어가 여러 캐릭터 소유 가능
     public List<Character> Characters { get; set; } = new();
+}
+
+// 플레이어 통계 (1:1 관계)
+public class PlayerStats
+{
+    public Guid PlayerId { get; set; }
+    public Player Player { get; set; }
+
+    // Unity의 PlayerPrefs와 유사한 개념
+    public int Level { get; set; } = 1;
+    public long Experience { get; set; } = 0;
+    public int Gold { get; set; } = 1000;
+    public int Gems { get; set; } = 0;
+}
+
+// 캐릭터 엔티티 (플레이어가 소유한 게임 캐릭터)
+public class Character
+{
+    public Guid Id { get; set; }
+    public Guid PlayerId { get; set; }
+    public Player Player { get; set; }
+
+    public string Name { get; set; }
+    public string CharacterClass { get; set; }  // "Warrior", "Mage", "Archer"
+
+    public int Level { get; set; } = 1;
+    public long Experience { get; set; } = 0;
+    public int Health { get; set; } = 100;
+    public int Mana { get; set; } = 50;
+    public int Attack { get; set; } = 10;
+    public int Defense { get; set; } = 5;
+
+    public bool IsMain { get; set; } = false;  // 메인 캐릭터 여부
+
+    // 1:N 관계 - 캐릭터가 인벤토리를 소유
+    public List<PlayerInventory> Inventory { get; set; } = new();
+}
+
+// 인벤토리 아이템 (캐릭터 소유)
+public class PlayerInventory
+{
+    public Guid Id { get; set; }
+    public Guid CharacterId { get; set; }
+    public Character Character { get; set; }
+
+    public int ItemTemplateId { get; set; }  // 아이템 템플릿 참조
+    public int Quantity { get; set; } = 1;
+    public int SlotIndex { get; set; }       // Unity의 인벤토리 슬롯과 유사
+    public DateTime AcquiredAt { get; set; }
 }
 ```
 

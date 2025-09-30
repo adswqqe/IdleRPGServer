@@ -1,6 +1,6 @@
 ﻿using IdleRPG.Application.DTOs.Auth;
-using IdleRPG.Application.DTOs.Contents;
-using IdleRPG.Application.Services;
+using IdleRPG.Application.Auth.Services;
+using IdleRPG.Application.DTOs.Player;
 using IdleRPG.Domain.Repositories;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -19,7 +19,6 @@ namespace IdleRPG.API.Controllers
             _authService = authService;
             _logger = logger;
         }
-
 
         /// <summary>
         /// 회원가입 (Unity의 새 플레이어 생성)
@@ -112,9 +111,6 @@ namespace IdleRPG.API.Controllers
             {
                 Id = Guid.NewGuid(),
                 UserName = "Test",
-                Email = "player.Email",
-                Level = 1,
-                Gold = 0
             });
         }
         

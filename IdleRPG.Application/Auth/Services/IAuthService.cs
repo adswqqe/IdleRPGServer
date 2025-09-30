@@ -1,5 +1,5 @@
-﻿using IdleRPG.Application.DTOs.Auth;
-namespace IdleRPG.Application.Services
+using IdleRPG.Application.DTOs.Auth;
+namespace IdleRPG.Application.Auth.Services
 {
     public interface IAuthService
     {

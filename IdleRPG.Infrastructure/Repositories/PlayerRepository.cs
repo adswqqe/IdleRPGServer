@@ -143,6 +143,22 @@ namespace IdleRPG.Infrastructure.Repositories
             }
         }
 
+        public Task<Player?> GetPlayerWithCharactersForUpdateAsync(Guid playerId)
+        {
+            try
+            {
+                return _context.Players
+                    .Include(p => p.Characters)
+                    .Include(p => p.Stats)
+                    .FirstOrDefaultAsync(p => p.Id == playerId);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                throw;
+            }
+        }
+
         // 복잡한 쿼리 - Unity의 FindObjectsOfType with condition과 유사
         public async Task<List<Player>> GetActivePlayersAsync()
         {

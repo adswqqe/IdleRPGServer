@@ -1,4 +1,6 @@
-using IdleRPG.Application.Services;
+using IdleRPG.Application.Auth.Services;
+using IdleRPG.Application.Players.Services;
+using IdleRPG.Application.Tokens.Services;
 using IdleRPG.Infrastructure.Authentication;
 using IdleRPG.Infrastructure.Data;
 using IdleRPG.Infrastructure.Service;
@@ -56,6 +58,7 @@ builder.Services.AddAuthentication(options =>
 // 서비스 등록
 builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IPlayerService, PlayerService>();
 
 // 🔥 이 부분이 꼭 필요함!
 builder.Services.AddDbContext<GameDBContext>(options =>
@@ -103,6 +106,6 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 // 인증/인가 미들웨어 (순서 중요!)
 app.UseAuthentication(); // 먼저 인증
-//app.UseAuthorization();  // 그 다음 권한 체크
+app.UseAuthorization();  // 그 다음 권한 체크
 app.MapControllers();
 app.Run();

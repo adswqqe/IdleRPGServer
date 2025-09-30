@@ -1,6 +1,8 @@
 ﻿using IdleRPG.Application.DTOs.Auth;
-using IdleRPG.Application.DTOs.Contents;
-using IdleRPG.Application.Services;
+using IdleRPG.Application.Auth.Services;
+using IdleRPG.Application.DTOs.Player;
+using IdleRPG.Application.Players.Services;
+using IdleRPG.Application.Tokens.Services;
 using IdleRPG.Domain.Entities;
 using IdleRPG.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
@@ -11,12 +13,14 @@ namespace IdleRPG.Infrastructure.Service
     {
         private readonly GameDBContext _context;
         private readonly IJwtTokenService _jwtTokenService;
+        private readonly IPlayerService _playerService;
         private readonly ILogger<AuthService> _logger;
 
-        public AuthService(GameDBContext context, IJwtTokenService jwtTokenService, ILogger<AuthService> logger)
+        public AuthService(GameDBContext context, IJwtTokenService jwtTokenService, IPlayerService playerService, ILogger<AuthService> logger)
         {
             _context = context;
             _jwtTokenService = jwtTokenService;
+            _playerService = playerService;
             _logger = logger;
         }
  
@@ -58,9 +62,31 @@ namespace IdleRPG.Infrastructure.Service
                 Gold = 1000,
                 Gems = 10
             };
+
+            player.Characters = new List<Character>()
+            {
+                new Character()
+                {
+                    Id = Guid.NewGuid(),
+                    PlayerId = player.Id,
+                    Player = player,
+                    Name = player.UserName,
+                    CharacterClass = "Warrior",
+                    Level = 1,
+                    Experience = 0,
+                    Attack = 10,
+                     Defense = 0,
+                     Health = 100,
+                     Mana = 10,
+                     CreateAt = DateTime.UtcNow,
+                     IsMain = true,
+                     Inventory = new List<PlayerInventory>(),
+                     OfflineRewards = new List<OfflineReward>(),
+                }
+            };
             
             // 5. 데이터베이스 저장
-            _context.Players.Add(player);
+            await _playerService.CreatePlayer(player);
             await _context.SaveChangesAsync();
             
             _logger.LogInformation($"New player registered: {player.UserName} (ID: {player.Id})");
@@ -154,9 +180,6 @@ namespace IdleRPG.Infrastructure.Service
                 {
                     Id = player.Id,
                     UserName = player.UserName,
-                    Email = player.Email,
-                    Level = player.Stats?.Level ?? 1,
-                    Gold = player.Stats?.Gold ?? 0
                 }
             };
         }

@@ -32,7 +32,10 @@
       "mcp__serena__read_memory",
       "mcp__task-master-ai__get_tasks",
       "Bash(dotnet build)",
-      "mcp__sequential-thinking__sequentialthinking"
+      "mcp__sequential-thinking__sequentialthinking",
+      "Bash(git log:*)",
+      "mcp__serena__get_current_config",
+      "Bash(dotnet run:*)"
     ]
   },
   "enableAllProjectMcpServers": true,

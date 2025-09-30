@@ -1,4 +1,4 @@
-﻿using IdleRPG.Application.DTOs.Contents;
+﻿using IdleRPG.Application.DTOs.Player;
 namespace IdleRPG.Application.DTOs.Auth
 {
     /// <summary>
