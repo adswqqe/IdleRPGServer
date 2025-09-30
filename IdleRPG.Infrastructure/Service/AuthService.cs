@@ -171,11 +171,25 @@ namespace IdleRPG.Infrastructure.Service
         {
             // Access Token 생성 (짧은 수명)
             var accessToken = _jwtTokenService.GenerateAccessToken(player);
+            var refreshTokenValue = _jwtTokenService.GenerateRefreshToken();
+            
+            // RefreshToken을 DB에 저장 (무효화 가능하도록)
+            var refreshToken = new RefreshToken
+            {
+                Token = refreshTokenValue,
+                PlayerId = player.Id,
+                ExpiresAt = DateTime.UtcNow.AddDays(30), // 30일 유효
+                CreatedAt = DateTime.UtcNow
+            };
+            
+            _context.RefreshTokens.Add(refreshToken);
+            await _context.SaveChangesAsync();
+            
             return new AuthResponseDto
             {
                 AccessToken = accessToken,
                 ExpiresAt = DateTime.UtcNow.AddMinutes(60),
-                RefreshToken = _jwtTokenService.GenerateRefreshToken(),
+                RefreshToken = refreshTokenValue,
                 Player = new PlayerDto
                 {
                     Id = player.Id,
