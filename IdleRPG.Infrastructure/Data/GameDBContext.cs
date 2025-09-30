@@ -164,7 +164,7 @@ private void ConfigureOfflineRewardEntity(ModelBuilder modelBuilder)
             entity.Property(c => c.Attack).HasDefaultValue(10);
             entity.Property(c => c.Defense).HasDefaultValue(0);
             
-            entity.Property(c => c.CreateAt)
+            entity.Property(c => c.CreatedAt)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP");
         });
     }

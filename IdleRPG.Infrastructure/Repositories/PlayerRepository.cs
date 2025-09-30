@@ -61,38 +61,38 @@ namespace IdleRPG.Infrastructure.Repositories
         }
 
         public async Task<Player> AddAsync(Player player)
+    {
+        try
         {
-            try
-            {
-                _context.Players.Add(player);
-                await _context.SaveChangesAsync();
+            _context.Players.Add(player);
+            // SaveChanges는 Service Layer에서 호출
             
-                _logger.LogInformation($"Player created: {player.UserName} (ID: {player.Id})");
-                return player;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, $"Error creating player: {player.UserName}");
-                throw;
-            }
+            _logger.LogInformation($"Player added to context: {player.UserName} (ID: {player.Id})");
+            return player;
         }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, $"Error adding player to context: {player.UserName}");
+            throw;
+        }
+    }
         
         // Unity의 GameObject 수정과 유사
         public async Task UpdateAsync(Player player)
+    {
+        try
         {
-            try
-            {
-                _context.Players.Update(player);
-                await _context.SaveChangesAsync();
+            _context.Players.Update(player);
+            // SaveChanges는 Service Layer에서 호출
             
-                _logger.LogInformation($"Player updated: {player.UserName}");
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, $"Error updating player: {player.Id}");
-                throw;
-            }
+            _logger.LogInformation($"Player updated in context: {player.UserName}");
         }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, $"Error updating player in context: {player.Id}");
+            throw;
+        }
+    }
         
         public async Task<IEnumerable<Player>> FindAsync(Expression<Func<Player, bool>> predicate)
         {

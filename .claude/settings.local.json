@@ -38,7 +38,11 @@
       "Bash(dotnet run:*)",
       "mcp__serena__search_for_pattern",
       "mcp__serena__list_memories",
-      "mcp__serena__replace_regex"
+      "mcp__serena__replace_regex",
+      "Bash(dotnet ef migrations add:*)",
+      "Bash(dotnet ef database update:*)",
+      "Bash(docker ps:*)",
+      "Bash(dotnet build:*)"
     ]
   },
   "enableAllProjectMcpServers": true,

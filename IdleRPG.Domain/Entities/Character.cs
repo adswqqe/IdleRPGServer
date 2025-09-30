@@ -20,7 +20,7 @@ namespace IdleRPG.Domain.Entities
         public int Attack { get; set; }
         public int Defense { get; set; }
 
-        public DateTime CreateAt { get; set; } = DateTime.UtcNow;
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public bool IsMain { get; set; } = false;
         public List<PlayerInventory> Inventory { get; set; } = new();
         public List<OfflineReward> OfflineRewards { get; set; } = new();

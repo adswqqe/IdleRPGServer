@@ -62,7 +62,6 @@ builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IPlayerService, PlayerService>();
 builder.Services.AddScoped<IPlayerRepository, PlayerRepository>();
-builder.Services.AddScoped<IPlayerRepository, PlayerRepository>();
 
 // 🔥 이 부분이 꼭 필요함!
 builder.Services.AddDbContext<GameDBContext>(options =>

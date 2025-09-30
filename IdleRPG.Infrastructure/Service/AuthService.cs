@@ -28,6 +28,11 @@ namespace IdleRPG.Infrastructure.Service
         /// 회원가입 - Unity의 새 플레이어 생성과 유사
         /// </summary>
         public async Task<AuthResponseDto> RegisterAsync(RegisterDto dto)
+    {
+        // 트랜잭션 시작
+        using var transaction = await _context.Database.BeginTransactionAsync();
+        
+        try
         {
             // 1. 중복 체크 (유효성 검증)
             if (await _context.Players.AnyAsync(p => p.UserName == dto.Username))
@@ -42,8 +47,8 @@ namespace IdleRPG.Infrastructure.Service
 
             // 2. 비밀번호 해싱 (절대 평문 저장 금지!)
             var passwordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password);
-            // 3. 플레이어 엔티티 생성
             
+            // 3. 플레이어 엔티티 생성
             var player = new Player
             {
                 UserName = dto.Username,
@@ -63,6 +68,7 @@ namespace IdleRPG.Infrastructure.Service
                 Gems = 10
             };
 
+            // 5. 기본 캐릭터 생성
             player.Characters = new List<Character>()
             {
                 new Character()
@@ -75,57 +81,92 @@ namespace IdleRPG.Infrastructure.Service
                     Level = 1,
                     Experience = 0,
                     Attack = 10,
-                     Defense = 0,
-                     Health = 100,
-                     Mana = 10,
-                     CreateAt = DateTime.UtcNow,
-                     IsMain = true,
-                     Inventory = new List<PlayerInventory>(),
-                     OfflineRewards = new List<OfflineReward>(),
+                    Defense = 0,
+                    Health = 100,
+                    Mana = 10,
+                    CreatedAt = DateTime.UtcNow,
+                    IsMain = true,
+                    Inventory = new List<PlayerInventory>(),
+                    OfflineRewards = new List<OfflineReward>(),
                 }
             };
             
-            // 5. 데이터베이스 저장
-            await _playerService.CreatePlayer(player);
+            // 6. Player, Stats, Character를 메모리에 추가
+            _context.Players.Add(player);
+            
+            // 7. DB에 저장
             await _context.SaveChangesAsync();
             
             _logger.LogInformation($"New player registered: {player.UserName} (ID: {player.Id})");
             
-            // 6. 토큰 생성 및 반환
-            return await GenerateAuthResponse(player);
+            // 8. 토큰 생성 (RefreshToken도 저장됨)
+            var response = await GenerateAuthResponse(player);
+            
+            // 9. 모든 작업 성공 → 트랜잭션 커밋
+            await transaction.CommitAsync();
+            
+            return response;
         }
+        catch (Exception ex)
+        {
+            // 10. 에러 발생 → 트랜잭션 롤백
+            await transaction.RollbackAsync();
+            
+            _logger.LogError(ex, $"Failed to register player: {dto.Username}");
+            throw;
+        }
+    }
 
         /// <summary>
         /// 로그인 - Unity의 플레이어 인증과 유사
         /// </summary>
         public async Task<AuthResponseDto> LoginAsync(LoginDto dto)
         {
-            // 1. 사용자 조회
-            var player = await _context.Players
-                .Include(p => p.Stats)
-                .FirstOrDefaultAsync(p => p.UserName == dto.Username);
+            // 트랜잭션 시작
+            using var transaction = await _context.Database.BeginTransactionAsync();
             
-            if (player == null)
+            try
             {
-                _logger.LogWarning($"Login failed: User not found ({dto.Username})");
-                throw new UnauthorizedAccessException("Invalid username or password");
+                // 1. 사용자 조회
+                var player = await _context.Players
+                    .Include(p => p.Stats)
+                    .FirstOrDefaultAsync(p => p.UserName == dto.Username);
+                
+                if (player == null)
+                {
+                    _logger.LogWarning($"Login failed: User not found ({dto.Username})");
+                    throw new UnauthorizedAccessException("Invalid username or password");
+                }
+                
+                // 2. 비밀번호 검증
+                if (!BCrypt.Net.BCrypt.Verify(dto.Password, player.PasswordHash))
+                {
+                    _logger.LogWarning($"Login failed: Wrong password for user {dto.Username}");
+                    throw new UnauthorizedAccessException("Invalid username or password");
+                }
+                
+                // 3. 마지막 로그인 시간 업데이트
+                player.LastLogin = DateTime.UtcNow;
+                
+                // 4. 토큰 생성 (RefreshToken을 메모리에 추가)
+                var response = await GenerateAuthResponse(player);
+                
+                // 5. DB에 저장 (LastLogin + RefreshToken)
+                await _context.SaveChangesAsync();
+                
+                _logger.LogInformation($"Player logged in: {player.UserName} (ID: {player.Id})");
+                
+                // 6. 트랜잭션 커밋
+                await transaction.CommitAsync();
+                
+                return response;
             }
-            
-            // 2. 비밀번호 검증
-            if (!BCrypt.Net.BCrypt.Verify(dto.Password, player.PasswordHash))
+            catch (Exception ex)
             {
-                _logger.LogWarning($"Login failed: Wrong password for user {dto.Username}");
-                throw new UnauthorizedAccessException("Invalid username or password");
+                await transaction.RollbackAsync();
+                _logger.LogError(ex, $"Failed to login: {dto.Username}");
+                throw;
             }
-            
-            // 3. 마지막 로그인 시간 업데이트
-            player.LastLogin = DateTime.UtcNow;
-            await _context.SaveChangesAsync();
-            
-            _logger.LogInformation($"Player logged in: {player.UserName} (ID: {player.Id})");
-            
-            // 4. 토큰 생성 및 반환
-            return await GenerateAuthResponse(player); 
         }
 
         /// <summary>
@@ -134,19 +175,39 @@ namespace IdleRPG.Infrastructure.Service
         /// </summary>
         public async Task<AuthResponseDto> RefreshTokenAsync(string refreshToken)
         {
-            // 1. Refresh Token 조회
-            var storedToken = await _context.RefreshTokens
-                .Include(rt => rt.Player)
-                .ThenInclude(p => p.Stats)
-                .FirstOrDefaultAsync(rt => rt.Token == refreshToken);
+            // 트랜잭션 시작
+            using var transaction = await _context.Database.BeginTransactionAsync();
             
-            if (storedToken == null || !storedToken.IsActive)
+            try
             {
-                throw new UnauthorizedAccessException("Invalid refresh token");
+                // 1. Refresh Token 조회
+                var storedToken = await _context.RefreshTokens
+                    .Include(rt => rt.Player)
+                    .ThenInclude(p => p.Stats)
+                    .FirstOrDefaultAsync(rt => rt.Token == refreshToken);
+                
+                if (storedToken == null || !storedToken.IsActive)
+                {
+                    throw new UnauthorizedAccessException("Invalid refresh token");
+                }
+                
+                // 2. 새 토큰 생성 (새 RefreshToken을 메모리에 추가)
+                var response = await GenerateAuthResponse(storedToken.Player);
+                
+                // 3. DB에 저장 (새 RefreshToken)
+                await _context.SaveChangesAsync();
+                
+                // 4. 트랜잭션 커밋
+                await transaction.CommitAsync();
+                
+                return response;
             }
-            
-            // 3. 새 토큰 생성
-            return await GenerateAuthResponse(storedToken.Player);
+            catch (Exception ex)
+            {
+                await transaction.RollbackAsync();
+                _logger.LogError(ex, "Failed to refresh token");
+                throw;
+            }
         }
 
         /// <summary>
@@ -173,7 +234,7 @@ namespace IdleRPG.Infrastructure.Service
             var accessToken = _jwtTokenService.GenerateAccessToken(player);
             var refreshTokenValue = _jwtTokenService.GenerateRefreshToken();
             
-            // RefreshToken을 DB에 저장 (무효화 가능하도록)
+            // RefreshToken을 메모리에 추가 (SaveChanges는 호출자가 담당)
             var refreshToken = new RefreshToken
             {
                 Token = refreshTokenValue,
@@ -183,7 +244,7 @@ namespace IdleRPG.Infrastructure.Service
             };
             
             _context.RefreshTokens.Add(refreshToken);
-            await _context.SaveChangesAsync();
+            // SaveChanges는 호출자(Service Layer)에서 처리
             
             return new AuthResponseDto
             {
