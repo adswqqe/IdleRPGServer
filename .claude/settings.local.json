@@ -42,7 +42,12 @@
       "Bash(dotnet ef migrations add:*)",
       "Bash(dotnet ef database update:*)",
       "Bash(docker ps:*)",
-      "Bash(dotnet build:*)"
+      "Bash(dotnet build:*)",
+      "Bash(dotnet ef database drop:*)",
+      "Bash(cat:*)",
+      "Bash(task-master parse-prd:*)",
+      "Bash(task-master list:*)",
+      "mcp__task-master-ai__get_task"
     ]
   },
   "enableAllProjectMcpServers": true,

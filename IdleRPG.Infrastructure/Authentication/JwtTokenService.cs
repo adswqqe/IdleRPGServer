@@ -41,8 +41,6 @@ namespace IdleRPG.Infrastructure.Authentication
                 // 커스텀 클레임 (게임 정보)
                 new Claim(ClaimTypes.NameIdentifier, player.Id.ToString()),
                 new Claim(ClaimTypes.Name, player.UserName),
-                new Claim(ClaimTypes.Email, player.Email),
-                new Claim("Level", player.Stats?.Level.ToString() ?? "1"),
 
                 // 권한 (일반 유저 / 관리자 등)
                 new Claim(ClaimTypes.Role, "Player")

@@ -3,6 +3,7 @@ using System;
 using IdleRPG.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace IdleRPG.Infrastructure.Migrations
 {
     [DbContext(typeof(GameDBContext))]
-    partial class GameDBContextModelSnapshot : ModelSnapshot
+    [Migration("20251001072028_InitialCreate")]
+    partial class InitialCreate
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -21,34 +24,6 @@ namespace IdleRPG.Infrastructure.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
-
-            modelBuilder.Entity("IdleRPG.Domain.Entities.Character", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<int>("Experience")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("Level")
-                        .HasColumnType("integer");
-
-                    b.Property<Guid>("PlayerId")
-                        .HasColumnType("uuid");
-
-                    b.Property<DateTime>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("PlayerId");
-
-                    b.ToTable("Characters", (string)null);
-                });
 
             modelBuilder.Entity("IdleRPG.Domain.Entities.Player", b =>
                 {
@@ -121,49 +96,6 @@ namespace IdleRPG.Infrastructure.Migrations
                     b.ToTable("RefreshTokens");
                 });
 
-            modelBuilder.Entity("IdleRPG.Domain.Entities.Character", b =>
-                {
-                    b.HasOne("IdleRPG.Domain.Entities.Player", "Player")
-                        .WithMany("Characters")
-                        .HasForeignKey("PlayerId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.OwnsOne("IdleRPG.Domain.ValueObjects.CharacterStats", "Stats", b1 =>
-                        {
-                            b1.Property<Guid>("CharacterId")
-                                .HasColumnType("uuid");
-
-                            b1.Property<int>("Dexterity")
-                                .HasColumnType("integer")
-                                .HasColumnName("Dexterity");
-
-                            b1.Property<int>("Intelligence")
-                                .HasColumnType("integer")
-                                .HasColumnName("Intelligence");
-
-                            b1.Property<int>("Strength")
-                                .HasColumnType("integer")
-                                .HasColumnName("Strength");
-
-                            b1.Property<int>("Vitality")
-                                .HasColumnType("integer")
-                                .HasColumnName("Vitality");
-
-                            b1.HasKey("CharacterId");
-
-                            b1.ToTable("Characters");
-
-                            b1.WithOwner()
-                                .HasForeignKey("CharacterId");
-                        });
-
-                    b.Navigation("Player");
-
-                    b.Navigation("Stats")
-                        .IsRequired();
-                });
-
             modelBuilder.Entity("IdleRPG.Domain.Entities.RefreshToken", b =>
                 {
                     b.HasOne("IdleRPG.Domain.Entities.Player", "Player")
@@ -173,11 +105,6 @@ namespace IdleRPG.Infrastructure.Migrations
                         .IsRequired();
 
                     b.Navigation("Player");
-                });
-
-            modelBuilder.Entity("IdleRPG.Domain.Entities.Player", b =>
-                {
-                    b.Navigation("Characters");
                 });
 #pragma warning restore 612, 618
         }

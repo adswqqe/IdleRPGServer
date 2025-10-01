@@ -1,5 +1,5 @@
-﻿using IdleRPG.Domain.Repositories;
 using System.ComponentModel.DataAnnotations;
+
 namespace IdleRPG.Domain.Entities
 {
     public class Player
@@ -9,25 +9,14 @@ namespace IdleRPG.Domain.Entities
         [Required, MaxLength(50)]
         public string UserName { get; set; }
 
-        [Required, EmailAddress, MaxLength(50)]
-        public string Email { get; set; }
+        [Required, MaxLength(100)]
         public string PasswordHash { get; set; }
 
-        public DateTime CreatedAt { get; set; }
-        public DateTime LastLogin { get; set; }
-        public bool IsActive { get; set; }
-        
-        public int CurrentStage { get; set; }
-        public long TotalIdleTime { get; set; }
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        public DateTime LastLoginAt { get; set; }
+        public bool IsActive { get; set; } = true;
 
-        // Navigation Properties
-        public PlayerStats Stats { get; set; }
-        // 🆕 추가: Player가 여러 Character를 가질 수 있음 (1:N 관계)
-        public List<Character> Characters { get; set; }
-
-        public TimeSpan GetOfflineTime()
-        {
-            return DateTime.UtcNow - LastLogin;
-        }
+        // Navigation Properties (Week 1에서 Character 추가 예정)
+        public List<Character> Characters;
     }
 }

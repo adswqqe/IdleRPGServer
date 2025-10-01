@@ -1,7 +1,5 @@
 ﻿using IdleRPG.Application.DTOs.Auth;
 using IdleRPG.Application.Auth.Services;
-using IdleRPG.Application.DTOs.Player;
-using IdleRPG.Domain.Repositories;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
@@ -103,14 +101,17 @@ namespace IdleRPG.API.Controllers
         /// </summary>
         [HttpGet("profile")]
         [Authorize]  // JWT 토큰 필수!
-        [ProducesResponseType(typeof(PlayerDto), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(AuthResponseDto), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        public async Task<IActionResult> GetProfile()
+        public IActionResult GetProfile()
         {
-            return Ok(new PlayerDto
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var userName = User.FindFirstValue(ClaimTypes.Name);
+
+            return Ok(new
             {
-                Id = Guid.NewGuid(),
-                UserName = "Test",
+                UserId = userId,
+                UserName = userName
             });
         }
         

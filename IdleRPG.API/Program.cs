@@ -1,10 +1,7 @@
 using IdleRPG.Application.Auth.Services;
-using IdleRPG.Application.Players.Services;
 using IdleRPG.Application.Tokens.Services;
-using IdleRPG.Domain.Repositories;
 using IdleRPG.Infrastructure.Authentication;
 using IdleRPG.Infrastructure.Data;
-using IdleRPG.Infrastructure.Repositories;
 using IdleRPG.Infrastructure.Service;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
@@ -60,8 +57,9 @@ builder.Services.AddAuthentication(options =>
 // 서비스 등록
 builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
-builder.Services.AddScoped<IPlayerService, PlayerService>();
-builder.Services.AddScoped<IPlayerRepository, PlayerRepository>();
+
+// Repository 등록
+builder.Services.AddScoped<IdleRPG.Domain.Repositories.ICharacterRepository, IdleRPG.Infrastructure.Repositories.CharacterRepository>();
 
 // 🔥 이 부분이 꼭 필요함!
 builder.Services.AddDbContext<GameDBContext>(options =>

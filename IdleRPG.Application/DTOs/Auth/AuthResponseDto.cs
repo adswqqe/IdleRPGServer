@@ -1,4 +1,3 @@
-﻿using IdleRPG.Application.DTOs.Player;
 namespace IdleRPG.Application.DTOs.Auth
 {
     /// <summary>
@@ -9,6 +8,7 @@ namespace IdleRPG.Application.DTOs.Auth
         public string AccessToken { get; set; }
         public string RefreshToken { get; set; }
         public DateTime ExpiresAt { get; set; }
-        public PlayerDto Player { get; set; }
+        public Guid PlayerId { get; set; }
+        public string UserName { get; set; }
     }
 }
