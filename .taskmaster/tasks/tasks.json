@@ -114,7 +114,7 @@
             "description": "Character 도메인 엔티티와 스탯 관련 Value Objects를 정의하고 데이터베이스 모델링 수행",
             "dependencies": [],
             "details": "IdleRPG.Domain/Entities에 Character 엔티티 생성 (Id, PlayerId, Name, Level, Experience, CreatedAt, UpdatedAt). CharacterStats Value Object 정의 (Strength, Dexterity, Intelligence, Vitality). Player와의 1:N 관계 설정. EF Core 구성을 위한 CharacterConfiguration 클래스 작성",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "엔티티 속성 검증, 관계 매핑 테스트, Value Object 불변성 테스트"
           },
           {
@@ -125,7 +125,7 @@
               "9.1"
             ],
             "details": "IdleRPG.Domain/Repositories에 ICharacterRepository 인터페이스 정의 (GetByIdAsync, GetByPlayerIdAsync, CreateAsync, UpdateAsync, DeleteAsync, GetByNameAsync). IdleRPG.Infrastructure/Repositories에 CharacterRepository 구현체 작성. EF Core DbContext에 Character DbSet 추가",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Repository 메서드별 단위 테스트, 데이터베이스 쿼리 성능 테스트"
           },
           {
@@ -457,7 +457,7 @@
     ],
     "metadata": {
       "created": "2025-10-01T07:23:55.277Z",
-      "updated": "2025-10-01T07:23:55.277Z",
+      "updated": "2025-10-01T12:14:09.363Z",
       "description": "Tasks for master context"
     }
   }

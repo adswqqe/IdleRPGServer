@@ -48,7 +48,9 @@
       "Bash(task-master parse-prd:*)",
       "Bash(task-master list:*)",
       "mcp__task-master-ai__get_task",
-      "mcp__serena__find_symbol"
+      "mcp__serena__find_symbol",
+      "mcp__task-master-ai__set_task_status",
+      "mcp__task-master-ai__next_task"
     ]
   },
   "enableAllProjectMcpServers": true,
