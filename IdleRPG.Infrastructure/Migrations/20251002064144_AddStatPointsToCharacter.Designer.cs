@@ -3,6 +3,7 @@ using System;
 using IdleRPG.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace IdleRPG.Infrastructure.Migrations
 {
     [DbContext(typeof(GameDBContext))]
-    partial class GameDBContextModelSnapshot : ModelSnapshot
+    [Migration("20251002064144_AddStatPointsToCharacter")]
+    partial class AddStatPointsToCharacter
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -53,58 +56,6 @@ namespace IdleRPG.Infrastructure.Migrations
                     b.ToTable("Characters", (string)null);
                 });
 
-            modelBuilder.Entity("IdleRPG.Domain.Entities.ItemTemplate", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<int>("BonusDexterity")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("BonusIntelligence")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("BonusStrength")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("BonusVitality")
-                        .HasColumnType("integer");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("Description")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<int?>("EquipmentSlot")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("ExpBonus")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("HpRestore")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("MaxStack")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<int>("SellPrice")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("Type")
-                        .HasColumnType("integer");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("ItemTemplates");
-                });
-
             modelBuilder.Entity("IdleRPG.Domain.Entities.Player", b =>
                 {
                     b.Property<Guid>("Id")
@@ -142,41 +93,6 @@ namespace IdleRPG.Infrastructure.Migrations
                         .IsUnique();
 
                     b.ToTable("Players");
-                });
-
-            modelBuilder.Entity("IdleRPG.Domain.Entities.PlayerItem", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid?>("EquippedCharacterId")
-                        .HasColumnType("uuid");
-
-                    b.Property<bool>("IsEquipped")
-                        .HasColumnType("boolean");
-
-                    b.Property<Guid>("ItemTemplateId")
-                        .HasColumnType("uuid");
-
-                    b.Property<DateTime>("ObtainedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<Guid>("PlayerId")
-                        .HasColumnType("uuid");
-
-                    b.Property<int>("Quantity")
-                        .HasColumnType("integer");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("EquippedCharacterId");
-
-                    b.HasIndex("ItemTemplateId");
-
-                    b.HasIndex("PlayerId");
-
-                    b.ToTable("PlayerItems");
                 });
 
             modelBuilder.Entity("IdleRPG.Domain.Entities.RefreshToken", b =>
@@ -252,31 +168,6 @@ namespace IdleRPG.Infrastructure.Migrations
 
                     b.Navigation("Stats")
                         .IsRequired();
-                });
-
-            modelBuilder.Entity("IdleRPG.Domain.Entities.PlayerItem", b =>
-                {
-                    b.HasOne("IdleRPG.Domain.Entities.Character", "EquippedCharacter")
-                        .WithMany()
-                        .HasForeignKey("EquippedCharacterId");
-
-                    b.HasOne("IdleRPG.Domain.Entities.ItemTemplate", "ItemTemplate")
-                        .WithMany()
-                        .HasForeignKey("ItemTemplateId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("IdleRPG.Domain.Entities.Player", "Player")
-                        .WithMany()
-                        .HasForeignKey("PlayerId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("EquippedCharacter");
-
-                    b.Navigation("ItemTemplate");
-
-                    b.Navigation("Player");
                 });
 
             modelBuilder.Entity("IdleRPG.Domain.Entities.RefreshToken", b =>

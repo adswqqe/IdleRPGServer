@@ -57,8 +57,10 @@ builder.Services.AddAuthentication(options =>
 // 서비스 등록
 builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IdleRPG.Application.Character.Services.ICharacterService, IdleRPG.Infrastructure.Service.CharacterService>();
 
 // Repository 등록
+builder.Services.AddScoped<IdleRPG.Domain.Repositories.IPlayerRepository, IdleRPG.Infrastructure.Repositories.PlayerRepository>();
 builder.Services.AddScoped<IdleRPG.Domain.Repositories.ICharacterRepository, IdleRPG.Infrastructure.Repositories.CharacterRepository>();
 
 // 🔥 이 부분이 꼭 필요함!

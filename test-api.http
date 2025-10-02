@@ -1,0 +1,68 @@
+### 1. 회원가입
+POST https://localhost:7122/api/auth/register
+Content-Type: application/json
+
+{
+  "username": "testuser",
+  "email": "test@example.com",
+  "password": "Test1234!",
+  "confirmPassword": "Test1234!"
+}
+
+### 2. 로그인
+POST https://localhost:7122/api/auth/login
+Content-Type: application/json
+
+{
+  "username": "testuser",
+  "password": "Test1234!"
+}
+
+### 3. 토큰 갱신
+POST https://localhost:7122/api/auth/refresh
+Content-Type: application/json
+
+{
+  "refreshToken": "여기에_리프레시_토큰_붙여넣기"
+}
+
+### 4. 캐릭터 생성 (토큰 필요)
+POST https://localhost:7122/api/character
+Content-Type: application/json
+Authorization: Bearer 여기에_액세스_토큰_붙여넣기
+
+{
+}
+
+### 5. 캐릭터 목록 조회
+GET https://localhost:7122/api/character
+Authorization: Bearer 여기에_액세스_토큰_붙여넣기
+
+### 6. 특정 캐릭터 조회
+GET https://localhost:7122/api/character/캐릭터ID_여기에
+Authorization: Bearer 여기에_액세스_토큰_붙여넣기
+
+### 7. 캐릭터 삭제
+DELETE https://localhost:7122/api/character/캐릭터ID_여기에
+Authorization: Bearer 여기에_액세스_토큰_붙여넣기
+
+### 8. 경험치 획득 (레벨업 테스트)
+POST https://localhost:7122/api/character/캐릭터ID_여기에/experience
+Content-Type: application/json
+Authorization: Bearer 여기에_액세스_토큰_붙여넣기
+
+{
+  "amount": 150
+}
+
+### 9. 스탯 분배
+PUT https://localhost:7122/api/character/캐릭터ID_여기에/stats
+Content-Type: application/json
+Authorization: Bearer 여기에_액세스_토큰_붙여넣기
+
+{
+  "strength": 2,
+  "dexterity": 1,
+  "intelligence": 1,
+  "vitality": 1
+}

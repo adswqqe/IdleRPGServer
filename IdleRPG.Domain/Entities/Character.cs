@@ -11,6 +11,7 @@ namespace IdleRPG.Domain.Entities
 
         public int Level { get; set; } = 1;
         public int Experience { get; set; } = 0;
+        public int StatPoints { get; set; } = 0;
 
         public CharacterStats Stats { get; set; }
 

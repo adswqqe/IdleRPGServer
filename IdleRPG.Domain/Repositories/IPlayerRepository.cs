@@ -14,5 +14,8 @@ namespace IdleRPG.Domain.Repositories
         // 복잡한 쿼리들
         Task<List<Player>> GetActivePlayersAsync();
         Task<List<Player>> GetPlayersWithOfflineRewardsAsync();
+        
+        // SaveChanges
+        Task<int> SaveChangesAsync();
     }
 }

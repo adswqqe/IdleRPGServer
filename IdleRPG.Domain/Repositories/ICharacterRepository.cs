@@ -2,13 +2,18 @@
 
 namespace IdleRPG.Domain.Repositories
 {
-    public interface ICharacterRepository
+    public interface ICharacterRepository : IRepository<Character>
     {
+        // Character 전용 메서드들
         Task<Character?> GetByIdAsync(Guid id);
         Task<List<Character>> GetByPlayerIdAsync(Guid playerId);
-        Task AddAsync(Character character);
-        void Update(Character character);
-        void Delete(Character character);
         Task<bool> ExistsAsync(Guid id);
-    }
+        Task<int> CountByPlayerIdAsync(Guid playerId);
+        
+        // 기본 CRUD (IRepository에서 상속받지만 명시적으로 선언)
+        void Delete(Character character);
+        
+        // SaveChanges
+        Task<int> SaveChangesAsync();
+    } 
 }

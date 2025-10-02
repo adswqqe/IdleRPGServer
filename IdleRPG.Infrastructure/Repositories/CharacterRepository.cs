@@ -12,7 +12,7 @@ namespace IdleRPG.Infrastructure.Repositories
         {
             _context = context;
         }
-        
+
         public Task<Character?> GetByIdAsync(Guid id)
         {
             return _context.Characters.SingleOrDefaultAsync(c => c.Id == id);
@@ -23,9 +23,26 @@ namespace IdleRPG.Infrastructure.Repositories
             return _context.Characters.Where(c => c.PlayerId == playerId).ToListAsync();
         }
 
-        public async Task AddAsync(Character character)
+        public async Task<Character> AddAsync(Character character)
         {
             await _context.Characters.AddAsync(character);
+            return character;
+        }
+
+        public async Task<IEnumerable<Character>> GetAllAsync()
+        {
+            return await _context.Characters.ToListAsync();
+        }
+
+        public async Task UpdateAsync(Character character)
+        {
+            _context.Characters.Update(character);
+            await Task.CompletedTask;
+        }
+
+        public async Task<IEnumerable<Character>> FindAsync(System.Linq.Expressions.Expression<Func<Character, bool>> predicate)
+        {
+            return await _context.Characters.Where(predicate).ToListAsync();
         }
 
         public void Update(Character character)
@@ -41,6 +58,16 @@ namespace IdleRPG.Infrastructure.Repositories
         public Task<bool> ExistsAsync(Guid id)
         {
             return _context.Characters.AnyAsync(c => c.Id == id);
+        }
+
+        public Task<int> CountByPlayerIdAsync(Guid playerId)
+        {
+            return _context.Characters.Where(c => c.PlayerId == playerId).CountAsync();
+        }
+
+        public Task<int> SaveChangesAsync()
+        {
+            return _context.SaveChangesAsync();
         }
     }
 }

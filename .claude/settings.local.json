@@ -52,7 +52,8 @@
       "mcp__task-master-ai__set_task_status",
       "mcp__task-master-ai__next_task",
       "Bash(dotnet ef migrations:*)",
-      "mcp__serena__delete_memory"
+      "mcp__serena__delete_memory",
+      "mcp__serena__create_text_file"
     ]
   },
   "enableAllProjectMcpServers": true,
@@ -60,5 +61,6 @@
     "project-filesystem",
     "project-memory",
     "project-unity"
-  ]
+  ],
+  "outputStyle": "Learning"
 }
