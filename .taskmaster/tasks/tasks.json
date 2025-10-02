@@ -9,7 +9,7 @@
         "testStrategy": "다양한 로그 레벨로 테스트 메시지 작성, 로그 파일 생성 확인, JSON 형식 검증",
         "priority": "high",
         "dependencies": [],
-        "status": "pending",
+        "status": "deferred",
         "subtasks": []
       },
       {
@@ -22,7 +22,7 @@
         "dependencies": [
           1
         ],
-        "status": "pending",
+        "status": "deferred",
         "subtasks": []
       },
       {
@@ -35,7 +35,7 @@
         "dependencies": [
           1
         ],
-        "status": "pending",
+        "status": "deferred",
         "subtasks": []
       },
       {
@@ -46,7 +46,7 @@
         "testStrategy": "샘플 DTO에 검증 규칙 적용하여 정상/오류 케이스 테스트",
         "priority": "high",
         "dependencies": [],
-        "status": "pending",
+        "status": "deferred",
         "subtasks": []
       },
       {
@@ -57,7 +57,7 @@
         "testStrategy": "기본 매핑 시나리오 테스트, 복잡한 객체 그래프 매핑 검증",
         "priority": "medium",
         "dependencies": [],
-        "status": "pending",
+        "status": "deferred",
         "subtasks": []
       },
       {
@@ -68,7 +68,7 @@
         "testStrategy": "Swagger UI에서 API 호출 테스트, JWT 인증 헤더 테스트",
         "priority": "medium",
         "dependencies": [],
-        "status": "pending",
+        "status": "deferred",
         "subtasks": []
       },
       {
@@ -79,7 +79,7 @@
         "testStrategy": "Unity에서 API 호출 시 CORS 에러 없음 확인, 브라우저 개발자 도구로 헤더 검증",
         "priority": "high",
         "dependencies": [],
-        "status": "pending",
+        "status": "deferred",
         "subtasks": []
       },
       {
@@ -93,7 +93,7 @@
           2,
           4
         ],
-        "status": "pending",
+        "status": "deferred",
         "subtasks": []
       },
       {
@@ -106,7 +106,7 @@
         "dependencies": [
           8
         ],
-        "status": "pending",
+        "status": "deferred",
         "subtasks": [
           {
             "id": 1,
@@ -184,7 +184,7 @@
         "dependencies": [
           9
         ],
-        "status": "pending",
+        "status": "deferred",
         "subtasks": []
       },
       {
@@ -197,7 +197,7 @@
         "dependencies": [
           10
         ],
-        "status": "pending",
+        "status": "deferred",
         "subtasks": []
       },
       {
@@ -210,7 +210,7 @@
         "dependencies": [
           11
         ],
-        "status": "pending",
+        "status": "deferred",
         "subtasks": []
       },
       {
@@ -223,7 +223,7 @@
         "dependencies": [
           9
         ],
-        "status": "pending",
+        "status": "deferred",
         "subtasks": []
       },
       {
@@ -237,7 +237,7 @@
           12,
           13
         ],
-        "status": "pending",
+        "status": "deferred",
         "subtasks": []
       },
       {
@@ -250,7 +250,7 @@
         "dependencies": [
           14
         ],
-        "status": "pending",
+        "status": "deferred",
         "subtasks": []
       },
       {
@@ -263,7 +263,7 @@
         "dependencies": [
           14
         ],
-        "status": "pending",
+        "status": "deferred",
         "subtasks": []
       },
       {
@@ -276,7 +276,7 @@
         "dependencies": [
           16
         ],
-        "status": "pending",
+        "status": "deferred",
         "subtasks": []
       },
       {
@@ -289,7 +289,7 @@
         "dependencies": [
           15
         ],
-        "status": "pending",
+        "status": "deferred",
         "subtasks": []
       },
       {
@@ -302,7 +302,7 @@
         "dependencies": [
           18
         ],
-        "status": "pending",
+        "status": "deferred",
         "subtasks": []
       },
       {
@@ -315,7 +315,7 @@
         "dependencies": [
           19
         ],
-        "status": "pending",
+        "status": "deferred",
         "subtasks": []
       },
       {
@@ -328,7 +328,7 @@
         "dependencies": [
           11
         ],
-        "status": "pending",
+        "status": "deferred",
         "subtasks": []
       },
       {
@@ -341,7 +341,7 @@
         "dependencies": [
           9
         ],
-        "status": "pending",
+        "status": "deferred",
         "subtasks": []
       },
       {
@@ -354,7 +354,7 @@
         "dependencies": [
           8
         ],
-        "status": "pending",
+        "status": "deferred",
         "subtasks": []
       },
       {
@@ -371,7 +371,7 @@
           12,
           13
         ],
-        "status": "pending",
+        "status": "deferred",
         "subtasks": []
       },
       {
@@ -384,7 +384,7 @@
         "dependencies": [
           8
         ],
-        "status": "pending",
+        "status": "deferred",
         "subtasks": []
       },
       {
@@ -398,7 +398,7 @@
           7,
           25
         ],
-        "status": "pending",
+        "status": "deferred",
         "subtasks": []
       },
       {
@@ -411,7 +411,7 @@
         "dependencies": [
           26
         ],
-        "status": "pending",
+        "status": "deferred",
         "subtasks": []
       },
       {
@@ -424,7 +424,7 @@
         "dependencies": [
           27
         ],
-        "status": "pending",
+        "status": "deferred",
         "subtasks": []
       },
       {
@@ -437,7 +437,7 @@
         "dependencies": [
           28
         ],
-        "status": "pending",
+        "status": "deferred",
         "subtasks": []
       },
       {
@@ -451,13 +451,13 @@
           23,
           29
         ],
-        "status": "pending",
+        "status": "deferred",
         "subtasks": []
       }
     ],
     "metadata": {
       "created": "2025-10-01T07:23:55.277Z",
-      "updated": "2025-10-01T12:14:09.363Z",
+      "updated": "2025-10-02T04:28:44.619Z",
       "description": "Tasks for master context"
     }
   }

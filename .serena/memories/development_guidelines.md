@@ -1,5 +1,14 @@
 # 개발 가이드라인 및 설계 패턴
 
+## ⚠️ 중요: Task Master 사용 안 함
+
+**Task Master의 모든 태스크는 deferred(보류) 상태입니다.**
+- 앞으로 Task Master를 참조하지 않음
+- Serena 메모리, GDD, CLAUDE.md만으로 진행
+- 진행 상황은 Serena 메모리에 기록
+
+---
+
 ## Clean Architecture 개발 워크플로우
 
 ### 새 기능 추가 시 순서
@@ -25,20 +34,21 @@
 - **위치**: Domain에 인터페이스, Infrastructure에 구현
 - **예시**: `IPlayerRepository` → `PlayerRepository`
 
-### 2. Dependency Injection
+### 2. Service Pattern (현재 사용 중)
+- **목적**: 비즈니스 로직 캡슐화
+- **위치**: Application에 인터페이스, Infrastructure에 구현
+- **예시**: `IAuthService` → `AuthService`, `ICharacterService` → `CharacterService`
+- **사용 이유**: MediatR/CQRS 패턴은 Week 0 전략에 따라 보류
+
+### 3. Dependency Injection
 - **설정 위치**: `Program.cs`
 - **라이프사이클**: 대부분 `Scoped` (HTTP 요청 당 인스턴스)
 - **인터페이스 기반**: 항상 인터페이스를 통한 의존성 주입
 
-### 3. DTO Pattern
+### 4. DTO Pattern
 - **목적**: 계층 간 데이터 전송, API 응답 구조화
 - **위치**: `Application/DTOs/` 폴더
 - **네이밍**: `[엔티티명]Dto.cs` (예: `PlayerDto.cs`)
-
-### 4. Service Layer Pattern
-- **비즈니스 로직 캡슐화**
-- **트랜잭션 관리**
-- **여러 Repository 조합 사용
 
 ## 중요한 개발 원칙
 
@@ -96,3 +106,16 @@ public TimeSpan GetOfflineTime()
 ### 3. 페이징 및 필터링 (향후)
 - **쿼리 파라미터**: `?page=1&size=20&sort=level`
 - **응답 메타데이터**: 총 개수, 페이지 정보
+
+## Week 0 인프라 전략
+
+### 설치되어 있지만 아직 설정 안 된 도구들
+- **MediatR**: 설치됨, 설정 안 됨 → Service 패턴 우선 사용
+- **AutoMapper**: 설치됨, 설정 안 됨 → 필요할 때 설정
+- **FluentValidation**: 설치됨, 설정 안 됨 → 필요할 때 설정
+- **Serilog**: 설치됨, 설정 안 됨 → 디버깅 어려울 때 설정
+
+### 추가 타이밍
+- 게임 기능 우선 구현
+- 코드 반복이 많아지거나 디버깅이 어려울 때 인프라 추가
+- 사용자가 필요성을 느낄 때 자연스럽게 제안
