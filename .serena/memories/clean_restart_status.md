@@ -1,76 +1,61 @@
-# 프로젝트 클린 재시작 진행 상황
+# 프로젝트 진행 상황 (최신 업데이트: 2025-10-02)
 
-## 현재 상태 (2025-10-01)
+## 현재 상태
 
 ### ✅ 완료된 작업
-1. GDD 작성 완료 (`.taskmaster/docs/prd.txt`)
-   - 서버 + 클라이언트 통합 문서
-   - Week 0-10 로드맵 포함
-   - API 계약 명세 포함
 
-2. 인프라 타이밍 가이드 설정 완료
-   - Week 0 인프라를 필요할 때 추가하도록 설정
-   - 자동 제안 시스템 구축
+#### 인증 시스템
+- JWT 기반 인증 시스템 구현 완료
+- Player 엔티티 및 RefreshToken 엔티티
+- AuthController, AuthService, JwtTokenService 구현
+- 회원가입, 로그인, 토큰 갱신 API 완료
 
-3. 파일 제거 완료
-   - Character, ItemTemplate, OfflineReward, PlayerInventory, PlayerStats 엔티티 제거
-   - PlayerController, PlayerRepository 제거
-   - Application/Players 폴더 제거
+#### 캐릭터 시스템 (Task 9 - 진행 중)
+- ✅ Task 9.1: Character 엔티티 및 Value Objects 정의 완료
+  - Character.cs 엔티티 생성
+  - CharacterStats Value Object 정의
+  - Player와 1:N 관계 설정
+  
+- ✅ Task 9.2: Character Repository 구현 완료
+  - ICharacterRepository 인터페이스 정의
+  - CharacterRepository 구현체 작성
+  - GameDBContext에 Character DbSet 추가
 
-4. 핵심 파일 정리 완료
-   - Player.cs → 인증 전용으로 간소화
-   - GameDBContext.cs → Players, RefreshTokens만 유지
-   - AuthResponseDto.cs → PlayerDto 제거
+#### 데이터베이스
+- PostgreSQL 연동 완료
+- EF Core 마이그레이션 완료
+  - InitialCreate
+  - AddCharacterEntity
 
-### ⚠️  진행 중 (빌드 에러 해결 필요)
-
-**문제:** `AuthService.cs`의 `GenerateAccessToken` 메서드 시그니처 불일치
-- 에러: `인수 2개를 사용하는 'GenerateAccessToken' 메서드에 대한 오버로드가 없습니다`
-- 위치: Line 40, 72, 103
-
-**해결 방법:**
-1. `IJwtTokenService` 인터페이스 확인
-2. `GenerateAccessToken`의 정확한 시그니처 파악
-3. `AuthService`에서 올바른 파라미터로 호출
+#### 빌드 상태
+- ✅ 빌드 성공 (경고 23개, 에러 0개)
+- ✅ 마이그레이션 적용 완료
 
 ### 📝 다음 단계
 
-1. **빌드 에러 수정**
-   ```bash
-   # IJwtTokenService 인터페이스 확인
-   cat IdleRPG.Application/Tokens/Services/IJwtTokenService.cs
-   
-   # 시그니처에 맞게 AuthService 수정
-   ```
+#### Task 9.3: 캐릭터 생성 및 검증 로직 구현 (진행 예정)
+- CreateCharacterCommand, CreateCharacterCommandHandler 구현
+- 플레이어당 최대 3개 캐릭터 제한 검증
+- 캐릭터 이름 중복 검증 (전역 고유성)
+- 초기 스탯 설정 로직
+- CreateCharacterDto 및 CharacterDto 정의
 
-2. **데이터베이스 초기화**
-   ```bash
-   cd IdleRPG.Infrastructure
-   dotnet ef database drop --startup-project ../IdleRPG.API --force
-   dotnet ef migrations add Initial --startup-project ../IdleRPG.API
-   dotnet ef database update --startup-project ../IdleRPG.API
-   ```
-
-3. **빌드 확인**
-   ```bash
-   dotnet build IdleRPGServer.sln
-   ```
-
-4. **Task Master PRD 파싱**
-   ```bash
-   task-master parse-prd .taskmaster/docs/prd.txt
-   ```
-
-5. **Week 1 시작: 캐릭터 시스템**
+#### 이후 Task 9 서브태스크
+- 9.4: 캐릭터 조회 및 목록 서비스 구현
+- 9.5: 레벨업 시스템 및 경험치 관리 구현
+- 9.6: CharacterController API 엔드포인트 구현
 
 ### 🗂️ 현재 프로젝트 구조
 
-**유지된 파일들 (인증 시스템):**
 ```
 IdleRPG.Domain/
 ├── Entities/
-│   ├── Player.cs (간소화)
+│   ├── Player.cs
+│   ├── Character.cs ✅
 │   └── RefreshToken.cs
+└── Repositories/
+    ├── IPlayerRepository.cs
+    └── ICharacterRepository.cs ✅
 
 IdleRPG.Application/
 ├── Auth/Services/
@@ -79,45 +64,44 @@ IdleRPG.Application/
 │   ├── RegisterDto.cs
 │   ├── LoginDto.cs
 │   ├── RefreshTokenDto.cs
-│   └── AuthResponseDto.cs (수정)
+│   └── AuthResponseDto.cs
 └── Tokens/Services/
     └── IJwtTokenService.cs
 
 IdleRPG.Infrastructure/
 ├── Data/
-│   └── GameDBContext.cs (간소화)
+│   └── GameDBContext.cs
+├── Repositories/
+│   ├── PlayerRepository.cs
+│   └── CharacterRepository.cs ✅
 ├── Service/
-│   ├── AuthService.cs (수정 필요)
+│   ├── AuthService.cs
 │   └── JwtTokenService.cs
-└── Migrations/ (비어있음 - 재생성 필요)
+└── Migrations/
+    ├── InitialCreate
+    └── AddCharacterEntity ✅
 
 IdleRPG.API/
 └── Controllers/
     └── AuthController.cs
 ```
 
-### 💡 빠른 복구 가이드
+### 🎯 Week 0 인프라 전략
 
-다음 세션 시작 시:
-```bash
-# 1. IJwtTokenService 확인
-cat IdleRPG.Application/Tokens/Services/IJwtTokenService.cs
+**기본 방침**: 게임 기능 우선, 인프라는 필요할 때 추가
+- Serilog, FluentValidation, AutoMapper 등은 나중에 추가
+- Week 1 게임 기능(캐릭터 시스템)부터 집중
+- 디버깅 어려울 때, 검증 로직 복잡해질 때 인프라 추가 고려
 
-# 2. JwtTokenService 구현 확인
-cat IdleRPG.Infrastructure/Service/JwtTokenService.cs
+### 💡 개발 워크플로우
 
-# 3. AuthService에서 올바른 시그니처로 호출
-# (userId만 필요한지, userName도 필요한지 확인)
+새 기능 추가 시 순서:
+1. Domain Layer: 엔티티 정의
+2. Application Layer: DTO & 인터페이스
+3. Infrastructure Layer: 레포지토리 구현
+4. API Layer: 컨트롤러 생성
 
-# 4. 빌드 성공 후 DB 초기화
-dotnet ef migrations add Initial --startup-project ../IdleRPG.API
-dotnet ef database update --startup-project ../IdleRPG.API
-```
-
-## 참고
-
-- GDD 위치: `.taskmaster/docs/prd.txt`
-- 인프라 가이드: `week0_infrastructure_timing_guide` 메모리
-- 모든 게임 로직 코드는 제거됨
-- 인증 시스템만 남아있음
-- Week 1부터 깨끗하게 시작 가능
+### 📚 참고 문서
+- GDD: `.taskmaster/docs/prd.txt`
+- 학습 가이드: `STAGE_1_WEB_FOUNDATIONS.md`, `STAGE_2_DATABASE_MASTERY.md`
+- Task Master 태스크: `.taskmaster/tasks/tasks.json`
