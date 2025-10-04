@@ -135,6 +135,57 @@ The project is in **active development** with:
 - Will add logging/validation when debugging becomes difficult
 - Focus on Week 1 features (Character system) before infrastructure setup
 
+## Unity Client Documentation
+
+**IMPORTANT: When adding or modifying APIs or DTOs, ALWAYS update Unity documentation files.**
+
+The project maintains Unity client documentation in the **IdleRPGClient** project folder:
+
+### Documentation Files
+1. **../IdleRPGClient/Docs/Unity-API-Reference.md** - Detailed API specification with examples
+2. **../IdleRPGClient/Docs/Unity-DTOs.cs** - C# DTO classes for Unity (copy-paste ready)
+3. **../IdleRPGClient/Docs/Unity-Quick-Reference.md** - Quick reference guide
+
+### Update Rules
+
+**When creating a new API endpoint:**
+1. Add endpoint details to `Unity-API-Reference.md`:
+   - Endpoint path and HTTP method
+   - Request/Response JSON examples
+   - Authentication requirements
+   - Unity C# usage example
+2. Add corresponding DTO classes to `Unity-DTOs.cs`
+3. Update endpoint summary table in `Unity-Quick-Reference.md`
+
+**When adding a new DTO:**
+1. Create the DTO in `IdleRPG.Application/DTOs/`
+2. Add C# `[Serializable]` version to `Unity-DTOs.cs`
+3. Document all properties with comments
+4. Add usage example in code comments
+
+**When modifying existing endpoints or DTOs:**
+1. Update all three documentation files simultaneously
+2. Mark breaking changes with **⚠️ BREAKING CHANGE** in docs
+3. Update version date at bottom of markdown files
+
+### Documentation Checklist
+Before completing any API-related task, verify:
+- [ ] API endpoint documented in `Unity-API-Reference.md`
+- [ ] DTO class added/updated in `Unity-DTOs.cs`
+- [ ] Quick reference table updated in `Unity-Quick-Reference.md`
+- [ ] Example code provided for new features
+- [ ] Error responses documented
+
+### File Locations
+```
+../IdleRPGClient/Docs/
+├── Unity-API-Reference.md    ← Full API documentation
+├── Unity-DTOs.cs              ← Unity C# DTO classes
+└── Unity-Quick-Reference.md   ← Quick reference tables
+```
+
+**Note**: Documentation is stored in the Unity client project folder, not the server folder, to keep client-related files together.
+
 ## Task Master AI Instructions
 **Import Task Master's development workflow commands and guidelines, treat as if import is in the main CLAUDE.md file.**
 @./.taskmaster/CLAUDE.md
