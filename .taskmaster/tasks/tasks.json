@@ -136,7 +136,7 @@
               "9.2"
             ],
             "details": "IdleRPG.Application/Characters에 CreateCharacterCommand, CreateCharacterCommandHandler 구현. 플레이어당 최대 3개 캐릭터 제한 검증, 캐릭터 이름 중복 검증 (전역 고유성), 초기 스탯 설정 로직. CreateCharacterDto 및 CharacterDto 정의",
-            "status": "pending",
+            "status": "in-progress",
             "testStrategy": "캐릭터 생성 제한 테스트, 이름 중복 검증 테스트, 초기값 설정 테스트"
           },
           {
@@ -457,7 +457,7 @@
     ],
     "metadata": {
       "created": "2025-10-01T07:23:55.277Z",
-      "updated": "2025-10-02T04:28:44.619Z",
+      "updated": "2025-10-08T14:11:06.115Z",
       "description": "Tasks for master context"
     }
   }

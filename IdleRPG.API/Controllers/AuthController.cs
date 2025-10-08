@@ -95,7 +95,7 @@ namespace IdleRPG.API.Controllers
             await _authService.RevokeTokenAsync(userId, dto.RefreshToken);
             return Ok(new { message = "Logged out successfully" });
         }
-        
+         
         /// <summary>
         /// 내 프로필 조회 (인증된 사용자만 가능)
         /// </summary>

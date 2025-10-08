@@ -42,3 +42,6 @@ node_modules/
 # Task files
 # tasks.json
 # tasks/ 
+
+# Local development settings with secrets
+appsettings.Development.json

@@ -54,7 +54,9 @@
       "Bash(dotnet ef migrations:*)",
       "mcp__serena__delete_memory",
       "mcp__serena__create_text_file",
-      "Read(//e/StudyGameProj/IdleRPGClient/**)"
+      "Read(//e/StudyGameProj/IdleRPGClient/**)",
+      "Bash(task-master:*)",
+      "Bash(git rm:*)"
     ]
   },
   "enableAllProjectMcpServers": true,
