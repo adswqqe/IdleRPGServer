@@ -1,0 +1,53 @@
+version: '3.8'
+
+services:
+  # ======================================
+  # API 서버 (IdleRPG Backend)
+  # ======================================
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: idlerpg-api
+    ports:
+      - "5172:5172"      # HTTP
+      - "7122:7122"      # HTTPS (필요시)
+    environment:
+      ASPNETCORE_ENVIRONMENT: "Production"
+      ASPNETCORE_URLS: "http://+:5172"
+      ConnectionStrings__DefaultConnection: "Host=idlerpg-dev.chiqweeeuidv.ap-northeast-2.rds.amazonaws.com;Database=idlerpg;Username=postgres;Password=xocjs1547;Port=5432"
+      Jwt__SecretKey: "IdleRPG-Super-Secret-Key-Min-32-Characters-For-HS256-Algorithm"
+    depends_on:
+      - redis
+    restart: unless-stopped
+    networks:
+      - idlerpg-network
+
+  # ======================================
+  # Redis (캐싱 및 세션 관리)
+  # ======================================
+  redis:
+    image: redis:7-alpine
+    container_name: idlerpg-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+    restart: unless-stopped
+    networks:
+      - idlerpg-network
+
+# ======================================
+# 볼륨 정의
+# ======================================
+volumes:
+  redis_data:
+    driver: local
+
+# ======================================
+# 네트워크 정의
+# ======================================
+networks:
+  idlerpg-network:
+    driver: bridge

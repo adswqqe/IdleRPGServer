@@ -45,3 +45,10 @@ node_modules/
 
 # Local development settings with secrets
 appsettings.Development.json
+
+# AWS SSH Keys (절대 커밋 금지!)
+*.pem
+*.ppk
+
+# Temporary files
+nul
