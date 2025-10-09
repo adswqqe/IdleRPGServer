@@ -56,7 +56,10 @@
       "mcp__serena__create_text_file",
       "Read(//e/StudyGameProj/IdleRPGClient/**)",
       "Bash(task-master:*)",
-      "Bash(git rm:*)"
+      "Bash(git rm:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "mcp__project-filesystem__list_directory"
     ]
   },
   "enableAllProjectMcpServers": true,
