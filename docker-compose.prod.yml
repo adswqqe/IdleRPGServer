@@ -14,9 +14,13 @@ services:
       - "7122:7122"      # HTTPS (필요시)
     environment:
       ASPNETCORE_ENVIRONMENT: "Production"
-      ASPNETCORE_URLS: "http://+:5172"
+      ASPNETCORE_URLS: "https://+:7122;http://+:5172"
+      ASPNETCORE_Kestrel__Certificates__Default__Password: "IdleRPG2025!"
+      ASPNETCORE_Kestrel__Certificates__Default__Path: "/https/aspnetapp.pfx"
       ConnectionStrings__DefaultConnection: "Host=idlerpg-dev.chiqweeeuidv.ap-northeast-2.rds.amazonaws.com;Database=idlerpg;Username=postgres;Password=xocjs1547;Port=5432"
       Jwt__SecretKey: "IdleRPG-Super-Secret-Key-Min-32-Characters-For-HS256-Algorithm"
+    volumes:
+      - ~/.aspnet/https:/https:ro
     depends_on:
       - redis
     restart: unless-stopped
