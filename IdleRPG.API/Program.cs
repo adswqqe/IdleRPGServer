@@ -100,11 +100,9 @@ builder.Services.AddSwaggerGen(options =>
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
+// TODO: 프로덕션 배포 시 Swagger 비활성화 필요 (보안)
+app.UseSwagger();
+app.UseSwaggerUI();
 
 app.UseHttpsRedirection();
 // 인증/인가 미들웨어 (순서 중요!)
