@@ -1,17 +1,9 @@
 pipeline {
     agent any
 
-    // Explicitly define triggers for GitHub webhook
     triggers {
         githubPush()
     }
-
-    // Add properties to ensure webhook triggers work
-    properties([
-        pipelineTriggers([
-            githubPush()
-        ])
-    ])
 
     options {
         timeout(time: 30, unit: 'MINUTES')
