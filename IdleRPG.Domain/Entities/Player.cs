@@ -16,6 +16,7 @@ namespace IdleRPG.Domain.Entities
         public DateTime LastLoginAt { get; set; }
         public bool IsActive { get; set; } = true;
 
+        //
         // Navigation Properties (Week 1에서 Character 추가 예정)
         public List<Character> Characters;
     }
