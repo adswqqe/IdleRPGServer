@@ -57,4 +57,4 @@ docker-compose.prod.yml
 *.ppk
 
 # Temporary files
-nul
+nuldocker-compose.prod.yml.BACKUP_WITH_SECRETS

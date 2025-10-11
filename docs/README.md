@@ -27,12 +27,17 @@ Unity 클라이언트 연동 문서
 보안 관련 문서
 - `SECURITY-FIX-URGENT.md` - 긴급 보안 조치 가이드
 
+### 💻 [development/](./development/)
+개발 환경 설정 가이드
+- `RIDER-RDS-CONNECTION.md` - Rider에서 RDS 연결 가이드 (집/회사)
+
 ---
 
 ## 🔍 빠른 링크
 
 ### 개발 시작하기
 - [CLAUDE.md](../CLAUDE.md) - Claude Code 프로젝트 가이드 (루트)
+- [Rider RDS 연결](./development/RIDER-RDS-CONNECTION.md) - 회사/집에서 DB 접속
 
 ### CI/CD
 - [Jenkins 자동 빌드 설정](./jenkins/JENKINS-AUTO-BUILD-SUCCESS.md)

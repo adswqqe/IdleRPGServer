@@ -67,7 +67,9 @@
       "Bash(Select-Object Name, Status, StartType)",
       "Bash(powershell.exe:*)",
       "Bash(where git)",
-      "Bash(ssh:*)"
+      "Bash(ssh:*)",
+      "Bash(git mv:*)",
+      "Bash(tree:*)"
     ]
   },
   "enableAllProjectMcpServers": true,
