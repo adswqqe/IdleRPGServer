@@ -41,3 +41,19 @@ Expected result:
 - Build should start automatically with 'Started by GitHub push'
 - This is the final test! 🎯
 
+
+## Auto-Build Test 4 - SCM Configuration
+
+Date: 2025년 10월 11일 토 오후  7:30:00
+Status: Jenkins Pipeline configured with SCM
+
+Changes:
+- Switched from "Pipeline script" to "Pipeline script from SCM"
+- Added GitHub repository: git@github.com:adswqqe/IdleRPGServer.git
+- SSH credentials configured (ED25519 key)
+
+Expected result:
+- Webhook event matches repository URL
+- Jenkins triggers build automatically with "Started by GitHub push"
+- This should be the FINAL solution! 🎯🔥
+
