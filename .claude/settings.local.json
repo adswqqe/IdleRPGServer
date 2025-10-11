@@ -59,7 +59,15 @@
       "Bash(git rm:*)",
       "Bash(git commit:*)",
       "Bash(git push:*)",
-      "mcp__project-filesystem__list_directory"
+      "mcp__project-filesystem__list_directory",
+      "Bash(dotnet dev-certs:*)",
+      "Bash(java:*)",
+      "Bash(winget install:*)",
+      "Bash(Get-Service Jenkins)",
+      "Bash(Select-Object Name, Status, StartType)",
+      "Bash(powershell.exe:*)",
+      "Bash(where git)",
+      "Bash(ssh:*)"
     ]
   },
   "enableAllProjectMcpServers": true,
