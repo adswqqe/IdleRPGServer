@@ -28,6 +28,9 @@ dev-debug.log
 # Dependency directories
 node_modules/
 # Environment variables
+.env
+.env.*
+!.env.example
 # Editor directories and files
 .idea
 .vscode
@@ -45,6 +48,9 @@ node_modules/
 
 # Local development settings with secrets
 appsettings.Development.json
+
+# Production configurations with secrets
+docker-compose.prod.yml
 
 # AWS SSH Keys (절대 커밋 금지!)
 *.pem
