@@ -21,24 +21,31 @@ The project follows dependency injection pattern where API → Application → D
 
 ### Running the Application
 
-**Start development environment:**
+**Option 1: Local development (recommended)**
 ```bash
-./dev-start.sh    # Starts PostgreSQL, Redis, and pgAdmin containers
-```
-
-**Stop development environment:**
-```bash
-docker-compose down    # Stops all services
-```
-
-**Run the API server:**
-```bash
+./dev-start.sh              # Starts infrastructure (PostgreSQL, Redis, pgAdmin)
 cd IdleRPG.API
-dotnet run    # Runs on http://localhost:5172, https://localhost:7122
+dotnet run                  # Run API locally with hot reload
+```
+
+**Option 2: Full Docker environment**
+```bash
+# First time setup: Generate HTTPS certificate
+.\setup-https-cert.ps1      # Windows
+./setup-https-cert.sh       # Linux/Mac
+
+# Start all services with Docker
+./docker-start.sh           # Starts everything including API
+```
+
+**Stop services:**
+```bash
+docker-compose down         # Stop all Docker containers
 ```
 
 **Access development tools:**
-- API Documentation: http://localhost:5172/swagger (when running locally)
+- API Swagger (HTTP): http://localhost:5172/swagger
+- API Swagger (HTTPS): https://localhost:7122/swagger
 - pgAdmin: http://localhost:8082 (admin@idlerpg.com / admin123)
 - PostgreSQL: localhost:5432 (gamedev / dev123!)
 - Redis: localhost:6379
@@ -55,9 +62,11 @@ dotnet build IdleRPGServer.sln
 dotnet build IdleRPG.API/IdleRPG.API.csproj
 ```
 
-**Run tests:** (when test projects are added)
+**Run tests:**
 ```bash
-dotnet test
+dotnet test                              # Run all tests
+dotnet test --verbosity detailed         # Run with detailed output
+cd IdleRPG.Tests && dotnet test         # Run specific test project
 ```
 
 ### Database Operations
@@ -79,15 +88,42 @@ dotnet ef database update --startup-project ../IdleRPG.API
 - **Mapping**: AutoMapper
 - **Logging**: Serilog (configured in API project)
 - **Documentation**: Swagger/OpenAPI
+- **Testing**: xUnit, Moq, FluentAssertions
 
 ## Docker Configuration
 
-The project uses docker-compose for development dependencies:
-- PostgreSQL database on port 5432
-- Redis cache on port 6379
-- pgAdmin on port 8082
+The project uses docker-compose with the following services:
+- **PostgreSQL** - Database on port 5432
+- **Redis** - Cache on port 6379
+- **pgAdmin** - Database management UI on port 8082
+- **API** - ASP.NET Core API on ports 5172 (HTTP) and 7122 (HTTPS)
 
 All services are connected via `idlerpg-network` bridge network.
+
+### HTTPS Configuration
+
+For HTTPS support in Docker, you need to generate a development certificate:
+
+**Windows:**
+```powershell
+.\setup-https-cert.ps1
+```
+
+**Linux/Mac:**
+```bash
+./setup-https-cert.sh
+```
+
+This creates a certificate at `~/.aspnet/https/aspnetapp.pfx` (or `%USERPROFILE%\.aspnet\https\aspnetapp.pfx` on Windows) with password `dev123!`, which is automatically mounted into the API container.
+
+### Environment Variables
+
+The API container uses these key environment variables:
+- `ASPNETCORE_ENVIRONMENT=Development`
+- `ASPNETCORE_URLS=https://+:7122;http://+:5172`
+- `ConnectionStrings__DefaultConnection` - Points to postgres container
+- `ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx`
+- `ASPNETCORE_Kestrel__Certificates__Default__Password=dev123!`
 
 ## Current State
 
@@ -113,8 +149,9 @@ The project is in **active development** with:
   - PUT /api/character/{id}/stats - 스탯 분배
 - ✅ Database migrations (InitialCreate, AddCharacterEntity)
 - ✅ Unity documentation updated with all API endpoints
+- ✅ Unit tests for CharacterService (17 tests with xUnit, Moq, FluentAssertions)
 
-**Current Task:** Week 1 character system complete. Ready for Week 2 features (Idle Game Loop & Progression).
+**Current Task:** Week 1 character system complete with tests. Ready for Week 2 features (Idle Game Loop & Progression).
 
 ## Development Guidelines
 
@@ -126,6 +163,16 @@ The project is in **active development** with:
 5. Use MediatR for command/query handling
 6. Apply FluentValidation for input validation
 7. Map between DTOs using AutoMapper
+8. Write unit tests in `IdleRPG.Tests`
+
+**Testing guidelines:**
+- Write unit tests for business logic in services
+- Use **xUnit** as test framework, **Moq** for mocking, **FluentAssertions** for assertions
+- Follow **AAA pattern** (Arrange-Act-Assert) in test structure
+- Mock repository dependencies to isolate service logic
+- Use Theory tests with InlineData for parameterized scenarios
+- Test edge cases: null inputs, boundary values, error conditions
+- Run tests before committing: `dotnet test`
 
 **Database changes:**
 - Always create EF migrations for schema changes

@@ -29,6 +29,7 @@
 **Service**: `IdleRPG.Application/Character/Services/CharacterService.cs`
 **Repository**: `IdleRPG.Infrastructure/Repositories/CharacterRepository.cs`
 **Entity**: `IdleRPG.Domain/Entities/Character.cs`
+**Tests**: `IdleRPG.Tests/CharacterServiceTests.cs` (17 unit tests)
 
 구현된 엔드포인트:
 1. `POST /api/character/Create` - 캐릭터 생성
@@ -89,11 +90,13 @@ IdleRPGServer/
 │   └── Entities/
 │       ├── Player.cs (완료)
 │       └── Character.cs (완료)
-└── IdleRPG.Infrastructure/
-    ├── Data/ApplicationDbContext.cs (완료)
-    └── Repositories/
-        ├── PlayerRepository.cs (완료)
-        └── CharacterRepository.cs (완료)
+├── IdleRPG.Infrastructure/
+│   ├── Data/ApplicationDbContext.cs (완료)
+│   └── Repositories/
+│       ├── PlayerRepository.cs (완료)
+│       └── CharacterRepository.cs (완료)
+└── IdleRPG.Tests/
+    └── CharacterServiceTests.cs (완료 - 17 tests)
 ```
 
 ## 중요 참고사항
@@ -126,9 +129,10 @@ catch (InvalidOperationException ex)
 - Docker Compose로 PostgreSQL, Redis, pgAdmin 실행
 - `./dev-start.sh` - 개발 환경 시작
 - `docker-compose down` - 환경 종료
+- `dotnet test` - 전체 테스트 실행 (17 unit tests)
 - Swagger UI: http://localhost:5172/swagger
 
 ## 마지막 업데이트
 - **날짜**: 2025-10-12
 - **작업자**: Claude Code
-- **커밋 상태**: Week 1 character system complete
+- **커밋 상태**: Week 1 character system complete with unit tests (17 passing)

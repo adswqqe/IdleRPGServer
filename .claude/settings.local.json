@@ -78,7 +78,11 @@
       "Bash(where claude)",
       "Read(//e/StudyGameProj/**)",
       "mcp__memory-bank__update-memory-bank",
-      "Bash(touch:*)"
+      "Bash(touch:*)",
+      "Bash(dotnet new:*)",
+      "Bash(dotnet sln:*)",
+      "Bash(dotnet test)",
+      "Bash(dotnet test:*)"
     ]
   },
   "enableAllProjectMcpServers": true,
