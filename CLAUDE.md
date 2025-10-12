@@ -17,6 +17,19 @@ This is an **Idle RPG Server** project built with ASP.NET Core 8.0 following **C
 
 The project follows dependency injection pattern where API → Application → Domain, and Infrastructure implements Application interfaces.
 
+### Deployment Architecture
+
+**For 10k concurrent users, the project uses a monolithic architecture combining API + Scheduler:**
+- See **[ARCHITECTURE-GUIDE.md](./ARCHITECTURE-GUIDE.md)** for comprehensive scaling strategy
+- Combined API + Background Services in single process (cost-effective)
+- Horizontal scaling with load balancer for high availability
+- Redis distributed locking for multi-instance coordination
+- Separation only needed when reaching 50k+ concurrent users
+
+**Deployment guides:**
+- Local/Development: Use `./dev-start.sh` for infrastructure only
+- EC2 Production: See **[EC2-DEPLOYMENT.md](./EC2-DEPLOYMENT.md)** for deployment steps
+
 ## Development Environment
 
 ### Running the Application

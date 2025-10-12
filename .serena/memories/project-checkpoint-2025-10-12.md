@@ -3,9 +3,20 @@
 ## 프로젝트 개요
 - **프로젝트명**: IdleRPG Server
 - **아키텍처**: ASP.NET Core 8.0 Clean Architecture
+- **배포 아키텍처**: Monolithic (API + Background Services 통합)
+- **목표 동접**: 10,000명 (확장 가능: ~50,000명)
 - **데이터베이스**: PostgreSQL with EF Core 9.0
+- **캐싱**: Redis (분산 락, 세션 관리)
 - **인증**: JWT Bearer Token
 - **패턴**: CQRS with MediatR, Repository Pattern
+
+### 아키텍처 결정 사항
+- **동접 1만명 규모에서는 API + 스케줄러 통합이 적합**
+- 비용 효율성: 통합 $120/월 vs 분리 $150/월 (20% 절감)
+- IHostedService 또는 Hangfire로 백그라운드 작업 처리
+- 수평 확장(Load Balancer)으로 고가용성 확보
+- Redis 분산 락으로 여러 인스턴스 간 스케줄러 중복 방지
+- 상세 내용: **ARCHITECTURE-GUIDE.md** 참조
 
 ## 완료된 기능 (Week 0-1)
 
