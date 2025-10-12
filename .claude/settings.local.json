@@ -69,7 +69,16 @@
       "Bash(where git)",
       "Bash(ssh:*)",
       "Bash(git mv:*)",
-      "Bash(tree:*)"
+      "Bash(tree:*)",
+      "Bash(dir:*)",
+      "Bash(if exist nul echo \"nul exists\")",
+      "Bash(if exist nul echo \"nul directory exists\")",
+      "Bash(rm:*)",
+      "Bash(echo:*)",
+      "Bash(where claude)",
+      "Read(//e/StudyGameProj/**)",
+      "mcp__memory-bank__update-memory-bank",
+      "Bash(touch:*)"
     ]
   },
   "enableAllProjectMcpServers": true,
