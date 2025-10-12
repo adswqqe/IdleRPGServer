@@ -100,11 +100,22 @@ builder.Services.AddSwaggerGen(options =>
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
-// TODO: 프로덕션 배포 시 Swagger 비활성화 필요 (보안)
-app.UseSwagger();
-app.UseSwaggerUI();
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI();
+    // 개발 환경에서만 HTTPS 리디렉션 (로컬 인증서 사용)
+    app.UseHttpsRedirection();
+}
+else
+{
+    // 프로덕션에서도 Swagger 활성화 (필요시 제거)
+    app.UseSwagger();
+    app.UseSwaggerUI();
+    // 프로덕션: HTTPS 리디렉션 비활성화 (리버스 프록시에서 처리)
+    // 또는 Let's Encrypt 인증서 설정 후 활성화 가능
+}
 
-app.UseHttpsRedirection();
 // 인증/인가 미들웨어 (순서 중요!)
 app.UseAuthentication(); // 먼저 인증
 app.UseAuthorization();  // 그 다음 권한 체크

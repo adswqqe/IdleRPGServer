@@ -1,0 +1,79 @@
+version: '3.8'
+
+# EC2 프로덕션 환경용 Docker Compose 설정
+# HTTP만 사용 (HTTPS는 리버스 프록시에서 처리)
+
+services:
+  postgres:
+    image: postgres:16
+    container_name: idlerpg-postgres
+    environment:
+      POSTGRES_DB: idlerpgdb
+      POSTGRES_USER: gamedev
+      POSTGRES_PASSWORD: dev123!
+      POSTGRES_HOST_AUTH_METHOD: trust
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - idlerpg-network
+    restart: unless-stopped
+    command: >
+      postgres
+      -c ssl=off
+      -c log_statement=all
+      -c log_connections=on
+      -c log_disconnections=on
+
+  redis:
+    image: redis:7-alpine
+    container_name: idlerpg-redis
+    ports:
+      - "6379:6379"
+    networks:
+      - idlerpg-network
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: idlerpg-api
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ASPNETCORE_URLS=http://+:5172
+      - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=idlerpgdb;Username=gamedev;Password=dev123!
+    ports:
+      - "5172:5172"
+    depends_on:
+      - postgres
+      - redis
+    networks:
+      - idlerpg-network
+    restart: unless-stopped
+
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: idlerpg-pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@idlerpg.com
+      PGADMIN_DEFAULT_PASSWORD: admin123
+    ports:
+      - "8082:80"
+    depends_on:
+      - postgres
+    networks:
+      - idlerpg-network
+    restart: unless-stopped
+
+networks:
+  idlerpg-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  redis_data:

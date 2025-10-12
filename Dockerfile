@@ -30,6 +30,8 @@ WORKDIR /app
 COPY --from=build /app/publish .
 
 # 컨테이너가 사용할 포트 노출
+# 개발: 5172 (HTTP), 7122 (HTTPS)
+# 프로덕션: 5172 (HTTP only)
 EXPOSE 5172 7122
 
 # 컨테이너 시작 시 실행할 명령어
