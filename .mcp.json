@@ -12,18 +12,6 @@
       },
       "description": "프로젝트 파일 접근"
     },
-    "project-memory": {
-      "type": "stdio",
-      "command": "npx",
-      "args": [
-        "-y",
-        "memory-bank-mcp"
-      ],
-      "env": {
-        "MEMORY_BANK_PATH": "./.memory-bank"
-      },
-      "description": "프로젝트 상태 관리"
-    },
     "context7": {
       "type": "stdio",
       "command": "npx",

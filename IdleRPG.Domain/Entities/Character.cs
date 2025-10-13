@@ -13,6 +13,16 @@ namespace IdleRPG.Domain.Entities
         public int Experience { get; set; } = 0;
         public int StatPoints { get; set; } = 0;
 
+        /// <summary>
+        /// 캐릭터 보유 골드
+        /// </summary>
+        public long Gold { get; set; } = 0;
+
+        /// <summary>
+        /// 마지막 로그인 시간 (오프라인 보상 계산 기준)
+        /// </summary>
+        public DateTime LastLoginTime { get; set; } = DateTime.UtcNow;
+
         public CharacterStats Stats { get; set; }
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;

@@ -11,6 +11,16 @@ namespace IdleRPG.Infrastructure.Configurations
 
             builder.HasKey(c => c.Id);
 
+            // Gold 필드 설정
+            builder.Property(c => c.Gold)
+                .IsRequired()
+                .HasDefaultValue(0);
+
+            // LastLoginTime 필드 설정
+            builder.Property(c => c.LastLoginTime)
+                .IsRequired()
+                .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
             builder.OwnsOne(c => c.Stats, stats =>
             {
                 stats.Property(s => s.Strength).HasColumnName("Strength");

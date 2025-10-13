@@ -164,7 +164,59 @@ The project is in **active development** with:
 - ✅ Unity documentation updated with all API endpoints
 - ✅ Unit tests for CharacterService (17 tests with xUnit, Moq, FluentAssertions)
 
-**Current Task:** Week 1 character system complete with tests. Ready for Week 2 features (Idle Game Loop & Progression).
+**Current Task:** Week 2 - Idle Game Loop & Progression System (Feature 1 완료, Feature 4 진행 중)
+
+## Week 2 Development Status
+
+### 📄 Week 2 PRD Location
+- **Document**: `.taskmaster/docs/week2-prd.txt`
+- **Theme**: Idle Game Loop & Progression System
+- **Total Features**: 9 (Monster → Battle System → Offline Rewards → Background Service → Logs → Tests)
+
+### ✅ Completed
+- **Feature 1**: Monster Entity & Repository (마이그레이션 적용 완료, EC2 배포됨)
+  - Monster 엔티티 생성 완료
+  - MonsterConfiguration (EF Core) 완료
+  - 5종 몬스터 시딩 완료 (슬라임, 고블린, 오크, 트롤, 드래곤)
+
+### ⏭️ In Progress
+- **Feature 4**: Character Schema Update (Gold, LastLoginTime 필드 추가)
+
+### 📋 Pending
+- Feature 2: Battle System Core Logic
+- Feature 3: Battle Controller & API
+- Feature 5: Offline Reward System
+- Feature 6: Idle Progress Background Service
+- Feature 7: Battle Log System
+- Feature 8: Unity Documentation Update
+- Feature 9: Unit Tests (20+ 테스트)
+
+## Collaboration Rules (Week 2 Learning Style)
+
+### 🤖 Claude 자동 처리 작업
+다음 작업은 Claude가 독립적으로 완료:
+- **단순 반복 작업**: CRUD 메서드, Repository 패턴 적용
+- **보일러플레이트**: DTO 생성, 엔티티 필드 추가, Configuration
+- **마이그레이션**: EF Core 마이그레이션 생성 및 검토
+- **문서화**: Unity API 문서, Swagger 주석
+- **테스트 코드**: 단위 테스트 작성
+- **코드 정리**: 네이밍, 주석, 포맷팅
+
+### 👥 함께 협업하는 작업
+다음 작업은 설계/구현 전 논의하고 사용자 의견 반영:
+- **데이터 설계**: 엔티티 관계, 필드 타입, 인덱스 전략
+- **비즈니스 로직**: 전투 공식, 보상 계산, 밸런싱
+- **네트워크 로직**: API 설계, 요청/응답 구조, 에러 핸들링
+- **아키텍처 설계**: 계층 분리, 서비스 분할, 의존성 구조
+- **성능 최적화**: 쿼리 최적화, 캐싱, 동시성 처리
+- **보안 설계**: 인증/인가, 데이터 검증
+
+### 협업 프로세스
+1. **설계**: Claude가 초안 제시 → 사용자 피드백 → 최종 결정
+2. **구현**: 핵심 로직은 함께 작성 (TODO(human)), 반복 코드는 자동 완성
+3. **검토**: 구현 후 주요 변경사항 요약
+
+**상세 규칙**: Serena 메모리 `week2-workflow-and-collaboration-rules` 참조
 
 ## Development Guidelines
 
