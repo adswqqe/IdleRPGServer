@@ -118,7 +118,7 @@ namespace IdleRPG.API.Controllers
         }
         
         /// <summary>
-        /// 경험치 획득
+        /// 경험치 획득 (자동 레벨업 및 스탯 성장)
         /// </summary>
         [HttpPost("{characterId}/experience")]
         [Authorize]
@@ -127,36 +127,6 @@ namespace IdleRPG.API.Controllers
             try
             {
                 var response = await _characterService.AddExperienceAsync(characterId, dto.Amount);
-                return Ok(new
-                {
-                    response
-                });
-            }
-            catch (InvalidOperationException ex)
-            {
-                return BadRequest(new
-                {
-                    message = ex.Message
-                });
-            }
-        }
-
-        /// <summary>
-        /// 스탯 분배
-        /// </summary>
-        [HttpPut("{characterId}/stats")]
-        [Authorize]
-        public async Task<IActionResult> AllocateStats([FromRoute] Guid characterId, [FromBody] AllocateStatsDto dto)
-        {
-            try
-            {
-                var response = await _characterService.AllocateStatPointsAsync(
-                    characterId, 
-                    dto.Strength, 
-                    dto.Dexterity, 
-                    dto.Intelligence, 
-                    dto.Vitality
-                );
                 return Ok(new
                 {
                     response

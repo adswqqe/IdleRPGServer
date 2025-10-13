@@ -34,7 +34,7 @@ public class CharacterServiceTests
     {
         // Arrange
         var characterId = Guid.NewGuid();
-        var character = CreateTestCharacter(characterId, level: 1, experience: 0, statPoints: 0);
+        var character = CreateTestCharacter(characterId, level: 1, experience: 0);
 
         _mockRepository.Setup(r => r.GetByIdAsync(characterId))
             .ReturnsAsync(character);
@@ -47,7 +47,9 @@ public class CharacterServiceTests
         // Assert
         result.Level.Should().Be(1, "50 경험치는 레벨업에 부족함 (필요: 100)");
         result.Experience.Should().Be(50, "경험치가 누적되어야 함");
-        result.StatPoints.Should().Be(0, "레벨업하지 않았으므로 스탯 포인트 증가 없음");
+        result.Attack.Should().Be(10, "레벨업하지 않았으므로 스탯 변화 없음");
+        result.Defense.Should().Be(5, "레벨업하지 않았으므로 스탯 변화 없음");
+        result.MaxHealth.Should().Be(100, "레벨업하지 않았으므로 스탯 변화 없음");
     }
 
     [Fact]
@@ -55,7 +57,7 @@ public class CharacterServiceTests
     {
         // Arrange
         var characterId = Guid.NewGuid();
-        var character = CreateTestCharacter(characterId, level: 1, experience: 0, statPoints: 0);
+        var character = CreateTestCharacter(characterId, level: 1, experience: 0);
 
         _mockRepository.Setup(r => r.GetByIdAsync(characterId))
             .ReturnsAsync(character);
@@ -68,7 +70,9 @@ public class CharacterServiceTests
         // Assert
         result.Level.Should().Be(2, "100 경험치로 Lv1 → Lv2 레벨업");
         result.Experience.Should().Be(0, "정확히 레벨업했으므로 남은 경험치 0");
-        result.StatPoints.Should().Be(5, "레벨업 시 스탯 포인트 +5");
+        result.Attack.Should().Be(20, "Lv2 자동 성장: 10 + 10 = 20");
+        result.Defense.Should().Be(10, "Lv2 자동 성장: 5 + 5 = 10");
+        result.MaxHealth.Should().Be(150, "Lv2 자동 성장: 100 + 50 = 150");
     }
 
     [Fact]
@@ -76,7 +80,7 @@ public class CharacterServiceTests
     {
         // Arrange
         var characterId = Guid.NewGuid();
-        var character = CreateTestCharacter(characterId, level: 1, experience: 0, statPoints: 0);
+        var character = CreateTestCharacter(characterId, level: 1, experience: 0);
 
         _mockRepository.Setup(r => r.GetByIdAsync(characterId))
             .ReturnsAsync(character);
@@ -89,22 +93,24 @@ public class CharacterServiceTests
         // Assert
         result.Level.Should().Be(2, "150 경험치로 Lv1 → Lv2 레벨업");
         result.Experience.Should().Be(50, "초과 경험치 50이 다음 레벨로 이월");
-        result.StatPoints.Should().Be(5, "레벨업 1회 = 스탯 포인트 +5");
+        result.Attack.Should().Be(20, "Lv2 자동 성장: 10 + 10 = 20");
+        result.Defense.Should().Be(10, "Lv2 자동 성장: 5 + 5 = 10");
+        result.MaxHealth.Should().Be(150, "Lv2 자동 성장: 100 + 50 = 150");
     }
 
     [Theory]
-    [InlineData(1, 0, 250, 2, 150, 5)]   // Lv1 → Lv2 (100 소모, 150 남음, 스탯 +5)
-    [InlineData(2, 0, 500, 4, 0, 10)]    // Lv2 → Lv4 (200 + 300 소모, 0 남음, 스탯 +10)
-    [InlineData(1, 50, 450, 3, 200, 10)] // Lv1(50 exp) → Lv3 (100 + 200 소모, 200 남음, 스탯 +10)
-    [InlineData(1, 0, 350, 3, 50, 10)]   // Lv1 → Lv3 (100 + 200 소모, 50 남음, 스탯 +10)
-    [InlineData(1, 0, 600, 4, 0, 15)]    // Lv1 → Lv4 (100 + 200 + 300 소모, 0 남음, 스탯 +15)
+    [InlineData(1, 0, 250, 2, 150, 20, 10, 150)]   // Lv1 → Lv2 (100 소모, 150 남음)
+    [InlineData(2, 0, 500, 4, 0, 40, 20, 250)]      // Lv2 → Lv4 (200 + 300 소모, 0 남음)
+    [InlineData(1, 50, 450, 3, 200, 30, 15, 200)]   // Lv1(50 exp) → Lv3 (100 + 200 소모, 200 남음)
+    [InlineData(1, 0, 350, 3, 50, 30, 15, 200)]     // Lv1 → Lv3 (100 + 200 소모, 50 남음)
+    [InlineData(1, 0, 600, 4, 0, 40, 20, 250)]      // Lv1 → Lv4 (100 + 200 + 300 소모, 0 남음)
     public async Task AddExperience_ShouldLevelUpMultipleTimes(
         int startLevel, int startExp, int addExp,
-        int expectedLevel, int expectedExp, int expectedStatPoints)
+        int expectedLevel, int expectedExp, long expectedAttack, long expectedDefense, long expectedMaxHealth)
     {
         // Arrange
         var characterId = Guid.NewGuid();
-        var character = CreateTestCharacter(characterId, startLevel, startExp, 0);
+        var character = CreateTestCharacter(characterId, startLevel, startExp);
 
         _mockRepository.Setup(r => r.GetByIdAsync(characterId))
             .ReturnsAsync(character);
@@ -117,7 +123,9 @@ public class CharacterServiceTests
         // Assert
         result.Level.Should().Be(expectedLevel, $"Lv{startLevel} → Lv{expectedLevel} 레벨업");
         result.Experience.Should().Be(expectedExp, "초과 경험치 정확히 계산");
-        result.StatPoints.Should().Be(expectedStatPoints, "레벨업 횟수만큼 스탯 포인트 증가");
+        result.Attack.Should().Be(expectedAttack, "자동 성장으로 공격력 증가");
+        result.Defense.Should().Be(expectedDefense, "자동 성장으로 방어력 증가");
+        result.MaxHealth.Should().Be(expectedMaxHealth, "자동 성장으로 최대 체력 증가");
     }
 
     [Fact]
@@ -131,83 +139,6 @@ public class CharacterServiceTests
         // Act & Assert
         await Assert.ThrowsAsync<InvalidOperationException>(
             () => _service.AddExperienceAsync(characterId, 100)
-        );
-    }
-
-    #endregion
-
-    #region AllocateStatPointsAsync Tests (스탯 분배)
-
-    [Fact]
-    public async Task AllocateStats_ShouldDistributeCorrectly_WhenValidInput()
-    {
-        // Arrange
-        var characterId = Guid.NewGuid();
-        var character = CreateTestCharacter(characterId, level: 2, experience: 0, statPoints: 10);
-
-        _mockRepository.Setup(r => r.GetByIdAsync(characterId))
-            .ReturnsAsync(character);
-        _mockRepository.Setup(r => r.SaveChangesAsync())
-            .ReturnsAsync(1);
-
-        // Act
-        var result = await _service.AllocateStatPointsAsync(characterId, 3, 2, 2, 3);
-
-        // Assert
-        result.Strength.Should().Be(8, "초기 5 + 3 = 8");
-        result.Dexterity.Should().Be(7, "초기 5 + 2 = 7");
-        result.Intelligence.Should().Be(7, "초기 5 + 2 = 7");
-        result.Vitality.Should().Be(13, "초기 10 + 3 = 13");
-        result.StatPoints.Should().Be(0, "10 포인트 모두 사용");
-    }
-
-    [Fact]
-    public async Task AllocateStats_ShouldThrow_WhenInsufficientStatPoints()
-    {
-        // Arrange
-        var characterId = Guid.NewGuid();
-        var character = CreateTestCharacter(characterId, level: 1, experience: 0, statPoints: 3);
-
-        _mockRepository.Setup(r => r.GetByIdAsync(characterId))
-            .ReturnsAsync(character);
-
-        // Act & Assert
-        var exception = await Assert.ThrowsAsync<InvalidOperationException>(
-            () => _service.AllocateStatPointsAsync(characterId, 2, 2, 0, 0) // 총 4 포인트 시도
-        );
-
-        exception.Message.Should().Contain("부족");
-    }
-
-    [Fact]
-    public async Task AllocateStats_ShouldThrow_WhenNegativeStatValue()
-    {
-        // Arrange
-        var characterId = Guid.NewGuid();
-        var character = CreateTestCharacter(characterId, level: 1, experience: 0, statPoints: 5);
-
-        _mockRepository.Setup(r => r.GetByIdAsync(characterId))
-            .ReturnsAsync(character);
-
-        // Act & Assert
-        var exception = await Assert.ThrowsAsync<InvalidOperationException>(
-            () => _service.AllocateStatPointsAsync(characterId, -1, 2, 2, 1)
-        );
-
-        exception.Message.Should().Contain("음수");
-    }
-
-    [Fact]
-    public async Task AllocateStats_ShouldThrow_WhenCharacterNotFound()
-    {
-        // Arrange
-        var characterId = Guid.NewGuid();
-        _mockRepository.Setup(r => r.GetByIdAsync(characterId))
-            .ReturnsAsync((Character?)null);
-
-        // Act & Assert
-        await Assert.ThrowsAsync<InvalidOperationException>(
-            () => _service.AllocateStatPointsAsync(characterId, 1, 1, 1, 1)
         );
     }
 
@@ -233,9 +164,12 @@ public class CharacterServiceTests
         // Assert
         result.Should().NotBeNull();
         result.Level.Should().Be(1);
-        result.StatPoints.Should().Be(0);
-        result.Strength.Should().Be(5);
-        result.Vitality.Should().Be(10);
+        result.Attack.Should().Be(10, "초기 공격력 10");
+        result.Defense.Should().Be(5, "초기 방어력 5");
+        result.MaxHealth.Should().Be(100, "초기 최대 체력 100");
+        result.CritRate.Should().BeApproximately(0.05f, 0.001f, "크리티컬 확률 5%");
+        result.CritDamage.Should().BeApproximately(1.5f, 0.001f, "크리티컬 데미지 150%");
+        result.Evasion.Should().BeApproximately(0.05f, 0.001f, "회피율 5%");
     }
 
     [Fact]
@@ -263,7 +197,7 @@ public class CharacterServiceTests
     {
         // Arrange
         var characterId = Guid.NewGuid();
-        var character = CreateTestCharacter(characterId, 1, 0, 0);
+        var character = CreateTestCharacter(characterId, 1, 0);
 
         _mockRepository.Setup(r => r.GetByIdAsync(characterId))
             .ReturnsAsync(character);
@@ -297,18 +231,29 @@ public class CharacterServiceTests
     #region Helper Methods
 
     /// <summary>
-    /// 테스트용 캐릭터 객체 생성 헬퍼 메서드
+    /// 테스트용 캐릭터 객체 생성 헬퍼 메서드 (자동 성장 방식)
     /// </summary>
-    private Character CreateTestCharacter(Guid id, int level, int experience, int statPoints)
+    private Character CreateTestCharacter(Guid id, int level, int experience)
     {
+        // 레벨에 따른 자동 성장 스탯 계산
+        long attack = 10 + (level - 1) * 10;      // 초기 10 + 레벨당 +10
+        long defense = 5 + (level - 1) * 5;       // 초기 5 + 레벨당 +5
+        long maxHealth = 100 + (level - 1) * 50;  // 초기 100 + 레벨당 +50
+
         return new Character
         {
             Id = id,
             PlayerId = Guid.NewGuid(),
             Level = level,
             Experience = experience,
-            StatPoints = statPoints,
-            Stats = new CharacterStats(5, 5, 5, 10), // 기본 스탯
+            Stats = new CharacterStats(
+                attack: attack,
+                defense: defense,
+                maxHealth: maxHealth,
+                critRate: 0.05f,
+                critDamage: 1.5f,
+                evasion: 0.05f
+            ),
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
         };

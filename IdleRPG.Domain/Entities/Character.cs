@@ -11,7 +11,9 @@ namespace IdleRPG.Domain.Entities
 
         public int Level { get; set; } = 1;
         public int Experience { get; set; } = 0;
-        public int StatPoints { get; set; } = 0;
+
+        // TODO: 직업 시스템 추가 시 JobType enum 필드 추가
+        // public JobType Job { get; set; } = JobType.Warrior;
 
         /// <summary>
         /// 캐릭터 보유 골드

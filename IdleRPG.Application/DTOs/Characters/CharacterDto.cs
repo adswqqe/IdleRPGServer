@@ -1,18 +1,22 @@
 ﻿namespace IdleRPG.Application.DTOs.Characters
 {
+    /// <summary>
+    /// 캐릭터 응답 DTO (자동 성장 방식)
+    /// </summary>
     public class CharacterDto
     {
         public Guid Id { get; set; }
-        public Guid PlayerId { get; set; } 
+        public Guid PlayerId { get; set; }
         public int Level { get; set; }
-        public long Experience { get; set; }
-        public int StatPoints { get; set; }
+        public int Experience { get; set; }
 
-        // 평탄화된 스탯 정보
-        public int Strength { get; set; }
-        public int Dexterity { get; set; }
-        public int Intelligence { get; set; }
-        public int Vitality { get; set; }
+        // 전투 스탯 (레벨업 시 자동 증가)
+        public long Attack { get; set; }
+        public long Defense { get; set; }
+        public long MaxHealth { get; set; }
+        public float CritRate { get; set; }
+        public float CritDamage { get; set; }
+        public float Evasion { get; set; }
 
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }

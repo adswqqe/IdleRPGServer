@@ -33,7 +33,14 @@ namespace IdleRPG.Infrastructure.Service
                 UpdatedAt = DateTime.UtcNow,
                 Level = 1,
                 Experience = 0,
-                Stats = new CharacterStats(5, 5, 5, 10),
+                Stats = new CharacterStats(
+                    attack: 10,
+                    defense: 5,
+                    maxHealth: 100,
+                    critRate: 0.05f,
+                    critDamage: 1.5f,
+                    evasion: 0.05f
+                ),
             };
 
             await _repository.AddAsync(character);
@@ -79,47 +86,27 @@ namespace IdleRPG.Infrastructure.Service
 
             character.Experience += amount;
 
-            // 레벨업 체크
+            // 레벨업 체크 및 자동 성장
             while (character.Experience >= GetRequiredExp(character.Level))
             {
                 character.Experience -= GetRequiredExp(character.Level);
                 character.Level++;
-                character.StatPoints += 5; // 레벨업 시 스탯 포인트 5개 지급
+
+                // 레벨업 시 전투 스탯 자동 증가
+                // TODO: 직업별 성장 공식 추가 시 character.Job에 따라 분기
+                character.Stats = new CharacterStats(
+                    attack: character.Stats.Attack + 10,      // 공격력 +10
+                    defense: character.Stats.Defense + 5,     // 방어력 +5
+                    maxHealth: character.Stats.MaxHealth + 50, // 최대 체력 +50
+                    critRate: character.Stats.CritRate,       // 크리티컬 확률 유지
+                    critDamage: character.Stats.CritDamage,   // 크리티컬 배율 유지
+                    evasion: character.Stats.Evasion          // 회피율 유지
+                );
             }
 
             character.UpdatedAt = DateTime.UtcNow;
             await _repository.SaveChangesAsync();
-            
-            return CreateCharacterDto(character);
-        }
 
-        public async Task<CharacterDto> AllocateStatPointsAsync(Guid characterId, int strength, int dexterity, int intelligence, int vitality)
-        {
-            var character = await _repository.GetByIdAsync(characterId);
-            if (character == null)
-                throw new InvalidOperationException("캐릭터를 찾을 수 없습니다");
-
-            int totalPoints = strength + dexterity + intelligence + vitality;
-            
-            if (totalPoints > character.StatPoints)
-                throw new InvalidOperationException("보유한 스탯 포인트가 부족합니다");
-
-            if (strength < 0 || dexterity < 0 || intelligence < 0 || vitality < 0)
-                throw new InvalidOperationException("스탯은 음수일 수 없습니다");
-
-            // CharacterStats는 Value Object이므로 새로 생성
-            character.Stats = new CharacterStats(
-                character.Stats.Strength + strength,
-                character.Stats.Dexterity + dexterity,
-                character.Stats.Intelligence + intelligence,
-                character.Stats.Vitality + vitality
-            );
-
-            character.StatPoints -= totalPoints;
-            character.UpdatedAt = DateTime.UtcNow;
-            
-            await _repository.SaveChangesAsync();
-            
             return CreateCharacterDto(character);
         }
 
@@ -135,15 +122,17 @@ namespace IdleRPG.Infrastructure.Service
                 PlayerId = character.PlayerId,
                 Id = character.Id,
                 CreatedAt = character.CreatedAt,
-                Dexterity = character.Stats.Dexterity,
-                Intelligence = character.Stats.Intelligence,
-                Strength = character.Stats.Strength,
-                Vitality = character.Stats.Vitality,
                 Level = character.Level,
                 Experience = character.Experience,
-                StatPoints = character.StatPoints,
                 UpdatedAt = character.UpdatedAt,
-            };   
+                // 전투 스탯
+                Attack = character.Stats.Attack,
+                Defense = character.Stats.Defense,
+                MaxHealth = character.Stats.MaxHealth,
+                CritRate = character.Stats.CritRate,
+                CritDamage = character.Stats.CritDamage,
+                Evasion = character.Stats.Evasion
+            };
         }
     }
 }

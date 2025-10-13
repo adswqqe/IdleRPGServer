@@ -21,12 +21,38 @@ namespace IdleRPG.Infrastructure.Configurations
                 .IsRequired()
                 .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
+            // 전투 스탯 Value Object 매핑 (자동 성장 방식)
             builder.OwnsOne(c => c.Stats, stats =>
             {
-                stats.Property(s => s.Strength).HasColumnName("Strength");
-                stats.Property(s => s.Dexterity).HasColumnName("Dexterity");
-                stats.Property(s => s.Intelligence).HasColumnName("Intelligence");
-                stats.Property(s => s.Vitality).HasColumnName("Vitality");
+                stats.Property(s => s.Attack)
+                    .HasColumnName("Attack")
+                    .HasColumnType("bigint")
+                    .IsRequired();
+
+                stats.Property(s => s.Defense)
+                    .HasColumnName("Defense")
+                    .HasColumnType("bigint")
+                    .IsRequired();
+
+                stats.Property(s => s.MaxHealth)
+                    .HasColumnName("MaxHealth")
+                    .HasColumnType("bigint")
+                    .IsRequired();
+
+                stats.Property(s => s.CritRate)
+                    .HasColumnName("CritRate")
+                    .HasColumnType("real")
+                    .IsRequired();
+
+                stats.Property(s => s.CritDamage)
+                    .HasColumnName("CritDamage")
+                    .HasColumnType("real")
+                    .IsRequired();
+
+                stats.Property(s => s.Evasion)
+                    .HasColumnName("Evasion")
+                    .HasColumnType("real")
+                    .IsRequired();
             });
 
             builder.HasOne(c => c.Player)

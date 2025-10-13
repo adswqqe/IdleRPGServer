@@ -8,10 +8,7 @@ namespace IdleRPG.Application.Character.Services
         Task<List<CharacterDto>> GetPlayerCharactersAsync(Guid playerId);
         Task DeleteCharacterAsync(Guid characterId);
         
-        // 경험치 & 레벨업
+        // 경험치 & 레벨업 (자동 성장 방식)
         Task<CharacterDto> AddExperienceAsync(Guid characterId, int amount);
-        
-        // 스탯 분배
-        Task<CharacterDto> AllocateStatPointsAsync(Guid characterId, int strength, int dexterity, int intelligence, int vitality);
     }
 }
