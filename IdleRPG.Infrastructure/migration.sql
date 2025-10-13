@@ -165,5 +165,27 @@ BEGIN
     VALUES ('20251013061914_AddMonsterEntity', '9.0.9');
     END IF;
 END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20251013080752_AddGoldAndLastLoginToCharacter') THEN
+    ALTER TABLE "Characters" ADD "Gold" bigint NOT NULL DEFAULT 0;
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20251013080752_AddGoldAndLastLoginToCharacter') THEN
+    ALTER TABLE "Characters" ADD "LastLoginTime" timestamp with time zone NOT NULL DEFAULT (CURRENT_TIMESTAMP);
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20251013080752_AddGoldAndLastLoginToCharacter') THEN
+    INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
+    VALUES ('20251013080752_AddGoldAndLastLoginToCharacter', '9.0.9');
+    END IF;
+END $EF$;
 COMMIT;
 
