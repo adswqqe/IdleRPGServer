@@ -21,6 +21,21 @@ pipeline {
             }
         }
 
+        stage('Database Migration') {
+            steps {
+                echo 'Running database migrations...'
+                timeout(time: 5, unit: 'MINUTES') {
+                    sh '''
+                        cd /home/ec2-user/IdleRPGServer
+                        psql -h idlerpg-dev.chiqweeeuidv.ap-northeast-2.rds.amazonaws.com \
+                             -U postgres \
+                             -d idlerpg \
+                             -f IdleRPG.Infrastructure/migration.sql
+                    '''
+                }
+            }
+        }
+
         stage('Deploy with Docker') {
             steps {
                 echo 'Docker deployment starting...'
