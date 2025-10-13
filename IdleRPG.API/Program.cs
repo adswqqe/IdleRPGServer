@@ -62,6 +62,7 @@ builder.Services.AddScoped<IdleRPG.Application.Character.Services.ICharacterServ
 // Repository 등록
 builder.Services.AddScoped<IdleRPG.Domain.Repositories.IPlayerRepository, IdleRPG.Infrastructure.Repositories.PlayerRepository>();
 builder.Services.AddScoped<IdleRPG.Domain.Repositories.ICharacterRepository, IdleRPG.Infrastructure.Repositories.CharacterRepository>();
+builder.Services.AddScoped<IdleRPG.Domain.Repositories.IMonsterRepository, IdleRPG.Infrastructure.Repositories.MonsterRepository>();
 
 // 🔥 이 부분이 꼭 필요함!
 builder.Services.AddDbContext<GameDBContext>(options =>
