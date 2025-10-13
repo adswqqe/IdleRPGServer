@@ -486,7 +486,7 @@
         "testStrategy": "마이그레이션 적용 후 기존 캐릭터들이 Gold=0, LastLoginTime=CreatedAt으로 자동 설정되는지 확인. 새로 생성된 캐릭터의 기본값 적용 테스트.",
         "priority": "medium",
         "dependencies": [],
-        "status": "pending",
+        "status": "done",
         "subtasks": []
       },
       {
@@ -589,7 +589,7 @@
     ],
     "metadata": {
       "created": "2025-10-01T07:23:55.277Z",
-      "updated": "2025-10-13T07:57:22.905Z",
+      "updated": "2025-10-13T08:32:05.620Z",
       "description": "Tasks for master context"
     }
   }
