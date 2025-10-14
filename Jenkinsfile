@@ -47,7 +47,7 @@ pipeline {
                         sh '''
                             cd /home/ec2-user/IdleRPGServer
                             echo "Starting Docker Compose build..."
-                            docker-compose -f docker-compose.prod.yml up -d --build 2>&1 | tee /tmp/docker-build.log
+                            docker-compose -f docker-compose.production.yml up -d --build 2>&1 | tee /tmp/docker-build.log
                             echo "Docker Compose build completed"
                         '''
                     }
