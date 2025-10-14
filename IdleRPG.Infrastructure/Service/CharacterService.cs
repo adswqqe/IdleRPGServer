@@ -66,6 +66,7 @@ namespace IdleRPG.Infrastructure.Service
                 dtoList.Add(CreateCharacterDto(character));
             }
 
+            
             return dtoList;
         }
 
