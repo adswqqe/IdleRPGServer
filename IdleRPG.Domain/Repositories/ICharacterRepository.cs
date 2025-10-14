@@ -12,8 +12,5 @@ namespace IdleRPG.Domain.Repositories
         
         // 기본 CRUD (IRepository에서 상속받지만 명시적으로 선언)
         void Delete(Character character);
-        
-        // SaveChanges
-        Task<int> SaveChangesAsync();
     } 
 }

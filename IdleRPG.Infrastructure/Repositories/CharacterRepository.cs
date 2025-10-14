@@ -64,10 +64,5 @@ namespace IdleRPG.Infrastructure.Repositories
         {
             return _context.Characters.Where(c => c.PlayerId == playerId).CountAsync();
         }
-
-        public Task<int> SaveChangesAsync()
-        {
-            return _context.SaveChangesAsync();
-        }
     }
 }

@@ -1,4 +1,5 @@
 using IdleRPG.Application.Auth.Services;
+using IdleRPG.Application.Interfaces;
 using IdleRPG.Application.Tokens.Services;
 using IdleRPG.Infrastructure.Authentication;
 using IdleRPG.Infrastructure.Data;
@@ -60,10 +61,11 @@ builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IdleRPG.Application.Character.Services.ICharacterService, IdleRPG.Infrastructure.Service.CharacterService>();
 builder.Services.AddScoped<IdleRPG.Application.Interfaces.IBattleService, IdleRPG.Infrastructure.Service.BattleService>();
 
-// Repository 등록
+// Unit of Work 등록 (Repository 관리)
+builder.Services.AddScoped<IUnitOfWork, IdleRPG.Infrastructure.UnitOfWork.UnitOfWork>();
+
+// Repository 등록 (AuthService에서 직접 사용하는 PlayerRepository만 유지)
 builder.Services.AddScoped<IdleRPG.Domain.Repositories.IPlayerRepository, IdleRPG.Infrastructure.Repositories.PlayerRepository>();
-builder.Services.AddScoped<IdleRPG.Domain.Repositories.ICharacterRepository, IdleRPG.Infrastructure.Repositories.CharacterRepository>();
-builder.Services.AddScoped<IdleRPG.Domain.Repositories.IMonsterRepository, IdleRPG.Infrastructure.Repositories.MonsterRepository>();
 
 // 🔥 이 부분이 꼭 필요함!
 builder.Services.AddDbContext<GameDBContext>(options =>

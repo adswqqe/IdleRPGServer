@@ -1,49 +1,60 @@
+using IdleRPG.Application.Character.Services;
 using IdleRPG.Application.DTOs.Battle;
+using IdleRPG.Application.DTOs.Characters;
 using IdleRPG.Application.DTOs.Rewards;
 using IdleRPG.Application.Interfaces;
 using IdleRPG.Domain.Entities;
-using IdleRPG.Domain.Repositories;
+using IdleRPG.Domain.ValueObjects;
 using Microsoft.Extensions.Logging;
 
 namespace IdleRPG.Infrastructure.Service
 {
     /// <summary>
     /// Priority Queue 기반 Event-driven 전투 시뮬레이션 서비스
+    /// 보상 지급 및 레벨업 로직 포함 (Option A: 통합 방식)
     /// </summary>
     public class BattleService : IBattleService
     {
-        private readonly ICharacterRepository _characterRepository;
-        private readonly IMonsterRepository _monsterRepository;
+        private readonly IUnitOfWork _unitOfWork;
+        private readonly ICharacterService _characterService;
         private readonly ILogger<BattleService> _logger;
         private readonly Random _random = new Random();
 
         public BattleService(
-            ICharacterRepository characterRepository,
-            IMonsterRepository monsterRepository,
+            IUnitOfWork unitOfWork,
+            ICharacterService characterService,
             ILogger<BattleService> logger)
         {
-            _characterRepository = characterRepository;
-            _monsterRepository = monsterRepository;
+            _unitOfWork = unitOfWork;
+            _characterService = characterService;
             _logger = logger;
         }
 
         public async Task<BattleResultResponse> SimulateBattleAsync(Guid characterId, Guid monsterId)
         {
             // 1. 엔티티 로드
-            var character = await _characterRepository.GetByIdAsync(characterId);
+            var character = await _unitOfWork.Characters.GetByIdAsync(characterId);
             if (character == null)
                 throw new InvalidOperationException("캐릭터를 찾을 수 없습니다");
 
-            var monster = await _monsterRepository.GetByIdAsync(monsterId);
+            var monster = await _unitOfWork.Monsters.GetByIdAsync(monsterId);
             if (monster == null)
                 throw new InvalidOperationException("몬스터를 찾을 수 없습니다");
 
             // 2. 전투 시뮬레이션 실행
             var result = SimulateCombat(character, monster);
 
+            // 3. 승리 시 보상 자동 지급 (경험치 + 골드 + 레벨업)
+            CharacterDto? updatedCharacter = null;
+            if (result.IsVictory && result.Reward != null)
+            {
+                updatedCharacter = await ApplyRewardAsync(character, result.Reward);
+                result.UpdatedCharacter = updatedCharacter;
+            }
+
             _logger.LogInformation(
-                "전투 완료 - 캐릭터: {CharacterId}, 몬스터: {MonsterId}, 승리: {IsVictory}",
-                characterId, monsterId, result.IsVictory);
+                "전투 완료 - 캐릭터: {CharacterId}, 몬스터: {MonsterId}, 승리: {IsVictory}, 경험치: {Exp}, 골드: {Gold}",
+                characterId, monsterId, result.IsVictory, result.Reward?.Experience ?? 0, result.Reward?.Gold ?? 0);
 
             return result;
         }
@@ -203,6 +214,29 @@ namespace IdleRPG.Infrastructure.Service
                 Experience = monster.Level * 50, // 임시 공식
                 Gold = monster.Level * 10        // 임시 공식
             };
+        }
+
+        /// <summary>
+        /// 보상 지급 및 레벨업 처리 (CharacterService 로직 재사용)
+        /// </summary>
+        private async Task<CharacterDto> ApplyRewardAsync(Character character, RewardDto reward)
+        {
+            // 1. 경험치 지급 (CharacterService의 AddExperienceAsync 활용)
+            var updatedCharacter = await _characterService.AddExperienceAsync(character.Id, (int)reward.Experience);
+
+            // 2. 골드 지급 (Entity 직접 조작 후 저장)
+            var characterEntity = await _unitOfWork.Characters.GetByIdAsync(character.Id);
+            if (characterEntity != null)
+            {
+                characterEntity.Gold += reward.Gold;
+                characterEntity.UpdatedAt = DateTime.UtcNow;
+                await _unitOfWork.SaveChangesAsync();
+
+                // 최종 업데이트된 정보 다시 조회
+                updatedCharacter = await _characterService.GetCharacterByIdAsync(character.Id);
+            }
+
+            return updatedCharacter!;
         }
 
         /// <summary>

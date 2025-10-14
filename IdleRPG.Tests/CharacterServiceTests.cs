@@ -1,6 +1,7 @@
 using FluentAssertions;
 using IdleRPG.Application.Character.Services;
 using IdleRPG.Application.DTOs.Characters;
+using IdleRPG.Application.Interfaces;
 using IdleRPG.Domain.Entities;
 using IdleRPG.Domain.Repositories;
 using IdleRPG.Domain.ValueObjects;
@@ -12,19 +13,25 @@ using Xunit;
 namespace IdleRPG.Tests;
 
 /// <summary>
-/// CharacterService의 핵심 비즈니스 로직을 검증하는 단위 테스트
+/// CharacterService의 핵심 비즈니스 로직을 검증하는 단위 테스트 (Unit of Work 패턴)
 /// </summary>
 public class CharacterServiceTests
 {
-    private readonly Mock<ICharacterRepository> _mockRepository;
+    private readonly Mock<IUnitOfWork> _mockUnitOfWork;
+    private readonly Mock<ICharacterRepository> _mockCharacterRepository;
     private readonly Mock<ILogger<CharacterService>> _mockLogger;
     private readonly ICharacterService _service;
 
     public CharacterServiceTests()
     {
-        _mockRepository = new Mock<ICharacterRepository>();
+        _mockUnitOfWork = new Mock<IUnitOfWork>();
+        _mockCharacterRepository = new Mock<ICharacterRepository>();
         _mockLogger = new Mock<ILogger<CharacterService>>();
-        _service = new CharacterService(_mockRepository.Object, _mockLogger.Object);
+
+        // Unit of Work가 CharacterRepository를 반환하도록 설정
+        _mockUnitOfWork.Setup(u => u.Characters).Returns(_mockCharacterRepository.Object);
+
+        _service = new CharacterService(_mockUnitOfWork.Object, _mockLogger.Object);
     }
 
     #region AddExperienceAsync Tests (레벨업 로직)
@@ -36,9 +43,9 @@ public class CharacterServiceTests
         var characterId = Guid.NewGuid();
         var character = CreateTestCharacter(characterId, level: 1, experience: 0);
 
-        _mockRepository.Setup(r => r.GetByIdAsync(characterId))
+        _mockCharacterRepository.Setup(r => r.GetByIdAsync(characterId))
             .ReturnsAsync(character);
-        _mockRepository.Setup(r => r.SaveChangesAsync())
+        _mockUnitOfWork.Setup(u => u.SaveChangesAsync(default))
             .ReturnsAsync(1);
 
         // Act
@@ -59,9 +66,9 @@ public class CharacterServiceTests
         var characterId = Guid.NewGuid();
         var character = CreateTestCharacter(characterId, level: 1, experience: 0);
 
-        _mockRepository.Setup(r => r.GetByIdAsync(characterId))
+        _mockCharacterRepository.Setup(r => r.GetByIdAsync(characterId))
             .ReturnsAsync(character);
-        _mockRepository.Setup(r => r.SaveChangesAsync())
+        _mockUnitOfWork.Setup(u => u.SaveChangesAsync(default))
             .ReturnsAsync(1);
 
         // Act
@@ -82,9 +89,9 @@ public class CharacterServiceTests
         var characterId = Guid.NewGuid();
         var character = CreateTestCharacter(characterId, level: 1, experience: 0);
 
-        _mockRepository.Setup(r => r.GetByIdAsync(characterId))
+        _mockCharacterRepository.Setup(r => r.GetByIdAsync(characterId))
             .ReturnsAsync(character);
-        _mockRepository.Setup(r => r.SaveChangesAsync())
+        _mockUnitOfWork.Setup(u => u.SaveChangesAsync(default))
             .ReturnsAsync(1);
 
         // Act
@@ -112,9 +119,9 @@ public class CharacterServiceTests
         var characterId = Guid.NewGuid();
         var character = CreateTestCharacter(characterId, startLevel, startExp);
 
-        _mockRepository.Setup(r => r.GetByIdAsync(characterId))
+        _mockCharacterRepository.Setup(r => r.GetByIdAsync(characterId))
             .ReturnsAsync(character);
-        _mockRepository.Setup(r => r.SaveChangesAsync())
+        _mockUnitOfWork.Setup(u => u.SaveChangesAsync(default))
             .ReturnsAsync(1);
 
         // Act
@@ -133,7 +140,7 @@ public class CharacterServiceTests
     {
         // Arrange
         var characterId = Guid.NewGuid();
-        _mockRepository.Setup(r => r.GetByIdAsync(characterId))
+        _mockCharacterRepository.Setup(r => r.GetByIdAsync(characterId))
             .ReturnsAsync((Character?)null);
 
         // Act & Assert
@@ -151,11 +158,11 @@ public class CharacterServiceTests
     {
         // Arrange
         var playerId = Guid.NewGuid();
-        _mockRepository.Setup(r => r.CountByPlayerIdAsync(playerId))
+        _mockCharacterRepository.Setup(r => r.CountByPlayerIdAsync(playerId))
             .ReturnsAsync(2); // 현재 2개 보유
-        _mockRepository.Setup(r => r.AddAsync(It.IsAny<Character>()))
+        _mockCharacterRepository.Setup(r => r.AddAsync(It.IsAny<Character>()))
             .Returns((Character c) => Task.FromResult(c));
-        _mockRepository.Setup(r => r.SaveChangesAsync())
+        _mockUnitOfWork.Setup(u => u.SaveChangesAsync(default))
             .ReturnsAsync(1);
 
         // Act
@@ -177,7 +184,7 @@ public class CharacterServiceTests
     {
         // Arrange
         var playerId = Guid.NewGuid();
-        _mockRepository.Setup(r => r.CountByPlayerIdAsync(playerId))
+        _mockCharacterRepository.Setup(r => r.CountByPlayerIdAsync(playerId))
             .ReturnsAsync(3); // 이미 3개 보유 (최대치)
 
         // Act & Assert
@@ -199,17 +206,17 @@ public class CharacterServiceTests
         var characterId = Guid.NewGuid();
         var character = CreateTestCharacter(characterId, 1, 0);
 
-        _mockRepository.Setup(r => r.GetByIdAsync(characterId))
+        _mockCharacterRepository.Setup(r => r.GetByIdAsync(characterId))
             .ReturnsAsync(character);
-        _mockRepository.Setup(r => r.SaveChangesAsync())
+        _mockUnitOfWork.Setup(u => u.SaveChangesAsync(default))
             .ReturnsAsync(1);
 
         // Act
         await _service.DeleteCharacterAsync(characterId);
 
         // Assert
-        _mockRepository.Verify(r => r.Delete(character), Times.Once);
-        _mockRepository.Verify(r => r.SaveChangesAsync(), Times.Once);
+        _mockCharacterRepository.Verify(r => r.Delete(character), Times.Once);
+        _mockUnitOfWork.Verify(u => u.SaveChangesAsync(default), Times.Once);
     }
 
     [Fact]
@@ -217,7 +224,7 @@ public class CharacterServiceTests
     {
         // Arrange
         var characterId = Guid.NewGuid();
-        _mockRepository.Setup(r => r.GetByIdAsync(characterId))
+        _mockCharacterRepository.Setup(r => r.GetByIdAsync(characterId))
             .ReturnsAsync((Character?)null);
 
         // Act & Assert

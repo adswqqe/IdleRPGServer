@@ -24,10 +24,5 @@ namespace IdleRPG.Domain.Repositories
         /// 몬스터 생성
         /// </summary>
         Task<Monster> CreateAsync(Monster monster);
-
-        /// <summary>
-        /// 변경사항 저장
-        /// </summary>
-        Task<int> SaveChangesAsync();
     }
 }

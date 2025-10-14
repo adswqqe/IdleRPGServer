@@ -1,7 +1,6 @@
 using IdleRPG.Application.Character.Services;
 using IdleRPG.Application.DTOs.Battle;
 using IdleRPG.Application.Interfaces;
-using IdleRPG.Domain.Repositories;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
@@ -17,18 +16,15 @@ namespace IdleRPG.API.Controllers
     {
         private readonly IBattleService _battleService;
         private readonly ICharacterService _characterService;
-        private readonly ICharacterRepository _characterRepository;
         private readonly ILogger<BattleController> _logger;
 
         public BattleController(
             IBattleService battleService,
             ICharacterService characterService,
-            ICharacterRepository characterRepository,
             ILogger<BattleController> logger)
         {
             _battleService = battleService;
             _characterService = characterService;
-            _characterRepository = characterRepository;
             _logger = logger;
         }
 
@@ -38,7 +34,7 @@ namespace IdleRPG.API.Controllers
         /// <remarks>
         /// 서버에서 전투를 시뮬레이션하고 결과를 반환합니다.
         /// 승리 시 경험치와 골드를 자동으로 지급하며, 레벨업도 자동 처리됩니다.
-        /// 
+        ///
         /// **사용 시나리오**:
         /// - 보스 스테이지
         /// - 랭킹이 있는 던전
@@ -68,32 +64,8 @@ namespace IdleRPG.API.Controllers
                     return StatusCode(403, new { message = "본인의 캐릭터만 사용할 수 있습니다" });
                 }
 
-                // 2. 전투 시뮬레이션 실행
+                // 2. 전투 시뮬레이션 실행 (보상 지급 포함)
                 var battleResult = await _battleService.SimulateBattleAsync(request.CharacterId, request.MonsterId);
-
-                // 3. 승리 시 보상 자동 지급
-                if (battleResult.IsVictory && battleResult.Reward != null)
-                {
-                    // 경험치 지급 (자동 레벨업 포함)
-                    var updatedCharacter = await _characterService.AddExperienceAsync(
-                        request.CharacterId,
-                        (int)battleResult.Reward.Experience);
-
-                    // 골드 지급 (Character 엔티티 직접 업데이트)
-                    var characterEntity = await _characterRepository.GetByIdAsync(request.CharacterId);
-                    if (characterEntity != null)
-                    {
-                        characterEntity.Gold += battleResult.Reward.Gold;
-                        characterEntity.UpdatedAt = DateTime.UtcNow;
-                        await _characterRepository.SaveChangesAsync();
-
-                        // 최종 업데이트된 캐릭터 정보 다시 조회
-                        updatedCharacter = await _characterService.GetCharacterByIdAsync(request.CharacterId);
-                    }
-
-                    // 업데이트된 캐릭터 정보 설정
-                    battleResult.UpdatedCharacter = updatedCharacter;
-                }
 
                 return Ok(new { response = battleResult });
             }

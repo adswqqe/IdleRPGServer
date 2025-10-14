@@ -1,26 +1,26 @@
 ﻿using IdleRPG.Application.Character.Services;
 using IdleRPG.Application.DTOs.Characters;
+using IdleRPG.Application.Interfaces;
 using IdleRPG.Domain.Entities;
-using IdleRPG.Domain.Repositories;
 using IdleRPG.Domain.ValueObjects;
 using Microsoft.Extensions.Logging;
 namespace IdleRPG.Infrastructure.Service
 {
     public class CharacterService : ICharacterService
     {
-        private readonly ICharacterRepository _repository;
+        private readonly IUnitOfWork _unitOfWork;
         private readonly ILogger<CharacterService> _logger;
         private readonly int _maxCharacterCount = 3;
-        
-        public CharacterService(ICharacterRepository repository, ILogger<CharacterService> logger)
+
+        public CharacterService(IUnitOfWork unitOfWork, ILogger<CharacterService> logger)
         {
-            _repository = repository;
+            _unitOfWork = unitOfWork;
             _logger = logger;
         }
         
         public async Task<CharacterDto> CreateCharacterAsync(Guid playerId, CreateCharacterDto dto)
         {
-            int count = await _repository.CountByPlayerIdAsync(playerId);
+            int count = await _unitOfWork.Characters.CountByPlayerIdAsync(playerId);
 
             if (count >= _maxCharacterCount)
                 throw new InvalidOperationException("최대 3개까지만 생성 가능합니다");
@@ -44,21 +44,21 @@ namespace IdleRPG.Infrastructure.Service
                 ),
             };
 
-            await _repository.AddAsync(character);
-            await _repository.SaveChangesAsync();
+            await _unitOfWork.Characters.AddAsync(character);
+            await _unitOfWork.SaveChangesAsync();
             return CreateCharacterDto(character);
         }
 
         public async Task<CharacterDto?> GetCharacterByIdAsync(Guid characterId)
         {
-            var character = await _repository.GetByIdAsync(characterId);
+            var character = await _unitOfWork.Characters.GetByIdAsync(characterId);
 
             return character == null ? null : CreateCharacterDto(character);
         }
         
         public async Task<List<CharacterDto>> GetPlayerCharactersAsync(Guid playerId)
         {
-            var characters = await _repository.GetByPlayerIdAsync(playerId);
+            var characters = await _unitOfWork.Characters.GetByPlayerIdAsync(playerId);
             var dtoList = new List<CharacterDto>();
 
             foreach (var character in characters)
@@ -71,17 +71,17 @@ namespace IdleRPG.Infrastructure.Service
 
         public async Task DeleteCharacterAsync(Guid characterId)
         {
-            var character = await _repository.GetByIdAsync(characterId);
+            var character = await _unitOfWork.Characters.GetByIdAsync(characterId);
             if (character == null)
                 throw new InvalidOperationException("캐릭터 없음");
-                
-            _repository.Delete(character);
-            await _repository.SaveChangesAsync();
+
+            _unitOfWork.Characters.Delete(character);
+            await _unitOfWork.SaveChangesAsync();
         }
 
         public async Task<CharacterDto> AddExperienceAsync(Guid characterId, int amount)
         {
-            var character = await _repository.GetByIdAsync(characterId);
+            var character = await _unitOfWork.Characters.GetByIdAsync(characterId);
             if (character == null)
                 throw new InvalidOperationException("캐릭터를 찾을 수 없습니다");
 
@@ -107,7 +107,7 @@ namespace IdleRPG.Infrastructure.Service
             }
 
             character.UpdatedAt = DateTime.UtcNow;
-            await _repository.SaveChangesAsync();
+            await _unitOfWork.SaveChangesAsync();
 
             return CreateCharacterDto(character);
         }

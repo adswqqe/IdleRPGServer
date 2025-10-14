@@ -72,10 +72,5 @@ namespace IdleRPG.Infrastructure.Repositories
         {
             _context.Monsters.Remove(entity);
         }
-
-        public async Task<int> SaveChangesAsync()
-        {
-            return await _context.SaveChangesAsync();
-        }
     }
 }
