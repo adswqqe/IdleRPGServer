@@ -25,13 +25,16 @@ pipeline {
             steps {
                 echo 'Running database migrations...'
                 timeout(time: 5, unit: 'MINUTES') {
-                    sh '''
-                        cd /home/ec2-user/IdleRPGServer
-                        psql -h idlerpg-dev.chiqweeeuidv.ap-northeast-2.rds.amazonaws.com \
-                             -U postgres \
-                             -d idlerpg \
-                             -f IdleRPG.Infrastructure/migration.sql
-                    '''
+                    withCredentials([string(credentialsId: 'rds-postgres-password', variable: 'PGPASSWORD')]) {
+                        sh '''
+                            cd /home/ec2-user/IdleRPGServer
+                            export PGPASSWORD=$PGPASSWORD
+                            psql -h idlerpg-dev.chiqweeeuidv.ap-northeast-2.rds.amazonaws.com \
+                                 -U postgres \
+                                 -d idlerpg \
+                                 -f IdleRPG.Infrastructure/migration.sql
+                        '''
+                    }
                 }
             }
         }

@@ -187,5 +187,68 @@ BEGIN
     VALUES ('20251013080752_AddGoldAndLastLoginToCharacter', '9.0.9');
     END IF;
 END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20251014023217_AddAttackSpeedToCharacterAndMonster') THEN
+    ALTER TABLE "Monsters" ADD "AttackSpeed" real NOT NULL DEFAULT 1.0;
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20251014023217_AddAttackSpeedToCharacterAndMonster') THEN
+    ALTER TABLE "Monsters" ADD "CritDamage" real NOT NULL DEFAULT 1.5;
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20251014023217_AddAttackSpeedToCharacterAndMonster') THEN
+    ALTER TABLE "Monsters" ADD "CritRate" real NOT NULL DEFAULT 0.05;
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20251014023217_AddAttackSpeedToCharacterAndMonster') THEN
+    ALTER TABLE "Monsters" ADD "Evasion" real NOT NULL DEFAULT 0.05;
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20251014023217_AddAttackSpeedToCharacterAndMonster') THEN
+    ALTER TABLE "Characters" ADD "AttackSpeed" real NOT NULL DEFAULT 0.0;
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20251014023217_AddAttackSpeedToCharacterAndMonster') THEN
+    UPDATE "Monsters" SET "AttackSpeed" = 0.8, "CritDamage" = 1.3, "CritRate" = 0.03, "Evasion" = 0.02
+    WHERE "Id" = '11111111-1111-1111-1111-111111111111';
+
+    UPDATE "Monsters" SET "AttackSpeed" = 1.0, "CritDamage" = 1.5, "CritRate" = 0.05, "Evasion" = 0.05
+    WHERE "Id" = '22222222-2222-2222-2222-222222222222';
+
+    UPDATE "Monsters" SET "AttackSpeed" = 0.7, "CritDamage" = 1.8, "CritRate" = 0.04, "Evasion" = 0.03
+    WHERE "Id" = '33333333-3333-3333-3333-333333333333';
+
+    UPDATE "Monsters" SET "AttackSpeed" = 0.6, "CritDamage" = 2.0, "CritRate" = 0.03, "Evasion" = 0.02
+    WHERE "Id" = '44444444-4444-4444-4444-444444444444';
+
+    UPDATE "Monsters" SET "AttackSpeed" = 1.2, "CritDamage" = 2.0, "CritRate" = 0.1, "Evasion" = 0.08
+    WHERE "Id" = '55555555-5555-5555-5555-555555555555';
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20251014023217_AddAttackSpeedToCharacterAndMonster') THEN
+    INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
+    VALUES ('20251014023217_AddAttackSpeedToCharacterAndMonster', '9.0.9');
+    END IF;
+END $EF$;
 COMMIT;
 
