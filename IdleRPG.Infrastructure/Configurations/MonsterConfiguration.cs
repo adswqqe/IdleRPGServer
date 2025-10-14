@@ -32,6 +32,22 @@ namespace IdleRPG.Infrastructure.Configurations
             builder.Property(m => m.Defense)
                 .IsRequired();
 
+            builder.Property(m => m.AttackSpeed)
+                .IsRequired()
+                .HasDefaultValue(1.0f);
+
+            builder.Property(m => m.CritRate)
+                .IsRequired()
+                .HasDefaultValue(0.05f);
+
+            builder.Property(m => m.CritDamage)
+                .IsRequired()
+                .HasDefaultValue(1.5f);
+
+            builder.Property(m => m.Evasion)
+                .IsRequired()
+                .HasDefaultValue(0.05f);
+
             builder.Property(m => m.ExperienceReward)
                 .IsRequired();
 
@@ -57,6 +73,10 @@ namespace IdleRPG.Infrastructure.Configurations
                     MaxHealth = 50,
                     Attack = 10,
                     Defense = 5,
+                    AttackSpeed = 0.8f,    // 느림
+                    CritRate = 0.03f,      // 낮은 크리율
+                    CritDamage = 1.3f,     // 낮은 크리 배율
+                    Evasion = 0.02f,       // 낮은 회피
                     ExperienceReward = 10,
                     GoldReward = 5,
                     CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, DateTimeKind.Utc),
@@ -70,6 +90,10 @@ namespace IdleRPG.Infrastructure.Configurations
                     MaxHealth = 150,
                     Attack = 30,
                     Defense = 15,
+                    AttackSpeed = 1.0f,    // 보통
+                    CritRate = 0.05f,      // 보통 크리율
+                    CritDamage = 1.5f,     // 보통 크리 배율
+                    Evasion = 0.05f,       // 보통 회피
                     ExperienceReward = 50,
                     GoldReward = 25,
                     CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, DateTimeKind.Utc),
@@ -83,6 +107,10 @@ namespace IdleRPG.Infrastructure.Configurations
                     MaxHealth = 300,
                     Attack = 60,
                     Defense = 30,
+                    AttackSpeed = 0.7f,    // 느림 (강한 대신 느림)
+                    CritRate = 0.04f,      // 낮은 크리율
+                    CritDamage = 1.8f,     // 높은 크리 배율
+                    Evasion = 0.03f,       // 낮은 회피
                     ExperienceReward = 100,
                     GoldReward = 50,
                     CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, DateTimeKind.Utc),
@@ -96,6 +124,10 @@ namespace IdleRPG.Infrastructure.Configurations
                     MaxHealth = 500,
                     Attack = 100,
                     Defense = 50,
+                    AttackSpeed = 0.6f,    // 매우 느림 (매우 강함)
+                    CritRate = 0.03f,      // 낮은 크리율
+                    CritDamage = 2.0f,     // 매우 높은 크리 배율
+                    Evasion = 0.02f,       // 매우 낮은 회피
                     ExperienceReward = 150,
                     GoldReward = 75,
                     CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, DateTimeKind.Utc),
@@ -109,6 +141,10 @@ namespace IdleRPG.Infrastructure.Configurations
                     MaxHealth = 1000,
                     Attack = 200,
                     Defense = 100,
+                    AttackSpeed = 1.2f,    // 빠름 (강하고 빠름, 보스급)
+                    CritRate = 0.10f,      // 높은 크리율
+                    CritDamage = 2.0f,     // 매우 높은 크리 배율
+                    Evasion = 0.08f,       // 높은 회피
                     ExperienceReward = 300,
                     GoldReward = 150,
                     CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, DateTimeKind.Utc),

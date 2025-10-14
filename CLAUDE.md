@@ -88,8 +88,31 @@ cd IdleRPG.Tests && dotnet test         # Run specific test project
 ```bash
 cd IdleRPG.Infrastructure
 dotnet ef migrations add <MigrationName> --startup-project ../IdleRPG.API
-dotnet ef database update --startup-project ../IdleRPG.API
+# ⚠️ DO NOT run 'dotnet ef database update' manually!
+# Jenkins CI/CD automatically applies migrations on git push
 ```
+
+**⚠️ IMPORTANT: Jenkins CI/CD handles database migrations automatically**
+
+**Production Deployment Flow:**
+1. Create EF Core migration locally (as shown above)
+2. Commit and push to GitHub
+3. Jenkins automatically executes the following pipeline:
+   - **Step 1**: Git Pull from GitHub (5 min)
+   - **Step 2**: Database Migration to RDS PostgreSQL (5 min) ← **Automatic!**
+   - **Step 3**: Docker Build & Deploy to EC2 (20 min)
+   - **Step 4**: Verification (2 min)
+
+**Migration Strategy:**
+- Migrations are applied via `migration.sql` scripts
+- Jenkins executes `psql` commands directly to RDS
+- Idempotent migrations with `IF NOT EXISTS` patterns
+- **Never run `dotnet ef database update` in production** - it's handled by Jenkins
+
+**Local Development:**
+- Use `./dev-start.sh` for local PostgreSQL instance
+- Apply migrations locally with `dotnet ef database update` if needed
+- Changes to local DB do not affect production
 
 ## Key Technologies
 

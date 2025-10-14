@@ -83,7 +83,9 @@
       "Bash(dotnet sln:*)",
       "Bash(dotnet test)",
       "Bash(dotnet test:*)",
-      "Bash(docker exec:*)"
+      "Bash(docker exec:*)",
+      "WebFetch(domain:gamedev.stackexchange.com)",
+      "WebFetch(domain:wiki.melvoridle.com)"
     ]
   },
   "enableAllProjectMcpServers": true,

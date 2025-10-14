@@ -15,10 +15,11 @@
         public float CritRate { get; }    // 크리티컬 확률 (0.0 ~ 1.0)
         public float CritDamage { get; }  // 크리티컬 데미지 배율 (예: 1.5 = 150%)
         public float Evasion { get; }     // 회피율 (0.0 ~ 1.0)
+        public float AttackSpeed { get; } // 공격 속도 (초당 공격 횟수, 예: 1.0 = 1회/초)
 
         public CharacterStats(
             long attack, long defense, long maxHealth,
-            float critRate, float critDamage, float evasion)
+            float critRate, float critDamage, float evasion, float attackSpeed)
         {
             // 전투 스탯 검증
             if (attack < 0) throw new ArgumentException("Attack cannot be negative", nameof(attack));
@@ -27,6 +28,7 @@
             if (critRate < 0 || critRate > 1) throw new ArgumentException("CritRate must be between 0 and 1", nameof(critRate));
             if (critDamage < 1) throw new ArgumentException("CritDamage must be at least 1", nameof(critDamage));
             if (evasion < 0 || evasion > 1) throw new ArgumentException("Evasion must be between 0 and 1", nameof(evasion));
+            if (attackSpeed < 0.1f) throw new ArgumentException("AttackSpeed must be at least 0.1", nameof(attackSpeed));
 
             Attack = attack;
             Defense = defense;
@@ -34,6 +36,7 @@
             CritRate = critRate;
             CritDamage = critDamage;
             Evasion = evasion;
+            AttackSpeed = attackSpeed;
         }
 
         public override bool Equals(object? obj)
@@ -51,7 +54,8 @@
                    MaxHealth == other.MaxHealth &&
                    Math.Abs(CritRate - other.CritRate) < 0.0001f &&
                    Math.Abs(CritDamage - other.CritDamage) < 0.0001f &&
-                   Math.Abs(Evasion - other.Evasion) < 0.0001f;
+                   Math.Abs(Evasion - other.Evasion) < 0.0001f &&
+                   Math.Abs(AttackSpeed - other.AttackSpeed) < 0.0001f;
         }
 
         public override int GetHashCode()
@@ -63,6 +67,7 @@
             hash.Add(CritRate);
             hash.Add(CritDamage);
             hash.Add(Evasion);
+            hash.Add(AttackSpeed);
             return hash.ToHashCode();
         }
     }

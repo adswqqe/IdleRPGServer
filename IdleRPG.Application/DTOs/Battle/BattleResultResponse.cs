@@ -1,3 +1,4 @@
+using IdleRPG.Application.DTOs.Characters;
 using IdleRPG.Application.DTOs.Rewards;
 
 namespace IdleRPG.Application.DTOs.Battle
@@ -23,13 +24,8 @@ namespace IdleRPG.Application.DTOs.Battle
         public BattleStatisticsDto Statistics { get; set; } = new();
 
         /// <summary>
-        /// 캐릭터 전투 스탯 정보
+        /// 전투 후 업데이트된 캐릭터 정보 (레벨업 여부 확인용)
         /// </summary>
-        public BattleStatsDto CharacterStats { get; set; } = new();
-
-        /// <summary>
-        /// 몬스터 전투 스탯 정보
-        /// </summary>
-        public BattleStatsDto MonsterStats { get; set; } = new();
+        public CharacterDto? UpdatedCharacter { get; set; }
     }
 }

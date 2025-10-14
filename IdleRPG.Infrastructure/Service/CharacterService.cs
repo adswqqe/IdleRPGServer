@@ -39,7 +39,8 @@ namespace IdleRPG.Infrastructure.Service
                     maxHealth: 100,
                     critRate: 0.05f,
                     critDamage: 1.5f,
-                    evasion: 0.05f
+                    evasion: 0.05f,
+                    attackSpeed: 1.0f  // 기본 공격 속도
                 ),
             };
 
@@ -100,7 +101,8 @@ namespace IdleRPG.Infrastructure.Service
                     maxHealth: character.Stats.MaxHealth + 50, // 최대 체력 +50
                     critRate: character.Stats.CritRate,       // 크리티컬 확률 유지
                     critDamage: character.Stats.CritDamage,   // 크리티컬 배율 유지
-                    evasion: character.Stats.Evasion          // 회피율 유지
+                    evasion: character.Stats.Evasion,         // 회피율 유지
+                    attackSpeed: character.Stats.AttackSpeed  // 공격 속도 유지 (장비로만 증가)
                 );
             }
 
@@ -124,6 +126,8 @@ namespace IdleRPG.Infrastructure.Service
                 CreatedAt = character.CreatedAt,
                 Level = character.Level,
                 Experience = character.Experience,
+                Gold = character.Gold,
+                LastLoginTime = character.LastLoginTime,
                 UpdatedAt = character.UpdatedAt,
                 // 전투 스탯
                 Attack = character.Stats.Attack,
@@ -131,7 +135,8 @@ namespace IdleRPG.Infrastructure.Service
                 MaxHealth = character.Stats.MaxHealth,
                 CritRate = character.Stats.CritRate,
                 CritDamage = character.Stats.CritDamage,
-                Evasion = character.Stats.Evasion
+                Evasion = character.Stats.Evasion,
+                AttackSpeed = character.Stats.AttackSpeed
             };
         }
     }

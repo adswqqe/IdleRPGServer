@@ -36,6 +36,26 @@ namespace IdleRPG.Domain.Entities
         public int Defense { get; set; }
 
         /// <summary>
+        /// 공격 속도 (초당 공격 횟수, 예: 1.0 = 1회/초)
+        /// </summary>
+        public float AttackSpeed { get; set; } = 1.0f;
+
+        /// <summary>
+        /// 크리티컬 확률 (0.0 ~ 1.0)
+        /// </summary>
+        public float CritRate { get; set; } = 0.05f;
+
+        /// <summary>
+        /// 크리티컬 데미지 배율 (예: 1.5 = 150%)
+        /// </summary>
+        public float CritDamage { get; set; } = 1.5f;
+
+        /// <summary>
+        /// 회피율 (0.0 ~ 1.0)
+        /// </summary>
+        public float Evasion { get; set; } = 0.05f;
+
+        /// <summary>
         /// 처치 시 획득 경험치
         /// </summary>
         public int ExperienceReward { get; set; }

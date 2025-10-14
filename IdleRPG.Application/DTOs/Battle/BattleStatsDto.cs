@@ -6,12 +6,13 @@ namespace IdleRPG.Application.DTOs.Battle
     public class BattleStatsDto
     {
         public string Name { get; set; } = string.Empty;
-        public int Attack { get; set; }
-        public int Defense { get; set; }
-        public int MaxHealth { get; set; }
-        public int CurrentHealth { get; set; }
+        public long Attack { get; set; }
+        public long Defense { get; set; }
+        public long MaxHealth { get; set; }
+        public long CurrentHealth { get; set; }
         public float CritRate { get; set; }
         public float CritDamage { get; set; }
         public float Evasion { get; set; }
+        public float AttackSpeed { get; set; }
     }
 }

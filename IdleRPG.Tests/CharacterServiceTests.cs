@@ -252,7 +252,8 @@ public class CharacterServiceTests
                 maxHealth: maxHealth,
                 critRate: 0.05f,
                 critDamage: 1.5f,
-                evasion: 0.05f
+                evasion: 0.05f,
+                attackSpeed: 1.0f
             ),
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow

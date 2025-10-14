@@ -6,14 +6,14 @@ namespace IdleRPG.Application.DTOs.Rewards
     public class RewardDto
     {
         /// <summary>
-        /// 획득 골드
+        /// 획득 골드 (long 타입: 방치형 게임 특성상 큰 숫자 처리)
         /// </summary>
-        public int Gold { get; set; }
+        public long Gold { get; set; }
 
         /// <summary>
-        /// 획득 경험치
+        /// 획득 경험치 (long 타입: 방치형 게임 특성상 큰 숫자 처리)
         /// </summary>
-        public int Experience { get; set; }
+        public long Experience { get; set; }
 
         // TODO: 나중에 아이템 보상, 스킬북 등 추가 가능
         // public List<ItemReward> Items { get; set; } = new();

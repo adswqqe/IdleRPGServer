@@ -53,6 +53,11 @@ namespace IdleRPG.Infrastructure.Configurations
                     .HasColumnName("Evasion")
                     .HasColumnType("real")
                     .IsRequired();
+
+                stats.Property(s => s.AttackSpeed)
+                    .HasColumnName("AttackSpeed")
+                    .HasColumnType("real")
+                    .IsRequired();
             });
 
             builder.HasOne(c => c.Player)
