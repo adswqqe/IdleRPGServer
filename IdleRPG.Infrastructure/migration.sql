@@ -190,6 +190,91 @@ END $EF$;
 
 DO $EF$
 BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20251013133523_RefactorCharacterStatsToAutoGrowth') THEN
+    ALTER TABLE "Characters" DROP COLUMN IF EXISTS "Dexterity";
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20251013133523_RefactorCharacterStatsToAutoGrowth') THEN
+    ALTER TABLE "Characters" DROP COLUMN IF EXISTS "Intelligence";
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20251013133523_RefactorCharacterStatsToAutoGrowth') THEN
+    ALTER TABLE "Characters" DROP COLUMN IF EXISTS "StatPoints";
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20251013133523_RefactorCharacterStatsToAutoGrowth') THEN
+    ALTER TABLE "Characters" DROP COLUMN IF EXISTS "Strength";
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20251013133523_RefactorCharacterStatsToAutoGrowth') THEN
+    ALTER TABLE "Characters" DROP COLUMN IF EXISTS "Vitality";
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20251013133523_RefactorCharacterStatsToAutoGrowth') THEN
+    ALTER TABLE "Characters" ADD "Attack" bigint NOT NULL DEFAULT 0;
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20251013133523_RefactorCharacterStatsToAutoGrowth') THEN
+    ALTER TABLE "Characters" ADD "CritDamage" real NOT NULL DEFAULT 0.0;
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20251013133523_RefactorCharacterStatsToAutoGrowth') THEN
+    ALTER TABLE "Characters" ADD "CritRate" real NOT NULL DEFAULT 0.0;
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20251013133523_RefactorCharacterStatsToAutoGrowth') THEN
+    ALTER TABLE "Characters" ADD "Defense" bigint NOT NULL DEFAULT 0;
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20251013133523_RefactorCharacterStatsToAutoGrowth') THEN
+    ALTER TABLE "Characters" ADD "Evasion" real NOT NULL DEFAULT 0.0;
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20251013133523_RefactorCharacterStatsToAutoGrowth') THEN
+    ALTER TABLE "Characters" ADD "MaxHealth" bigint NOT NULL DEFAULT 0;
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20251013133523_RefactorCharacterStatsToAutoGrowth') THEN
+    INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
+    VALUES ('20251013133523_RefactorCharacterStatsToAutoGrowth', '9.0.9');
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
     IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20251014023217_AddAttackSpeedToCharacterAndMonster') THEN
     ALTER TABLE "Monsters" ADD "AttackSpeed" real NOT NULL DEFAULT 1.0;
     END IF;
