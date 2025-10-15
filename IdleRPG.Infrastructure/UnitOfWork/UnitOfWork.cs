@@ -17,6 +17,8 @@ namespace IdleRPG.Infrastructure.UnitOfWork
         private IMonsterRepository? _monsters;
         private IOfflineRewardTypeRepository? _offlineRewardTypes;
         private IBattleLogRepository? _battleLogs;
+        private IPlayerRepository? _players;
+        private IRefreshTokenRepository? _refreshTokens;
 
         public UnitOfWork(GameDBContext context)
         {
@@ -80,6 +82,36 @@ namespace IdleRPG.Infrastructure.UnitOfWork
                     _battleLogs = new BattleLogRepository(_context);
                 }
                 return _battleLogs;
+            }
+        }
+
+        /// <summary>
+        /// 플레이어 Repository (Lazy 초기화)
+        /// </summary>
+        public IPlayerRepository Players
+        {
+            get
+            {
+                if (_players == null)
+                {
+                    _players = new PlayerRepository(_context);
+                }
+                return _players;
+            }
+        }
+
+        /// <summary>
+        /// Refresh Token Repository (Lazy 초기화)
+        /// </summary>
+        public IRefreshTokenRepository RefreshTokens
+        {
+            get
+            {
+                if (_refreshTokens == null)
+                {
+                    _refreshTokens = new RefreshTokenRepository(_context);
+                }
+                return _refreshTokens;
             }
         }
 

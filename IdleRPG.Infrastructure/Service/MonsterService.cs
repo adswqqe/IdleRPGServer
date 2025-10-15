@@ -1,6 +1,5 @@
 using IdleRPG.Application.DTOs.Monster;
 using IdleRPG.Application.Interfaces;
-using IdleRPG.Domain.Repositories;
 
 namespace IdleRPG.Infrastructure.Service
 {
@@ -9,12 +8,12 @@ namespace IdleRPG.Infrastructure.Service
     /// </summary>
     public class MonsterService : IMonsterService
     {
-        private readonly IMonsterRepository _monsterRepository;
+        private readonly IUnitOfWork _unitOfWork;
         private readonly Random _random;
 
-        public MonsterService(IMonsterRepository monsterRepository)
+        public MonsterService(IUnitOfWork unitOfWork)
         {
-            _monsterRepository = monsterRepository;
+            _unitOfWork = unitOfWork;
             _random = new Random();
         }
 
@@ -31,7 +30,7 @@ namespace IdleRPG.Infrastructure.Service
             }
 
             // 2. 레벨 범위 내 몬스터 조회
-            var monsters = await _monsterRepository.GetByLevelRangeAsync(minLevel, maxLevel);
+            var monsters = await _unitOfWork.Monsters.GetByLevelRangeAsync(minLevel, maxLevel);
 
             // 3. 범위 내 몬스터가 있으면 랜덤 선택
             if (monsters.Any())
@@ -45,7 +44,7 @@ namespace IdleRPG.Infrastructure.Service
             }
 
             // 4. 범위 내 몬스터가 없으면 가장 높은 레벨의 몬스터 반환
-            var allMonsters = await _monsterRepository.GetAllAsync();
+            var allMonsters = await _unitOfWork.Monsters.GetAllAsync();
 
             if (!allMonsters.Any())
             {

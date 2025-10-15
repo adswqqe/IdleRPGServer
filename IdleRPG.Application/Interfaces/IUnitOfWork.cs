@@ -28,6 +28,16 @@ namespace IdleRPG.Application.Interfaces
         IBattleLogRepository BattleLogs { get; }
 
         /// <summary>
+        /// 플레이어 Repository
+        /// </summary>
+        IPlayerRepository Players { get; }
+
+        /// <summary>
+        /// Refresh Token Repository
+        /// </summary>
+        IRefreshTokenRepository RefreshTokens { get; }
+
+        /// <summary>
         /// 변경사항을 데이터베이스에 저장 (트랜잭션 커밋)
         /// </summary>
         /// <returns>영향받은 행 수</returns>
