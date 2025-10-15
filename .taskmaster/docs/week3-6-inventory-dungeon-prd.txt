@@ -1,0 +1,347 @@
+# Week 3-6: Inventory, Dungeon & Equipment Enhancement PRD
+
+## Overview
+Phase 1 완성 단계 - MVP 시스템의 핵심 기능 구현
+기간: 4주 (Week 3 ~ Week 6)
+목표: 인벤토리, 던전, 장비 강화 시스템 완성
+
+## Feature 1: Inventory & Equipment System (Week 3)
+
+### 게임 메커니즘
+- 무기, 방어구, 장신구 관리
+- 장비 착용 → 스탯 증가
+- 장비 판매 → 골드 획득
+- 인벤토리 정렬 (타입, 등급, 레벨)
+
+### 기술 요구사항
+
+**엔티티 설계**:
+- Item 엔티티 (아이템 마스터 데이터)
+  - Id, Name, Type (Weapon, Armor, Accessory)
+  - Rarity (Common, Rare, Epic, Legendary)
+  - BaseAttack, BaseDefense, BasePrice
+  - RequiredLevel
+  - CreatedAt, UpdatedAt
+
+- Inventory 엔티티 (캐릭터별 인벤토리)
+  - Id, CharacterId (FK)
+  - ItemId (FK)
+  - IsEquipped (bool)
+  - EquipSlot (Weapon, Helmet, Armor, Pants, Boots, Accessory1, Accessory2)
+  - EnhancementLevel (0~15)
+  - AcquiredAt
+
+**Configuration**:
+- ItemConfiguration (EF Core)
+  - 인덱스: Type, Rarity
+  - 기본값: CreatedAt = CURRENT_TIMESTAMP
+
+- InventoryConfiguration (EF Core)
+  - 복합 인덱스: (CharacterId, ItemId)
+  - 외래 키: CharacterId, ItemId
+  - IsEquipped 기본값: false
+
+**서비스 로직**:
+- InventoryService
+  - GetInventory(characterId): 인벤토리 조회
+  - EquipItem(characterId, itemId, slot): 장비 착용
+  - UnequipItem(characterId, slot): 장비 해제
+  - SellItem(characterId, itemId): 아이템 판매
+  - SortInventory(characterId, sortType): 정렬
+  - GetEquippedStats(characterId): 장착 장비 스탯 합계
+
+**API 엔드포인트**:
+```
+GET    /api/inventory                  - 인벤토리 조회
+POST   /api/inventory/equip            - 장비 착용 { itemId, slot }
+POST   /api/inventory/unequip          - 장비 해제 { slot }
+POST   /api/inventory/sell             - 아이템 판매 { itemId }
+POST   /api/inventory/sort             - 정렬 { sortType }
+GET    /api/inventory/equipment-stats  - 장착 장비 스탯 합계
+```
+
+**DTO**:
+- ItemDto: Id, Name, Type, Rarity, BaseAttack, BaseDefense, BasePrice, RequiredLevel
+- InventoryItemDto: ItemDto + IsEquipped, EquipSlot, EnhancementLevel, AcquiredAt
+- EquipmentStatsDto: TotalAttack, TotalDefense, TotalHealth
+
+**비즈니스 규칙**:
+- 같은 슬롯에는 1개만 착용 가능
+- 캐릭터 레벨이 RequiredLevel 이상이어야 착용 가능
+- 착용 중인 아이템은 판매 불가
+- 판매 가격 = BasePrice * (1 + EnhancementLevel * 0.1)
+
+**테스트**:
+- 장비 착용 성공
+- 레벨 부족 시 착용 실패
+- 착용 중 아이템 판매 시도 시 실패
+- 장비 해제 후 스탯 감소 확인
+- 인벤토리 정렬 검증
+
+**학습 목표**:
+- 1:N 관계 (Character - Inventory)
+- LINQ 쿼리 (Where, OrderBy, Sum)
+- 트랜잭션 처리 (착용/해제)
+
+---
+
+## Feature 2: Dungeon System (Week 4-5)
+
+### 게임 메커니즘
+- 스테이지별 던전 (1-100+)
+- 난이도 증가 (Normal, Hard, Hell)
+- 클리어 조건: 보스 처치
+- 보상: 경험치, 골드, 장비 드롭
+
+### 기술 요구사항
+
+**엔티티 설계**:
+- Dungeon 엔티티 (마스터 데이터)
+  - Id, Name, Stage (1-100)
+  - Difficulty (Normal=0, Hard=1, Hell=2)
+  - RequiredLevel
+  - BossMonsterId (FK)
+  - RewardGold, RewardExp
+  - ItemDropRate (0.0 ~ 1.0)
+  - CreatedAt
+
+- DungeonProgress 엔티티
+  - Id, CharacterId (FK)
+  - DungeonId (FK)
+  - IsCleared (bool)
+  - BestClearTime (TimeSpan)
+  - ClearCount (int)
+  - FirstClearedAt, LastClearedAt
+
+**Configuration**:
+- DungeonConfiguration
+  - 인덱스: Stage, Difficulty
+  - 외래 키: BossMonsterId
+
+- DungeonProgressConfiguration
+  - 복합 인덱스: (CharacterId, DungeonId)
+  - IsCleared 기본값: false
+  - ClearCount 기본값: 0
+
+**Seed Data**:
+```csharp
+// Normal 난이도 던전 (Stage 1-10)
+new Dungeon { Id = 1, Name = "슬라임 동굴", Stage = 1, Difficulty = 0, RequiredLevel = 1, BossMonsterId = 1, RewardGold = 100, RewardExp = 50, ItemDropRate = 0.1 }
+new Dungeon { Id = 2, Name = "고블린 숲", Stage = 2, Difficulty = 0, RequiredLevel = 3, BossMonsterId = 2, RewardGold = 200, RewardExp = 100, ItemDropRate = 0.15 }
+// ... Stage 10까지
+
+// Hard 난이도 던전 (Stage 1-10)
+new Dungeon { Id = 11, Name = "슬라임 동굴 (어려움)", Stage = 1, Difficulty = 1, RequiredLevel = 10, BossMonsterId = 1, RewardGold = 500, RewardExp = 250, ItemDropRate = 0.3 }
+// ...
+```
+
+**서비스 로직**:
+- DungeonService
+  - GetAvailableDungeons(characterId): 입장 가능한 던전 목록
+  - GetDungeonDetails(dungeonId): 던전 상세 정보
+  - EnterDungeon(characterId, dungeonId): 던전 입장 (레벨 체크)
+  - ClearDungeon(characterId, dungeonId, clearTime): 클리어 처리
+  - GetProgress(characterId): 진행도 조회
+  - GetLeaderboard(dungeonId): 클리어 타임 순위
+
+**API 엔드포인트**:
+```
+GET    /api/dungeon                    - 던전 목록
+GET    /api/dungeon/{id}               - 던전 상세 정보
+POST   /api/dungeon/{id}/enter         - 던전 입장
+GET    /api/dungeon/progress           - 진행도 조회
+POST   /api/dungeon/{id}/clear         - 던전 클리어 처리 { clearTime }
+GET    /api/dungeon/{id}/leaderboard   - 던전 클리어 순위 (Top 100)
+```
+
+**DTO**:
+- DungeonDto: Id, Name, Stage, Difficulty, RequiredLevel, RewardGold, RewardExp, ItemDropRate
+- DungeonProgressDto: DungeonDto + IsCleared, BestClearTime, ClearCount
+- DungeonClearResultDto: Success, RewardGold, RewardExp, DroppedItems[]
+
+**비즈니스 규칙**:
+- 캐릭터 레벨 >= RequiredLevel 이어야 입장 가능
+- 이전 스테이지 Normal 클리어해야 다음 스테이지 입장 가능
+- Hard는 Normal 클리어 후, Hell은 Hard 클리어 후 입장 가능
+- 클리어 시 BestClearTime 갱신 (더 빠른 경우만)
+- 아이템 드롭 확률: ItemDropRate (0.0 ~ 1.0)
+
+**테스트**:
+- 레벨 부족 시 입장 실패
+- 이전 스테이지 미클리어 시 입장 실패
+- 클리어 시 보상 지급 확인
+- BestClearTime 갱신 검증
+- 아이템 드롭 확률 검증 (100회 시뮬레이션)
+
+**학습 목표**:
+- 마스터 데이터 설계
+- Seed Data 전략
+- 진행도 관리 시스템
+- 확률 기반 아이템 드롭
+
+---
+
+## Feature 3: Equipment Enhancement System (Week 6)
+
+### 게임 메커니즘
+- 골드/강화석 소모하여 장비 강화
+- 강화 레벨에 따라 성공 확률 감소
+- 실패 시: 골드만 소모 (장비 파괴 없음)
+- +10 이상: 실패 시 레벨 하락 가능
+
+### 기술 요구사항
+
+**엔티티 추가**:
+- Character 엔티티에 EnhancementStone (int) 추가
+- Inventory 엔티티의 EnhancementLevel 활용 (0~15)
+
+**강화 확률 테이블**:
+```csharp
++0 ~ +2:  100% 성공
++3 ~ +5:  80% 성공
++6 ~ +8:  50% 성공
++9 ~ +11: 30% 성공
++12 ~ +15: 10% 성공
+```
+
+**강화 비용 공식**:
+```csharp
+int GetEnhancementCost(int currentLevel) {
+    return 1000 * (int)Math.Pow(2, currentLevel / 3);
+}
+// +0 → +1: 1,000 골드
+// +3 → +4: 2,000 골드
+// +6 → +7: 4,000 골드
+// +9 → +10: 8,000 골드
+// +12 → +13: 16,000 골드
+```
+
+**서비스 로직**:
+- EnhancementService
+  - GetEnhancementInfo(itemId): 강화 정보 (현재 레벨, 확률, 비용)
+  - TryEnhance(characterId, itemId): 일반 강화 시도
+  - SafeEnhance(characterId, itemId): 안전 강화 (100% 성공, 비용 2배)
+
+**API 엔드포인트**:
+```
+GET    /api/equipment/{id}/enhancement-info - 강화 정보 조회
+POST   /api/equipment/{id}/enhance          - 일반 강화 시도
+POST   /api/equipment/{id}/safe-enhance     - 안전 강화 (비용 2배)
+```
+
+**DTO**:
+- EnhancementInfoDto: CurrentLevel, SuccessRate, Cost, SafeCost
+- EnhancementResultDto: Success, NewLevel, GoldSpent, Message
+
+**비즈니스 규칙**:
+- 착용 중인 장비도 강화 가능
+- 강화 성공: Level +1, 스탯 증가 (Attack/Defense +5%)
+- 강화 실패 (+0~+9): 레벨 유지, 골드만 소모
+- 강화 실패 (+10 이상): 레벨 -1, 골드 소모
+- 안전 강화: 100% 성공, 비용 2배, 실패 없음
+- 최대 강화 레벨: +15
+
+**강화 스탯 증가 공식**:
+```csharp
+int GetEnhancedStat(int baseStat, int enhancementLevel) {
+    return baseStat + (int)(baseStat * 0.05 * enhancementLevel);
+}
+// 예: 기본 공격력 100, +10 강화
+// → 100 + (100 * 0.05 * 10) = 150
+```
+
+**테스트**:
+- 강화 성공 시 레벨 증가 확인
+- 강화 실패 시 골드만 소모 확인
+- +10 이상 실패 시 레벨 하락 확인
+- 안전 강화 100% 성공 확인
+- 골드 부족 시 강화 실패
+- 확률 검증 (1000회 시뮬레이션)
+
+**학습 목표**:
+- 확률 계산 시스템
+- 트랜잭션 (성공/실패 처리)
+- 게임 밸런싱
+- 수학 공식 구현
+
+---
+
+## Phase 1 완료 기준
+
+### 구현 완료
+- [x] Week 1: 인증 시스템
+- [x] Week 1: 캐릭터 성장
+- [x] Week 2: 전투 시스템
+- [x] Week 2: 오프라인 보상
+- [ ] Week 3: 인벤토리 & 장비
+- [ ] Week 4-5: 던전 시스템
+- [ ] Week 6: 장비 강화
+
+### 테스트 커버리지
+- [ ] 단위 테스트 50+ (Phase 1 전체)
+- [ ] 통합 테스트 10+ (API 엔드포인트)
+
+### 문서화
+- [ ] Unity API 문서 업데이트 (모든 엔드포인트)
+- [ ] Swagger 주석 완성
+- [ ] DTO 문서화
+
+### 배포
+- [ ] Jenkins CI/CD 파이프라인 검증
+- [ ] EC2 + RDS 배포 성공
+- [ ] 마이그레이션 자동 적용 확인
+
+---
+
+## 기술 스택 (Phase 1)
+
+**사용 중**:
+- ASP.NET Core 8.0
+- EF Core 9.0
+- PostgreSQL
+- JWT Bearer
+- xUnit, Moq, FluentAssertions
+- Docker
+- Jenkins
+
+**Phase 1 추가 예정**:
+- FluentValidation (DTO 검증)
+- AutoMapper (Entity ↔ DTO)
+- Serilog (로깅)
+
+**Phase 2 이후**:
+- MediatR (CQRS)
+- Redis (캐싱)
+- SignalR (채팅)
+
+---
+
+## 예상 작업량
+
+**Week 3 (인벤토리 & 장비)**:
+- 엔티티 설계: 3시간
+- 서비스 구현: 4시간
+- API 컨트롤러: 2시간
+- 테스트: 3시간
+- Unity 문서: 1시간
+**Total: 13시간**
+
+**Week 4-5 (던전 시스템)**:
+- 엔티티 설계: 3시간
+- Seed Data 작성: 2시간
+- 서비스 구현: 6시간
+- API 컨트롤러: 3시간
+- 테스트: 4시간
+- Unity 문서: 2시간
+**Total: 20시간 (2주)**
+
+**Week 6 (장비 강화)**:
+- 강화 로직 설계: 2시간
+- 확률 시스템 구현: 3시간
+- 서비스 구현: 4시간
+- API 컨트롤러: 2시간
+- 테스트 (확률 검증): 4시간
+- Unity 문서: 1시간
+**Total: 16시간**
+
+**Phase 1 Total: 49시간 (4주)**

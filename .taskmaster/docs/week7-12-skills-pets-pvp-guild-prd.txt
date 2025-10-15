@@ -1,0 +1,539 @@
+# Week 7-12: Skills, Pets, PVP & Guild PRD
+
+## Overview
+Phase 2: 핵심 게임플레이 확장
+기간: 6주 (Week 7 ~ Week 12)
+목표: 스킬, 펫, PVP 아레나, 친구, 길드 시스템 완성
+
+---
+
+## Feature 8: Skill System (Week 7-8)
+
+### 게임 메커니즘
+- 레벨업 시 스킬 포인트 획득
+- 스킬 습득 및 레벨 업그레이드
+- 스킬 타입: 공격, 버프, 힐, 디버프
+- 전투 중 자동 사용 (쿨다운)
+
+### 기술 요구사항
+
+**엔티티 설계**:
+- Skill 엔티티 (마스터 데이터)
+  - Id, Name, Description
+  - Type (Attack, Buff, Heal, Debuff)
+  - BaseDamage (공격 스킬의 기본 데미지)
+  - DamageMultiplier (레벨당 증가율, 예: 1.2 = 20%)
+  - Cooldown (턴 수)
+  - ManaCost (마나 소모량)
+  - Effect (상태 효과: Stun, Burn, Shield 등)
+  - EffectDuration (상태 효과 지속 턴)
+  - RequiredLevel (습득 필요 레벨)
+  - MaxLevel (최대 스킬 레벨)
+
+- CharacterSkill 엔티티 (M:N 관계)
+  - Id, CharacterId (FK), SkillId (FK)
+  - SkillLevel (현재 스킬 레벨)
+  - IsEquipped (장착 여부)
+  - EquipSlot (1-4, 전투 시 사용할 슬롯)
+  - LearnedAt (습득 시간)
+
+**Configuration**:
+- SkillConfiguration
+  - 인덱스: Type, RequiredLevel
+
+- CharacterSkillConfiguration
+  - 복합 인덱스: (CharacterId, SkillId)
+  - 외래 키: CharacterId, SkillId
+  - SkillLevel 기본값: 1
+
+**Seed Data** (예시 스킬):
+```csharp
+// 공격 스킬
+new Skill { Id = 1, Name = "파이어볼", Type = Attack, BaseDamage = 50, DamageMultiplier = 1.2f, Cooldown = 3, ManaCost = 20, Effect = "Burn", EffectDuration = 2, RequiredLevel = 5, MaxLevel = 10 }
+new Skill { Id = 2, Name = "썬더볼트", Type = Attack, BaseDamage = 80, DamageMultiplier = 1.3f, Cooldown = 5, ManaCost = 30, Effect = "Stun", EffectDuration = 1, RequiredLevel = 10, MaxLevel = 10 }
+
+// 버프 스킬
+new Skill { Id = 3, Name = "공격력 증가", Type = Buff, BaseDamage = 0, DamageMultiplier = 1.0f, Cooldown = 10, ManaCost = 15, Effect = "AttackBoost", EffectDuration = 3, RequiredLevel = 3, MaxLevel = 5 }
+
+// 힐 스킬
+new Skill { Id = 4, Name = "회복", Type = Heal, BaseDamage = 30, DamageMultiplier = 1.1f, Cooldown = 4, ManaCost = 25, Effect = "None", EffectDuration = 0, RequiredLevel = 7, MaxLevel = 10 }
+```
+
+**서비스 로직**:
+- SkillService
+  - GetAllSkills(): 전체 스킬 목록 (마스터 데이터)
+  - GetCharacterSkills(characterId): 캐릭터 보유 스킬
+  - LearnSkill(characterId, skillId): 스킬 습득 (레벨, 스킬 포인트 체크)
+  - UpgradeSkill(characterId, skillId): 스킬 레벨업
+  - EquipSkill(characterId, skillId, slot): 스킬 장착 (1-4 슬롯)
+  - UnequipSkill(characterId, slot): 스킬 해제
+  - CalculateSkillDamage(skillId, skillLevel, characterAttack): 스킬 데미지 계산
+
+**Character 엔티티 확장**:
+- SkillPoints (int): 스킬 포인트 (레벨업 시 +1)
+- Mana (int): 마나 (기본값 100)
+- MaxMana (int): 최대 마나
+
+**API 엔드포인트**:
+```
+GET    /api/skill                     - 전체 스킬 목록 (마스터 데이터)
+GET    /api/character/{id}/skills     - 캐릭터 보유 스킬
+POST   /api/character/{id}/skill/learn - 스킬 습득 { skillId }
+POST   /api/character/{id}/skill/upgrade - 스킬 레벨업 { skillId }
+POST   /api/character/{id}/skill/equip - 스킬 장착 { skillId, slot }
+POST   /api/character/{id}/skill/unequip - 스킬 해제 { slot }
+```
+
+**DTO**:
+- SkillDto: Id, Name, Type, BaseDamage, Cooldown, ManaCost, RequiredLevel, MaxLevel
+- CharacterSkillDto: SkillDto + SkillLevel, IsEquipped, EquipSlot
+- SkillDamageResultDto: Damage, EffectApplied, EffectDuration
+
+**비즈니스 규칙**:
+- 캐릭터 레벨 >= Skill.RequiredLevel 이어야 습득 가능
+- 스킬 습득 시 스킬 포인트 1 소모
+- 스킬 레벨업 시 스킬 포인트 소모 (SkillLevel * 2)
+- 동일 슬롯에는 1개 스킬만 장착 가능
+- 최대 4개 스킬 장착 가능
+
+**전투 연동**:
+- BattleService에서 스킬 자동 사용 로직 추가
+- 쿨다운 관리 (Dictionary<int, int> skillCooldowns)
+- 마나 소모 및 회복 (턴당 +10 마나)
+
+**테스트**:
+- 스킬 습득 성공/실패 (레벨, 포인트)
+- 스킬 레벨업
+- 스킬 장착/해제
+- 스킬 데미지 계산 검증
+- 전투 중 스킬 사용 시뮬레이션
+
+**학습 목표**:
+- 복잡한 데이터 모델링 (M:N 관계)
+- 스킬 효과 계산
+- 전투 시스템과의 통합
+
+---
+
+## Feature 9: Pet System (Week 9)
+
+### 게임 메커니즘
+- 가챠/던전에서 펫 획득
+- 펫 레벨업 (경험치/재화)
+- 펫 스탯이 캐릭터에 추가
+- 펫 스킬 (전투 중 자동 발동)
+
+### 기술 요구사항
+
+**엔티티 설계**:
+- Pet 엔티티 (마스터 데이터)
+  - Id, Name, Type (공격형, 방어형, 지원형)
+  - Rarity (Common, Rare, Epic, Legendary)
+  - BaseAttack, BaseDefense, BaseHP
+  - GrowthRate (성장률, 레벨업 시 스탯 증가율)
+  - SpecialSkill (펫 고유 스킬, Skill FK)
+  - MaxLevel (최대 레벨)
+
+- CharacterPet 엔티티 (M:N 관계)
+  - Id, CharacterId (FK), PetId (FK)
+  - PetLevel (현재 펫 레벨)
+  - PetExp (경험치)
+  - IsEquipped (장착 여부)
+  - AcquiredAt
+
+**Configuration**:
+- PetConfiguration
+  - 인덱스: Rarity, Type
+
+- CharacterPetConfiguration
+  - 복합 인덱스: (CharacterId, PetId)
+  - 외래 키: CharacterId, PetId
+  - PetLevel 기본값: 1, PetExp 기본값: 0
+
+**Seed Data** (예시 펫):
+```csharp
+new Pet { Id = 1, Name = "파이어 드래곤", Type = Attack, Rarity = Legendary, BaseAttack = 50, BaseDefense = 20, BaseHP = 100, GrowthRate = 1.5f, SpecialSkill = 1, MaxLevel = 50 }
+new Pet { Id = 2, Name = "아이스 울프", Type = Attack, Rarity = Epic, BaseAttack = 35, BaseDefense = 15, BaseHP = 80, GrowthRate = 1.3f, SpecialSkill = 2, MaxLevel = 50 }
+new Pet { Id = 3, Name = "힐링 페어리", Type = Support, Rarity = Rare, BaseAttack = 10, BaseDefense = 10, BaseHP = 50, GrowthRate = 1.2f, SpecialSkill = 4, MaxLevel = 50 }
+```
+
+**서비스 로직**:
+- PetService
+  - GetAllPets(): 전체 펫 목록 (마스터)
+  - GetCharacterPets(characterId): 보유 펫 목록
+  - SummonPet(characterId, petId): 펫 소환 (가챠/던전 보상)
+  - EquipPet(characterId, petId): 펫 장착
+  - UnequipPet(characterId): 펫 해제
+  - LevelUpPet(characterId, petId, goldAmount): 펫 레벨업 (골드 소모)
+  - EvolvePet(characterId, petId): 펫 진화 (레벨 50 도달 시)
+  - CalculatePetStats(petId, petLevel): 펫 스탯 계산
+  - GetEquippedPetBonus(characterId): 장착 펫 스탯 보너스
+
+**API 엔드포인트**:
+```
+GET    /api/pet                       - 전체 펫 목록 (마스터)
+GET    /api/character/{id}/pets       - 보유 펫 목록
+POST   /api/character/{id}/pet/summon - 펫 소환 { petId }
+POST   /api/character/{id}/pet/equip  - 펫 장착 { petId }
+POST   /api/character/{id}/pet/unequip - 펫 해제
+POST   /api/character/{id}/pet/level-up - 펫 레벨업 { petId, goldAmount }
+POST   /api/character/{id}/pet/evolve - 펫 진화 { petId }
+```
+
+**DTO**:
+- PetDto: Id, Name, Type, Rarity, BaseAttack, BaseDefense, BaseHP, GrowthRate, MaxLevel
+- CharacterPetDto: PetDto + PetLevel, PetExp, IsEquipped, CurrentStats
+- PetStatsDto: Attack, Defense, HP (현재 레벨 기준)
+
+**비즈니스 규칙**:
+- 펫 장착: 1개만 가능
+- 펫 레벨업 비용: PetLevel * 500 골드
+- 펫 스탯 = BaseStat * (1 + (PetLevel - 1) * GrowthRate)
+- 펫 진화: 레벨 50 도달 시 가능, Rarity +1 (최대 Legendary)
+- 장착 펫 스탯이 캐릭터에 추가됨
+
+**전투 연동**:
+- BattleService에서 펫 스탯 합산
+- 펫 스킬 자동 발동 (10% 확률, 턴당)
+
+**테스트**:
+- 펫 소환
+- 펫 장착/해제
+- 펫 레벨업
+- 펫 스탯 계산 검증
+- 펫 진화 (Rarity 증가)
+- 캐릭터 스탯에 펫 스탯 합산 확인
+
+**학습 목표**:
+- M:N 관계 (Character - Pet)
+- 스탯 합산 로직
+- 성장 곡선 설계
+
+---
+
+## Feature 10: PVP Arena System (Week 10)
+
+### 게임 메커니즘
+- 플레이어 vs 플레이어 (AI 대전)
+- 상대 캐릭터 데이터 스냅샷 사용
+- 승리 시: 아레나 포인트, 보상
+- 랭킹 시스템 연동 (ELO)
+
+### 기술 요구사항
+
+**엔티티 설계**:
+- Character 엔티티 확장
+  - MMR (int): Match Making Rating (기본값 1000)
+  - ArenaPoints (int): 아레나 포인트 (기본값 0)
+  - ArenaSeason (int): 시즌 번호 (기본값 1)
+
+- ArenaBattle 엔티티
+  - Id, AttackerId (FK), DefenderId (FK)
+  - WinnerId (FK)
+  - AttackerMMR, DefenderMMR (전투 전 MMR)
+  - MMRChange (승자/패자 MMR 변화량)
+  - BattleDate
+  - TotalTurns
+  - BattleLog (JSON, 선택 사항)
+
+**Configuration**:
+- ArenaBattleConfiguration
+  - 인덱스: AttackerId, DefenderId, BattleDate
+  - 외래 키: AttackerId, DefenderId, WinnerId
+
+**서비스 로직**:
+- ArenaService
+  - GetOpponents(characterId): 대전 가능 상대 목록 (MMR ±200)
+  - StartArenaBattle(attackerId, defenderId): PVP 전투 시작
+  - SimulateBattle(attacker, defender): AI 전투 시뮬레이션
+  - UpdateMMR(winnerId, loserId): ELO 레이팅 계산
+  - GetBattleHistory(characterId): 전투 기록
+  - GetArenaRanking(page, size): 아레나 랭킹 (MMR 기준)
+  - ClaimSeasonReward(characterId): 시즌 보상 수령
+
+**ELO 레이팅 공식**:
+```csharp
+public void UpdateMMR(Character winner, Character loser) {
+    int K = 32; // K-factor
+    float expectedWin = 1.0f / (1.0f + (float)Math.Pow(10, (loser.MMR - winner.MMR) / 400.0f));
+
+    int winnerChange = (int)(K * (1 - expectedWin));
+    int loserChange = (int)(K * (0 - (1 - expectedWin)));
+
+    winner.MMR += winnerChange;
+    loser.MMR += loserChange;
+
+    winner.ArenaPoints += 10 + winnerChange;
+}
+```
+
+**API 엔드포인트**:
+```
+GET    /api/arena/opponents           - 대전 가능 상대 목록 (3명)
+POST   /api/arena/battle              - PVP 전투 시작 { defenderId }
+GET    /api/arena/history             - 전투 기록 { page, size }
+GET    /api/arena/ranking             - 아레나 랭킹 { page, size }
+GET    /api/arena/my-rank             - 내 순위 조회
+POST   /api/arena/claim-reward        - 시즌 보상 수령
+```
+
+**DTO**:
+- ArenaOpponentDto: CharacterId, Name, Level, MMR, Attack, Defense, HP
+- ArenaBattleDto: BattleId, AttackerName, DefenderName, WinnerName, MMRChange, BattleDate
+- ArenaRankingDto: Rank, CharacterName, Level, MMR, ArenaPoints
+- ArenaRewardDto: Gold, Diamond, Items[]
+
+**비즈니스 규칙**:
+- 매칭: MMR ±200 범위 내 캐릭터 중 랜덤 3명
+- 승리: MMR 증가 + ArenaPoints 증가
+- 패배: MMR 감소
+- 일일 전투 제한: 10회 (VIP는 20회)
+- 시즌: 한 달 단위, 시즌 종료 시 보상 지급
+
+**전투 시뮬레이션**:
+- 상대 캐릭터 스냅샷 사용 (현재 스탯, 장비, 스킬, 펫)
+- BattleService 재사용 (AI vs AI)
+- 전투 로그 저장 (선택 사항)
+
+**테스트**:
+- 매칭 시스템 (MMR 범위)
+- ELO 계산 검증
+- 전투 시뮬레이션
+- 랭킹 조회
+- 시즌 보상 지급
+
+**학습 목표**:
+- 스냅샷 데이터
+- ELO 레이팅 시스템
+- AI vs AI 전투
+
+---
+
+## Feature 11: Friend System (Week 11)
+
+### 게임 메커니즘
+- 친구 추가/삭제
+- 친구 요청/수락/거절
+- 친구 목록 조회
+- 친구에게 하트 선물 (일일 1회)
+
+### 기술 요구사항
+
+**엔티티 설계**:
+- Friendship 엔티티 (M:N 자기 참조)
+  - Id, UserId (FK), FriendId (FK)
+  - Status (Pending, Accepted)
+  - CreatedAt
+  - LastGiftSentAt (마지막 선물 시간)
+
+**Configuration**:
+- FriendshipConfiguration
+  - 복합 인덱스: (UserId, FriendId)
+  - 외래 키: UserId, FriendId (self-reference to Player)
+  - Status 기본값: Pending
+
+**서비스 로직**:
+- FriendService
+  - GetFriendList(userId): 친구 목록 (Status = Accepted)
+  - GetFriendRequests(userId): 친구 요청 목록 (Status = Pending)
+  - SendFriendRequest(userId, targetUserId): 친구 요청
+  - AcceptFriendRequest(requestId): 친구 수락
+  - RejectFriendRequest(requestId): 친구 거절
+  - RemoveFriend(userId, friendId): 친구 삭제
+  - SendGift(userId, friendId): 선물 보내기 (일일 1회)
+  - SearchUser(username): 유저 검색
+
+**API 엔드포인트**:
+```
+GET    /api/friend                    - 친구 목록
+GET    /api/friend/requests           - 친구 요청 목록
+POST   /api/friend/request            - 친구 요청 { targetUserId }
+POST   /api/friend/accept             - 친구 수락 { requestId }
+POST   /api/friend/reject             - 친구 거절 { requestId }
+DELETE /api/friend/{friendId}         - 친구 삭제
+POST   /api/friend/{friendId}/gift    - 선물 보내기
+GET    /api/friend/search             - 유저 검색 { username }
+```
+
+**DTO**:
+- FriendDto: UserId, Username, Level, LastLoginTime, IsOnline
+- FriendRequestDto: RequestId, RequesterId, RequesterName, CreatedAt
+- GiftResultDto: Success, Message
+
+**비즈니스 규칙**:
+- 자기 자신에게 친구 요청 불가
+- 이미 친구인 경우 요청 불가
+- 이미 요청 보낸 경우 중복 요청 불가
+- 선물: 일일 1회 제한 (LastGiftSentAt 체크)
+- 선물 내용: Gold 100 or Diamond 10 (랜덤)
+
+**테스트**:
+- 친구 요청 성공/실패
+- 친구 수락/거절
+- 친구 삭제
+- 선물 보내기 (일일 제한)
+- 유저 검색
+
+**학습 목표**:
+- M:N 자기 참조 관계
+- 일일 제한 시스템 (DateTime 체크)
+
+---
+
+## Feature 12-13: Guild System (Week 12)
+
+### 게임 메커니즘
+- 길드 생성/가입/탈퇴
+- 길드 마스터/부마스터/멤버 권한
+- 길드 레벨/경험치
+- 길드 스킬 (전체 멤버 버프)
+- 길드 기부
+
+### 기술 요구사항
+
+**엔티티 설계**:
+- Guild 엔티티
+  - Id, Name, Description
+  - Level (길드 레벨)
+  - Experience (길드 경험치)
+  - MasterUserId (FK, 길드 마스터)
+  - MaxMembers (최대 멤버 수, 기본 30)
+  - CreatedAt
+
+- GuildMember 엔티티
+  - Id, GuildId (FK), UserId (FK)
+  - Role (Master=2, SubMaster=1, Member=0)
+  - ContributionPoints (기여도)
+  - JoinedAt
+
+- GuildSkill 엔티티 (길드 스킬)
+  - Id, GuildId (FK)
+  - SkillType (AttackBoost, DefenseBoost, ExpBoost, GoldBoost)
+  - Level (스킬 레벨)
+  - BonusPercentage (보너스 %, 예: 5% = 0.05)
+
+**Configuration**:
+- GuildConfiguration
+  - 인덱스: Name (Unique)
+
+- GuildMemberConfiguration
+  - 복합 인덱스: (GuildId, UserId)
+  - 외래 키: GuildId, UserId
+  - Role 기본값: Member (0)
+
+- GuildSkillConfiguration
+  - 복합 인덱스: (GuildId, SkillType)
+  - 외래 키: GuildId
+
+**서비스 로직**:
+- GuildService
+  - GetGuildList(): 길드 목록/검색
+  - GetGuildDetails(guildId): 길드 상세 정보
+  - CreateGuild(userId, name, description): 길드 생성 (비용: 10,000 Gold)
+  - JoinGuild(userId, guildId): 길드 가입 신청
+  - LeaveGuild(userId): 길드 탈퇴
+  - KickMember(guildId, masterUserId, memberId): 멤버 추방
+  - PromoteMember(guildId, masterUserId, memberId, role): 직책 승급
+  - GetGuildMembers(guildId): 멤버 목록
+  - Donate(userId, guildId, gold): 길드 기부
+  - UpgradeGuildSkill(guildId, skillType): 길드 스킬 업그레이드
+
+**API 엔드포인트**:
+```
+GET    /api/guild                     - 길드 목록/검색 { name }
+GET    /api/guild/{id}                - 길드 상세 정보
+POST   /api/guild/create              - 길드 생성 { name, description }
+POST   /api/guild/{id}/join           - 길드 가입 신청
+POST   /api/guild/{id}/leave          - 길드 탈퇴
+POST   /api/guild/{id}/kick           - 멤버 추방 { memberId }
+POST   /api/guild/{id}/promote        - 직책 승급 { memberId, role }
+GET    /api/guild/{id}/members        - 멤버 목록
+POST   /api/guild/{id}/donate         - 길드 기부 { gold }
+POST   /api/guild/{id}/skill/upgrade  - 길드 스킬 업그레이드 { skillType }
+```
+
+**DTO**:
+- GuildDto: Id, Name, Level, MemberCount, MaxMembers, MasterName
+- GuildDetailDto: GuildDto + Description, Experience, Skills[]
+- GuildMemberDto: UserId, Username, Level, Role, ContributionPoints, JoinedAt
+- GuildSkillDto: SkillType, Level, BonusPercentage
+
+**비즈니스 규칙**:
+- 길드 생성 비용: 10,000 Gold
+- 길드 이름: 중복 불가, 3-20자
+- 길드 가입: Master/SubMaster 승인 필요 (간소화: 자동 승인)
+- 길드 탈퇴: Master는 탈퇴 불가 (위임 후 가능)
+- 멤버 추방: Master/SubMaster만 가능
+- 직책 승급: Master만 가능
+- 길드 기부: 1 Gold = 1 Exp, ContributionPoints +1
+- 길드 스킬: 비용 = SkillLevel * 10,000 Gold
+
+**길드 스킬 효과**:
+```csharp
+// 길드 스킬 보너스 계산
+public float GetGuildBonus(int guildId, GuildSkillType skillType) {
+    var skill = _context.GuildSkills
+        .FirstOrDefault(s => s.GuildId == guildId && s.SkillType == skillType);
+
+    return skill?.BonusPercentage ?? 0.0f;
+}
+
+// 예: AttackBoost Level 5 → +5% Attack
+```
+
+**테스트**:
+- 길드 생성
+- 길드 가입/탈퇴
+- 멤버 추방 (권한 체크)
+- 직책 승급 (권한 체크)
+- 길드 기부
+- 길드 스킬 업그레이드
+- 길드 보너스 적용 확인
+
+**학습 목표**:
+- 복잡한 권한 관리 (Role enum)
+- 길드 로직
+- 전체 멤버 버프 계산
+
+---
+
+## Phase 2 완료 기준
+
+### 구현 완료
+- [ ] Week 7-8: 스킬 시스템
+- [ ] Week 9: 펫 시스템
+- [ ] Week 10: PVP 아레나
+- [ ] Week 11: 친구 시스템
+- [ ] Week 12: 길드 시스템
+
+### 테스트 커버리지
+- [ ] 단위 테스트 50+ (Phase 2)
+- [ ] 통합 테스트 10+
+
+### 문서화
+- [ ] Unity API 문서 업데이트
+- [ ] Swagger 주석
+
+### 배포
+- [ ] Jenkins CI/CD 검증
+- [ ] EC2 배포 성공
+
+---
+
+## 기술 스택 (Phase 2)
+
+**Phase 2 추가**:
+- MediatR (CQRS 패턴) - 선택 사항
+- Redis (캐싱 준비) - 실제 사용은 Phase 3
+
+---
+
+## 예상 작업량
+
+**Week 7-8 (스킬 시스템)**: 20시간
+**Week 9 (펫 시스템)**: 13시간
+**Week 10 (PVP 아레나)**: 16시간
+**Week 11 (친구 시스템)**: 10시간
+**Week 12 (길드 시스템)**: 18시간
+
+**Phase 2 Total: 77시간 (6주)**

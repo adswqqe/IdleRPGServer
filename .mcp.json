@@ -63,12 +63,14 @@
       }
     },
     "serena": {
+      "type": "stdio",
       "command": "uvx",
       "args": [
         "--from",
         "git+https://github.com/oraios/serena",
         "serena-mcp-server"
-      ]
+      ],
+      "description": "Serena 코드베이스 분석 및 메모리 관리"
     }
   }
 }

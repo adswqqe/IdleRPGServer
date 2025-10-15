@@ -6,16 +6,57 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 **The user is Korean and all responses should be provided in Korean.** When explaining code, architecture, or providing guidance, translate technical explanations to Korean while keeping code examples and commands in their original form.
 
-## Project Architecture
+## Project Overview
 
-This is an **Idle RPG Server** project built with ASP.NET Core 8.0 following **Clean Architecture** principles:
+### 🍄 버섯키우기 완전판 - Idle MMORPG
 
-- **IdleRPG.API**: Web API layer (Controllers, Middleware, Configuration)
+This is a **commercial-scale Idle MMORPG server** project inspired by "버섯키우기" (Mushroom Cultivation Game). Built with ASP.NET Core 8.0 following **Clean Architecture** principles.
+
+**Primary Goal**: Master .NET Web API + Unity Network Communication
+**Secondary Goal**: Build production-ready idle RPG with 20+ game systems
+**Timeline**: 20 weeks (5 months) development roadmap
+**Scale**: 20 major systems from basic character growth to advanced guild raids
+
+### Architecture Layers
+
+- **IdleRPG.API**: Web API layer (Controllers, Middleware, Configuration, SignalR Hubs)
 - **IdleRPG.Application**: Business logic layer (Services, Commands/Queries, DTOs) - uses MediatR, AutoMapper, FluentValidation
-- **IdleRPG.Domain**: Core domain entities and business rules
+- **IdleRPG.Domain**: Core domain entities and business rules (20+ entity types)
 - **IdleRPG.Infrastructure**: Data access and external services - uses Entity Framework Core with PostgreSQL
 
 The project follows dependency injection pattern where API → Application → Domain, and Infrastructure implements Application interfaces.
+
+### Game Concept
+
+**Genre**: Idle MMORPG (Auto-battle, Offline rewards, Social features)
+
+**Core Gameplay Loop**:
+```
+Enter Dungeon → Auto Battle → Earn Rewards → Upgrade (Character/Equipment/Skills)
+→ PVP Challenge → Guild Activities → Boss Raid → Next Dungeon
+```
+
+**20 Major Systems**:
+1. ✅ Authentication (JWT)
+2. ✅ Character Growth (Auto-stat progression)
+3. Inventory & Equipment
+4. Combat System (Auto-battle simulation)
+5. Offline Rewards
+6. Dungeon System
+7. Equipment Enhancement
+8. Skill System
+9. Pet System
+10. PVP Arena
+11. Friend System
+12. Guild System
+13. Real-time Chat (SignalR)
+14. Boss Raid (Cooperative)
+15. Quest & Achievement
+16. Daily Mission & Attendance
+17. Gacha System
+18. Shop & VIP
+19. Ranking System (Redis)
+20. Mail & Event System
 
 ### Deployment Architecture
 
@@ -118,13 +159,24 @@ dotnet ef migrations add <MigrationName> --startup-project ../IdleRPG.API
 
 - **Framework**: ASP.NET Core 8.0 Web API
 - **Database**: PostgreSQL with Entity Framework Core 9.0
-- **Caching**: Redis (prepared for future use)
+- **Caching & Ranking**: Redis (Distributed locking, Ranking system)
+- **Real-time Communication**: SignalR (Chat system)
 - **Patterns**: CQRS with MediatR, Repository pattern
 - **Validation**: FluentValidation
 - **Mapping**: AutoMapper
 - **Logging**: Serilog (configured in API project)
 - **Documentation**: Swagger/OpenAPI
 - **Testing**: xUnit, Moq, FluentAssertions
+- **Background Services**: IHostedService (Auto-hunt, Daily reset)
+
+### Unity Client Technologies
+- **Unity**: 6 (6000.0.59f2) - Latest stable release
+- **Language**: C# 10
+- **Async**: UniTask
+- **JSON**: Newtonsoft.Json
+- **SignalR Client**: Microsoft.AspNetCore.SignalR.Client
+- **UI**: TextMeshPro
+- **Testing**: Unity Test Framework
 
 ## Docker Configuration
 
@@ -161,60 +213,78 @@ The API container uses these key environment variables:
 - `ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx`
 - `ASPNETCORE_Kestrel__Certificates__Default__Password=dev123!`
 
-## Current State
+## Development Progress & Roadmap
 
-The project is in **active development** with:
-- Clean Architecture project structure established
-- Docker development environment configured (PostgreSQL, Redis, pgAdmin)
-- Core NuGet packages installed (EF Core, MediatR, AutoMapper, FluentValidation, etc.)
-- JWT authentication system fully implemented
-- Character system fully implemented
+### Current Status (Week 1-2 Phase)
 
-**Completed Features:**
-- ✅ JWT Bearer authentication (register, login, refresh, logout, profile)
-- ✅ Player registration and login system
-- ✅ Character entity and CharacterStats value object
-- ✅ Character repository with CRUD operations
-- ✅ Character service with all business logic
-- ✅ Character controller with all endpoints:
-  - POST /api/character/Create - 캐릭터 생성
-  - GET /api/character/GetCharacters - 캐릭터 목록 조회
-  - GET /api/character/{id} - 특정 캐릭터 조회
-  - DELETE /api/character/{id} - 캐릭터 삭제
-  - POST /api/character/{id}/experience - 경험치 획득
-  - PUT /api/character/{id}/stats - 스탯 분배
-- ✅ Database migrations (InitialCreate, AddCharacterEntity)
-- ✅ Unity documentation updated with all API endpoints
-- ✅ Unit tests for CharacterService (17 tests with xUnit, Moq, FluentAssertions)
+**✅ Completed (Week 1)**:
+- JWT Bearer authentication system (5 endpoints)
+- Character growth system (6 endpoints)
+- Auto-stat progression (Level → Stats)
+- Monster entities (5 types seeded)
+- PostgreSQL + EF Core migrations
+- Jenkins CI/CD pipeline
+- AWS EC2 + RDS deployment
+- Unit tests (17 tests passing)
 
-**Current Task:** Week 2 - Idle Game Loop & Progression System (Feature 1 완료, Feature 4 진행 중)
+**🔄 In Progress (Week 2)**:
+- Combat system core logic
+- Offline reward calculation
+- Background service (IHostedService)
+- Battle log system
 
-## Week 2 Development Status
+**📋 Next Priority (Week 3-6)**:
+- Inventory & Equipment system
+- Dungeon progression system
+- Equipment enhancement (probability-based)
+- Skill system foundation
 
-### 📄 Week 2 PRD Location
-- **Document**: `.taskmaster/docs/week2-prd.txt`
-- **Theme**: Idle Game Loop & Progression System
-- **Total Features**: 9 (Monster → Battle System → Offline Rewards → Background Service → Logs → Tests)
+### 20-Week Development Roadmap
 
-### ✅ Completed
-- **Feature 1**: Monster Entity & Repository (마이그레이션 적용 완료, EC2 배포됨)
-  - Monster 엔티티 생성 완료
-  - MonsterConfiguration (EF Core) 완료
-  - 5종 몬스터 시딩 완료 (슬라임, 고블린, 오크, 트롤, 드래곤)
+**See**: `docs/MUSHROOM_GAME_PRD.md` for complete system specifications
 
-### ⏭️ In Progress
-- **Feature 4**: Character Schema Update (Gold, LastLoginTime 필드 추가)
+**Phase 1: Foundation (Week 1-6)** - MVP Systems
+1. ✅ Authentication System
+2. ✅ Character Growth System
+3. ⏳ Inventory & Equipment
+4. ⏳ Combat System (Auto-battle)
+5. ⏳ Offline Rewards
+6. ⏳ Dungeon System
+7. 📋 Equipment Enhancement
 
-### 📋 Pending
-- Feature 2: Battle System Core Logic
-- Feature 3: Battle Controller & API
-- Feature 5: Offline Reward System
-- Feature 6: Idle Progress Background Service
-- Feature 7: Battle Log System
-- Feature 8: Unity Documentation Update
-- Feature 9: Unit Tests (20+ 테스트)
+**Phase 2: Expansion (Week 7-12)** - Core Gameplay
+8. 📋 Skill System
+9. 📋 Pet System
+10. 📋 PVP Arena (ELO rating)
+11. 📋 Friend System
+12. 📋 Guild System (Part 1: Basic)
+13. 📋 Guild System (Part 2: Raids)
 
-## Collaboration Rules (Week 2 Learning Style)
+**Phase 3: Advanced (Week 13-18)** - Social & Monetization
+14. 📋 Real-time Chat (SignalR)
+15. 📋 Boss Raid (Cooperative)
+16. 📋 Quest & Achievement
+17. 📋 Daily Mission & Attendance
+18. 📋 Gacha System
+19. 📋 Shop & VIP System
+
+**Phase 4: Polish (Week 19-20)** - Live Operations
+20. 📋 Ranking System (Redis)
+21. 📋 Mail & Event System
+
+### Learning Milestones
+
+- **Week 1-6**: RESTful API, EF Core, JWT, Background Services
+- **Week 7-12**: Complex relationships, Game balancing, ELO systems
+- **Week 13-18**: SignalR real-time, Redis caching, Monetization
+- **Week 19-20**: Live operations, Event systems, Production optimization
+
+### PRD Documents
+
+- **Week 2 PRD**: `.taskmaster/docs/week2-prd.txt` (Idle Game Loop)
+- **Complete PRD**: `docs/MUSHROOM_GAME_PRD.md` (20-week roadmap)
+
+## Collaboration Rules (Learning-Oriented Development)
 
 ### 🤖 Claude 자동 처리 작업
 다음 작업은 Claude가 독립적으로 완료:
@@ -273,11 +343,18 @@ The project is in **active development** with:
 - BCrypt password hashing with salt
 - Game-specific endpoints require [Authorize] attribute
 
-**Week 0 Infrastructure Strategy:**
-- Core game features first, infrastructure tools added when needed
-- Serilog, FluentValidation, AutoMapper installed but not yet configured
-- Will add logging/validation when debugging becomes difficult
-- Focus on Week 1 features (Character system) before infrastructure setup
+**Infrastructure Adoption Strategy:**
+- **Immediate use**: JWT, EF Core, xUnit (Week 1-2)
+- **Phase 1 (Week 3-6)**: FluentValidation, AutoMapper, Serilog
+- **Phase 2 (Week 7-12)**: MediatR (CQRS), Redis (caching)
+- **Phase 3 (Week 13-18)**: SignalR, Redis (ranking), IHostedService optimization
+- **Phase 4 (Week 19-20)**: Application Insights, Performance monitoring
+
+### Game Balance Philosophy
+- Server-side validation for critical operations (combat, rewards, gacha)
+- Client is presentation layer only (UI, animations, input)
+- All economy-affecting logic runs on server
+- Prevent cheating through server-authoritative design
 
 ## Unity Client Documentation
 
