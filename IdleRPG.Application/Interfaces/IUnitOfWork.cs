@@ -18,6 +18,16 @@ namespace IdleRPG.Application.Interfaces
         IMonsterRepository Monsters { get; }
 
         /// <summary>
+        /// 오프라인 보상 타입 Repository
+        /// </summary>
+        IOfflineRewardTypeRepository OfflineRewardTypes { get; }
+
+        /// <summary>
+        /// 전투 로그 Repository
+        /// </summary>
+        IBattleLogRepository BattleLogs { get; }
+
+        /// <summary>
         /// 변경사항을 데이터베이스에 저장 (트랜잭션 커밋)
         /// </summary>
         /// <returns>영향받은 행 수</returns>

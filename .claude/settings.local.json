@@ -87,7 +87,9 @@
       "WebFetch(domain:gamedev.stackexchange.com)",
       "WebFetch(domain:wiki.melvoridle.com)",
       "Bash(curl -s \"http://13.209.66.253:5172/swagger/index.html\")",
-      "Bash(git reset:*)"
+      "Bash(git reset:*)",
+      "Bash(time:*)",
+      "Bash(dotnet restore:*)"
     ]
   },
   "enableAllProjectMcpServers": true,

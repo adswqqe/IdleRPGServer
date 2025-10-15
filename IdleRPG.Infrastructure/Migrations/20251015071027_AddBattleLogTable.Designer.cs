@@ -3,6 +3,7 @@ using System;
 using IdleRPG.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace IdleRPG.Infrastructure.Migrations
 {
     [DbContext(typeof(GameDBContext))]
-    partial class GameDBContextModelSnapshot : ModelSnapshot
+    [Migration("20251015071027_AddBattleLogTable")]
+    partial class AddBattleLogTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -253,41 +256,6 @@ namespace IdleRPG.Infrastructure.Migrations
                             MaxHealth = 1000,
                             Name = "드래곤",
                             UpdatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc)
-                        });
-                });
-
-            modelBuilder.Entity("IdleRPG.Domain.Entities.OfflineRewardType", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<int>("ExperiencePerMinute")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("GoldPerMinute")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("MaxMinutes")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("OfflineRewardTypes", (string)null);
-
-                    b.HasData(
-                        new
-                        {
-                            Id = new Guid("11111111-1111-1111-1111-111111111111"),
-                            ExperiencePerMinute = 2,
-                            GoldPerMinute = 1,
-                            MaxMinutes = 480,
-                            Name = "Basic Offline Reward"
                         });
                 });
 

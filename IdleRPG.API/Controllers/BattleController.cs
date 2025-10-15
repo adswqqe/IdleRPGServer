@@ -12,7 +12,7 @@ namespace IdleRPG.API.Controllers
     /// </summary>
     [ApiController]
     [Route("api/battle")]
-    public class BattleController : ControllerBase
+    public class BattleController : BaseController
     {
         private readonly IBattleService _battleService;
         private readonly ICharacterService _characterService;
@@ -82,12 +82,123 @@ namespace IdleRPG.API.Controllers
         }
 
         /// <summary>
-        /// 현재 로그인한 사용자 ID 가져오기
+        /// 전투 히스토리 조회 (페이징)
         /// </summary>
-        private Guid GetCurrentUserId()
+        /// <param name="characterId">캐릭터 ID</param>
+        /// <param name="page">페이지 번호 (기본값: 1)</param>
+        /// <param name="pageSize">페이지 크기 (기본값: 20)</param>
+        [HttpGet("logs")]
+        [Authorize]
+        [ProducesResponseType(typeof(object), 200)]
+        [ProducesResponseType(typeof(object), 403)]
+        [ProducesResponseType(typeof(object), 404)]
+        public async Task<IActionResult> GetBattleLogs(
+            [FromQuery] Guid characterId,
+            [FromQuery] int page = 1,
+            [FromQuery] int pageSize = 20)
         {
-            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            return Guid.Parse(userIdClaim);
+            try
+            {
+                // 캐릭터 소유권 검증
+                var character = await _characterService.GetCharacterByIdAsync(characterId);
+                if (character == null)
+                {
+                    return NotFound(new { message = "캐릭터를 찾을 수 없습니다" });
+                }
+
+                var currentUserId = GetCurrentUserId();
+                if (character.PlayerId != currentUserId)
+                {
+                    return StatusCode(403, new { message = "본인의 캐릭터만 조회할 수 있습니다" });
+                }
+
+                // 전투 로그 조회
+                var logs = await _battleService.GetBattleLogsAsync(characterId, page, pageSize);
+                return Ok(new { response = logs });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "전투 로그 조회 중 오류 발생");
+                return StatusCode(500, new { message = "전투 로그 조회 중 오류가 발생했습니다" });
+            }
         }
+
+        /// <summary>
+        /// 최근 N개 전투 로그 조회
+        /// </summary>
+        /// <param name="characterId">캐릭터 ID</param>
+        /// <param name="count">조회할 개수 (기본값: 10)</param>
+        [HttpGet("logs/recent")]
+        [Authorize]
+        [ProducesResponseType(typeof(object), 200)]
+        [ProducesResponseType(typeof(object), 403)]
+        [ProducesResponseType(typeof(object), 404)]
+        public async Task<IActionResult> GetRecentBattleLogs(
+            [FromQuery] Guid characterId,
+            [FromQuery] int count = 10)
+        {
+            try
+            {
+                // 캐릭터 소유권 검증
+                var character = await _characterService.GetCharacterByIdAsync(characterId);
+                if (character == null)
+                {
+                    return NotFound(new { message = "캐릭터를 찾을 수 없습니다" });
+                }
+
+                var currentUserId = GetCurrentUserId();
+                if (character.PlayerId != currentUserId)
+                {
+                    return StatusCode(403, new { message = "본인의 캐릭터만 조회할 수 있습니다" });
+                }
+
+                // 최근 로그 조회
+                var logs = await _battleService.GetRecentBattleLogsAsync(characterId, count);
+                return Ok(new { response = logs });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "최근 전투 로그 조회 중 오류 발생");
+                return StatusCode(500, new { message = "최근 전투 로그 조회 중 오류가 발생했습니다" });
+            }
+        }
+
+        /// <summary>
+        /// 전투 통계 조회
+        /// </summary>
+        /// <param name="characterId">캐릭터 ID</param>
+        [HttpGet("stats")]
+        [Authorize]
+        [ProducesResponseType(typeof(object), 200)]
+        [ProducesResponseType(typeof(object), 403)]
+        [ProducesResponseType(typeof(object), 404)]
+        public async Task<IActionResult> GetBattleStats([FromQuery] Guid characterId)
+        {
+            try
+            {
+                // 캐릭터 소유권 검증
+                var character = await _characterService.GetCharacterByIdAsync(characterId);
+                if (character == null)
+                {
+                    return NotFound(new { message = "캐릭터를 찾을 수 없습니다" });
+                }
+
+                var currentUserId = GetCurrentUserId();
+                if (character.PlayerId != currentUserId)
+                {
+                    return StatusCode(403, new { message = "본인의 캐릭터만 조회할 수 있습니다" });
+                }
+
+                // 전투 통계 조회
+                var stats = await _battleService.GetBattleStatsAsync(characterId);
+                return Ok(new { response = stats });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "전투 통계 조회 중 오류 발생");
+                return StatusCode(500, new { message = "전투 통계 조회 중 오류가 발생했습니다" });
+            }
+        }
+
     }
 }

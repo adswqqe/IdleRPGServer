@@ -1,7 +1,7 @@
 ﻿using IdleRPG.Application.Character.Services;
 using IdleRPG.Application.DTOs.Characters;
 using IdleRPG.Application.Interfaces;
-using IdleRPG.Domain.Entities;
+using CharacterEntity = IdleRPG.Domain.Entities.Character;
 using IdleRPG.Domain.ValueObjects;
 using Microsoft.Extensions.Logging;
 namespace IdleRPG.Infrastructure.Service
@@ -25,7 +25,7 @@ namespace IdleRPG.Infrastructure.Service
             if (count >= _maxCharacterCount)
                 throw new InvalidOperationException("최대 3개까지만 생성 가능합니다");
 
-            var character = new Character()
+            var character = new CharacterEntity()
             {
                 PlayerId = playerId,
                 Id = Guid.NewGuid(),
@@ -86,6 +86,21 @@ namespace IdleRPG.Infrastructure.Service
             if (character == null)
                 throw new InvalidOperationException("캐릭터를 찾을 수 없습니다");
 
+            // 레벨업 처리 (SaveChanges 없이)
+            ProcessExperienceGain(character, amount);
+
+            character.UpdatedAt = DateTime.UtcNow;
+            await _unitOfWork.SaveChangesAsync();
+
+            return CreateCharacterDto(character);
+        }
+
+        /// <summary>
+        /// 경험치 추가 및 레벨업 처리 (SaveChanges 없음)
+        /// OfflineRewardService 등에서 여러 작업을 한 트랜잭션으로 처리할 때 사용
+        /// </summary>
+        public void ProcessExperienceGain(CharacterEntity character, int amount)
+        {
             character.Experience += amount;
 
             // 레벨업 체크 및 자동 성장
@@ -108,9 +123,6 @@ namespace IdleRPG.Infrastructure.Service
             }
 
             character.UpdatedAt = DateTime.UtcNow;
-            await _unitOfWork.SaveChangesAsync();
-
-            return CreateCharacterDto(character);
         }
 
         private int GetRequiredExp(int level)
@@ -118,7 +130,7 @@ namespace IdleRPG.Infrastructure.Service
             return level * 100; // 레벨 * 100
         }
 
-        private CharacterDto CreateCharacterDto(Character character)
+        private CharacterDto CreateCharacterDto(CharacterEntity character)
         {
             return new CharacterDto()
             {

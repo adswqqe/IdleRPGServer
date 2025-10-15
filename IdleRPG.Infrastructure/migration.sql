@@ -335,5 +335,77 @@ BEGIN
     VALUES ('20251014023217_AddAttackSpeedToCharacterAndMonster', '9.0.9');
     END IF;
 END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20251015071027_AddBattleLogTable') THEN
+    CREATE TABLE "BattleLogs" (
+        "Id" uuid NOT NULL,
+        "CharacterId" uuid NOT NULL,
+        "MonsterId" uuid NOT NULL,
+        "IsVictory" boolean NOT NULL,
+        "ExperienceGained" integer NOT NULL,
+        "GoldGained" integer NOT NULL,
+        "DamageDealt" integer NOT NULL,
+        "DamageTaken" integer NOT NULL,
+        "BattleDate" timestamp with time zone NOT NULL DEFAULT (CURRENT_TIMESTAMP),
+        CONSTRAINT "PK_BattleLogs" PRIMARY KEY ("Id"),
+        CONSTRAINT "FK_BattleLogs_Characters_CharacterId" FOREIGN KEY ("CharacterId") REFERENCES "Characters" ("Id") ON DELETE RESTRICT,
+        CONSTRAINT "FK_BattleLogs_Monsters_MonsterId" FOREIGN KEY ("MonsterId") REFERENCES "Monsters" ("Id") ON DELETE RESTRICT
+    );
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20251015071027_AddBattleLogTable') THEN
+    CREATE INDEX "IX_BattleLogs_CharacterId_BattleDate" ON "BattleLogs" ("CharacterId", "BattleDate");
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20251015071027_AddBattleLogTable') THEN
+    CREATE INDEX "IX_BattleLogs_MonsterId" ON "BattleLogs" ("MonsterId");
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20251015071027_AddBattleLogTable') THEN
+    INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
+    VALUES ('20251015071027_AddBattleLogTable', '9.0.9');
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20251015085308_AddOfflineRewardTypeTable') THEN
+    CREATE TABLE "OfflineRewardTypes" (
+        "Id" uuid NOT NULL,
+        "Name" character varying(100) NOT NULL,
+        "ExperiencePerMinute" integer NOT NULL,
+        "GoldPerMinute" integer NOT NULL,
+        "MaxMinutes" integer NOT NULL,
+        CONSTRAINT "PK_OfflineRewardTypes" PRIMARY KEY ("Id")
+    );
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20251015085308_AddOfflineRewardTypeTable') THEN
+    INSERT INTO "OfflineRewardTypes" ("Id", "ExperiencePerMinute", "GoldPerMinute", "MaxMinutes", "Name")
+    VALUES ('11111111-1111-1111-1111-111111111111', 2, 1, 480, 'Basic Offline Reward');
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20251015085308_AddOfflineRewardTypeTable') THEN
+    INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
+    VALUES ('20251015085308_AddOfflineRewardTypeTable', '9.0.9');
+    END IF;
+END $EF$;
 COMMIT;
 

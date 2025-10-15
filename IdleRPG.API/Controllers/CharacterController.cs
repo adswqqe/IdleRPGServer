@@ -7,7 +7,7 @@ namespace IdleRPG.API.Controllers
 {
     [ApiController]
     [Route("api/character")]
-    public class CharacterController : ControllerBase
+    public class CharacterController : BaseController
     {
         private readonly ICharacterService _characterService;
         private readonly ILogger<CharacterController> _logger;
@@ -141,14 +141,5 @@ namespace IdleRPG.API.Controllers
             }
         }
 
-        /// <summary>
-        /// 현재 로그인한 사용자 ID 가져오기
-        /// Unity의 PlayerPrefs.GetInt("userId")처럼
-        /// </summary>
-        private Guid GetCurrentUserId()
-        {
-            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            return Guid.Parse(userIdClaim);
-        }
     }
 }

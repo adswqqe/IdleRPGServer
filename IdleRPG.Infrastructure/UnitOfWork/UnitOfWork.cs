@@ -15,6 +15,8 @@ namespace IdleRPG.Infrastructure.UnitOfWork
         // Lazy initialization을 위한 필드
         private ICharacterRepository? _characters;
         private IMonsterRepository? _monsters;
+        private IOfflineRewardTypeRepository? _offlineRewardTypes;
+        private IBattleLogRepository? _battleLogs;
 
         public UnitOfWork(GameDBContext context)
         {
@@ -48,6 +50,36 @@ namespace IdleRPG.Infrastructure.UnitOfWork
                     _monsters = new MonsterRepository(_context);
                 }
                 return _monsters;
+            }
+        }
+
+        /// <summary>
+        /// 오프라인 보상 타입 Repository (Lazy 초기화)
+        /// </summary>
+        public IOfflineRewardTypeRepository OfflineRewardTypes
+        {
+            get
+            {
+                if (_offlineRewardTypes == null)
+                {
+                    _offlineRewardTypes = new OfflineRewardTypeRepository(_context);
+                }
+                return _offlineRewardTypes;
+            }
+        }
+
+        /// <summary>
+        /// 전투 로그 Repository (Lazy 초기화)
+        /// </summary>
+        public IBattleLogRepository BattleLogs
+        {
+            get
+            {
+                if (_battleLogs == null)
+                {
+                    _battleLogs = new BattleLogRepository(_context);
+                }
+                return _battleLogs;
             }
         }
 

@@ -4,7 +4,6 @@ using IdleRPG.Application.DTOs.Characters;
 using IdleRPG.Application.DTOs.Rewards;
 using IdleRPG.Application.Interfaces;
 using IdleRPG.Domain.Entities;
-using IdleRPG.Domain.ValueObjects;
 using Microsoft.Extensions.Logging;
 
 namespace IdleRPG.Infrastructure.Service
@@ -55,6 +54,22 @@ namespace IdleRPG.Infrastructure.Service
             _logger.LogInformation(
                 "전투 완료 - 캐릭터: {CharacterId}, 몬스터: {MonsterId}, 승리: {IsVictory}, 경험치: {Exp}, 골드: {Gold}",
                 characterId, monsterId, result.IsVictory, result.Reward?.Experience ?? 0, result.Reward?.Gold ?? 0);
+
+            // 4. 전투 로그 저장
+            var battleLog = new BattleLog
+            {
+                CharacterId = characterId,
+                MonsterId = monsterId,
+                IsVictory = result.IsVictory,
+                ExperienceGained = (int)(result.Reward?.Experience ?? 0),
+                GoldGained = (int)(result.Reward?.Gold ?? 0),
+                DamageDealt = result.Statistics.TotalDamageDealt,
+                DamageTaken = result.Statistics.TotalDamageTaken,
+                BattleDate = DateTime.UtcNow
+            };
+
+            await _unitOfWork.BattleLogs.AddAsync(battleLog);
+            await _unitOfWork.SaveChangesAsync();
 
             return result;
         }
@@ -217,25 +232,22 @@ namespace IdleRPG.Infrastructure.Service
         }
 
         /// <summary>
-        /// 보상 지급 및 레벨업 처리 (CharacterService 로직 재사용)
+        /// 보상 지급 및 레벨업 처리 (한 트랜잭션으로 처리)
         /// </summary>
         private async Task<CharacterDto> ApplyRewardAsync(Character character, RewardDto reward)
         {
-            // 1. 경험치 지급 (CharacterService의 AddExperienceAsync 활용)
-            var updatedCharacter = await _characterService.AddExperienceAsync(character.Id, (int)reward.Experience);
+            // 1. 경험치 지급 및 레벨업 (SaveChanges 없음)
+            _characterService.ProcessExperienceGain(character, (int)reward.Experience);
 
-            // 2. 골드 지급 (Entity 직접 조작 후 저장)
-            var characterEntity = await _unitOfWork.Characters.GetByIdAsync(character.Id);
-            if (characterEntity != null)
-            {
-                characterEntity.Gold += reward.Gold;
-                characterEntity.UpdatedAt = DateTime.UtcNow;
-                await _unitOfWork.SaveChangesAsync();
+            // 2. 골드 지급
+            character.Gold += reward.Gold;
+            character.UpdatedAt = DateTime.UtcNow;
 
-                // 최종 업데이트된 정보 다시 조회
-                updatedCharacter = await _characterService.GetCharacterByIdAsync(character.Id);
-            }
+            // 3. 한 번의 트랜잭션으로 모든 변경사항 저장
+            await _unitOfWork.SaveChangesAsync();
 
+            // 4. 최종 업데이트된 정보 DTO로 반환
+            var updatedCharacter = await _characterService.GetCharacterByIdAsync(character.Id);
             return updatedCharacter!;
         }
 
@@ -245,6 +257,71 @@ namespace IdleRPG.Infrastructure.Service
         private class CombatEvent
         {
             public bool IsCharacterAttack { get; set; }
+        }
+
+        /// <summary>
+        /// 캐릭터의 전투 히스토리 조회 (페이징)
+        /// </summary>
+        public async Task<BattleLogsResponse> GetBattleLogsAsync(Guid characterId, int page, int pageSize)
+        {
+            var logs = await _unitOfWork.BattleLogs.GetByCharacterIdAsync(characterId, page, pageSize);
+
+            // Entity → DTO 변환
+            var logDtos = logs.Select(log => new BattleLogDto
+            {
+                Id = log.Id,
+                MonsterName = log.Monster.Name,
+                MonsterLevel = log.Monster.Level,
+                IsVictory = log.IsVictory,
+                ExperienceGained = log.ExperienceGained,
+                GoldGained = log.GoldGained,
+                DamageDealt = log.DamageDealt,
+                DamageTaken = log.DamageTaken,
+                BattleDate = log.BattleDate
+            }).ToList();
+
+            // 전체 로그 수 계산 (페이징 정보용)
+            // TODO: Repository에 카운트 메서드 추가 고려
+            var allLogs = await _unitOfWork.BattleLogs.FindAsync(bl => bl.CharacterId == characterId);
+            int totalCount = allLogs.Count();
+
+            return new BattleLogsResponse
+            {
+                Logs = logDtos,
+                CurrentPage = page,
+                PageSize = pageSize,
+                TotalCount = totalCount
+            };
+        }
+
+        /// <summary>
+        /// 캐릭터의 최근 N개 전투 로그 조회
+        /// </summary>
+        public async Task<List<BattleLogDto>> GetRecentBattleLogsAsync(Guid characterId, int count)
+        {
+            var logs = await _unitOfWork.BattleLogs.GetRecentByCharacterIdAsync(characterId, count);
+
+            // Entity → DTO 변환
+            return logs.Select(log => new BattleLogDto
+            {
+                Id = log.Id,
+                MonsterName = log.Monster.Name,
+                MonsterLevel = log.Monster.Level,
+                IsVictory = log.IsVictory,
+                ExperienceGained = log.ExperienceGained,
+                GoldGained = log.GoldGained,
+                DamageDealt = log.DamageDealt,
+                DamageTaken = log.DamageTaken,
+                BattleDate = log.BattleDate
+            }).ToList();
+        }
+
+        /// <summary>
+        /// 캐릭터의 전투 통계 조회
+        /// </summary>
+        public async Task<Domain.Repositories.BattleStatistics> GetBattleStatsAsync(Guid characterId)
+        {
+            return await _unitOfWork.BattleLogs.GetStatsByCharacterIdAsync(characterId);
         }
     }
 }
