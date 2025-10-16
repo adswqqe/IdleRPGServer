@@ -183,13 +183,16 @@ public class OfflineRewardServiceTests
                 Level = character.Level,
                 Experience = character.Experience,
                 Gold = character.Gold,
-                Attack = character.Stats.Attack,
-                Defense = character.Stats.Defense,
-                MaxHealth = character.Stats.MaxHealth,
-                CritRate = character.Stats.CritRate,
-                CritDamage = character.Stats.CritDamage,
-                Evasion = character.Stats.Evasion,
-                AttackSpeed = character.Stats.AttackSpeed,
+                Stats = new CharacterStatsDto
+                {
+                    Attack = character.Stats.Attack,
+                    Defense = character.Stats.Defense,
+                    MaxHealth = character.Stats.MaxHealth,
+                    CritRate = character.Stats.CritRate,
+                    CritDamage = character.Stats.CritDamage,
+                    Evasion = character.Stats.Evasion,
+                    AttackSpeed = character.Stats.AttackSpeed
+                },
                 CreatedAt = character.CreatedAt,
                 UpdatedAt = character.UpdatedAt,
                 LastLoginTime = character.LastLoginTime
@@ -271,13 +274,16 @@ public class OfflineRewardServiceTests
                 Level = character.Level,
                 Experience = character.Experience,
                 Gold = character.Gold,
-                Attack = character.Stats.Attack,
-                Defense = character.Stats.Defense,
-                MaxHealth = character.Stats.MaxHealth,
-                CritRate = character.Stats.CritRate,
-                CritDamage = character.Stats.CritDamage,
-                Evasion = character.Stats.Evasion,
-                AttackSpeed = character.Stats.AttackSpeed,
+                Stats = new CharacterStatsDto
+                {
+                    Attack = character.Stats.Attack,
+                    Defense = character.Stats.Defense,
+                    MaxHealth = character.Stats.MaxHealth,
+                    CritRate = character.Stats.CritRate,
+                    CritDamage = character.Stats.CritDamage,
+                    Evasion = character.Stats.Evasion,
+                    AttackSpeed = character.Stats.AttackSpeed
+                },
                 CreatedAt = character.CreatedAt,
                 UpdatedAt = character.UpdatedAt,
                 LastLoginTime = character.LastLoginTime
@@ -297,9 +303,9 @@ public class OfflineRewardServiceTests
         result.UpdatedCharacter.Level.Should().Be(2, "Lv1 → Lv2 레벨업");
         result.UpdatedCharacter.Experience.Should().Be(10, "레벨업 후 남은 경험치");
         result.UpdatedCharacter.Gold.Should().Be(80, "초기 50 + 보상 30");
-        result.UpdatedCharacter.Attack.Should().Be(20, "레벨업 후 스탯 증가");
-        result.UpdatedCharacter.Defense.Should().Be(10);
-        result.UpdatedCharacter.MaxHealth.Should().Be(150);
+        result.UpdatedCharacter.Stats.Attack.Should().Be(20, "레벨업 후 스탯 증가");
+        result.UpdatedCharacter.Stats.Defense.Should().Be(10);
+        result.UpdatedCharacter.Stats.MaxHealth.Should().Be(150);
 
         _mockCharacterService.Verify(
             s => s.ProcessExperienceGain(It.IsAny<Character>(), 60),
@@ -362,13 +368,16 @@ public class OfflineRewardServiceTests
                 Level = character.Level,
                 Experience = character.Experience,
                 Gold = character.Gold,
-                Attack = character.Stats.Attack,
-                Defense = character.Stats.Defense,
-                MaxHealth = character.Stats.MaxHealth,
-                CritRate = character.Stats.CritRate,
-                CritDamage = character.Stats.CritDamage,
-                Evasion = character.Stats.Evasion,
-                AttackSpeed = character.Stats.AttackSpeed,
+                Stats = new CharacterStatsDto
+                {
+                    Attack = character.Stats.Attack,
+                    Defense = character.Stats.Defense,
+                    MaxHealth = character.Stats.MaxHealth,
+                    CritRate = character.Stats.CritRate,
+                    CritDamage = character.Stats.CritDamage,
+                    Evasion = character.Stats.Evasion,
+                    AttackSpeed = character.Stats.AttackSpeed
+                },
                 CreatedAt = character.CreatedAt,
                 UpdatedAt = character.UpdatedAt,
                 LastLoginTime = character.LastLoginTime

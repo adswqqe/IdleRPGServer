@@ -142,14 +142,17 @@ namespace IdleRPG.Infrastructure.Service
                 Gold = character.Gold,
                 LastLoginTime = character.LastLoginTime,
                 UpdatedAt = character.UpdatedAt,
-                // 전투 스탯
-                Attack = character.Stats.Attack,
-                Defense = character.Stats.Defense,
-                MaxHealth = character.Stats.MaxHealth,
-                CritRate = character.Stats.CritRate,
-                CritDamage = character.Stats.CritDamage,
-                Evasion = character.Stats.Evasion,
-                AttackSpeed = character.Stats.AttackSpeed
+                // 전투 스탯 (중첩 구조)
+                Stats = new CharacterStatsDto
+                {
+                    Attack = character.Stats.Attack,
+                    Defense = character.Stats.Defense,
+                    MaxHealth = character.Stats.MaxHealth,
+                    CritRate = character.Stats.CritRate,
+                    CritDamage = character.Stats.CritDamage,
+                    Evasion = character.Stats.Evasion,
+                    AttackSpeed = character.Stats.AttackSpeed
+                }
             };
         }
     }

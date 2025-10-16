@@ -90,7 +90,14 @@
       "Bash(git reset:*)",
       "Bash(time:*)",
       "Bash(dotnet restore:*)",
-      "Bash(uvx:*)"
+      "Bash(uvx:*)",
+      "Bash(if exist .env echo \"exists\" else echo \"not found\")",
+      "Bash(test:*)",
+      "mcp__zen__consensus",
+      "mcp__zen__chat",
+      "mcp__zen__listmodels",
+      "mcp__project-filesystem__write_file",
+      "Bash(python:*)"
     ]
   },
   "enableAllProjectMcpServers": true,

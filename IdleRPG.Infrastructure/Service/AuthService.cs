@@ -53,7 +53,7 @@ namespace IdleRPG.Infrastructure.Service
             {
                 AccessToken = accessToken,
                 RefreshToken = refreshToken,
-                ExpiresAt = DateTime.UtcNow.AddHours(1),
+                ExpiresIn = 3600, // 1시간 = 3600초
                 PlayerId = player.Id,
                 UserName = player.UserName
             };
@@ -86,7 +86,7 @@ namespace IdleRPG.Infrastructure.Service
             {
                 AccessToken = accessToken,
                 RefreshToken = refreshToken,
-                ExpiresAt = DateTime.UtcNow.AddHours(1),
+                ExpiresIn = 3600, // 1시간 = 3600초
                 PlayerId = player.Id,
                 UserName = player.UserName
             };
@@ -119,7 +119,7 @@ namespace IdleRPG.Infrastructure.Service
             {
                 AccessToken = newAccessToken,
                 RefreshToken = newRefreshToken,
-                ExpiresAt = DateTime.UtcNow.AddHours(1),
+                ExpiresIn = 3600, // 1시간 = 3600초
                 PlayerId = player.Id,
                 UserName = player.UserName
             };

@@ -64,14 +64,17 @@ Week 2 - Idle Game Loop & Progression System
 - 📋 **예정**: Controller에 엔드포인트가 없음
 
 ### 3. Unity 문서 현재 상태 확인
-`../IdleRPGClient/Docs/unity/API_SPEC_FOR_UNITY.md` 파일을 읽어서:
-- "구현 상태" 섹션의 API별 구현 상태 테이블 확인
+`../IdleRPGClient/Docs/unity/API-Overview.md` 파일을 읽어서:
+- API별 구현 상태 테이블 확인
 - 각 API의 현재 상태 (✅ 완료, 🚧 개발 중, 📋 예정) 파악
+- 파일이 없으면 신규 생성 필요
+
+**Note**: 기존 `API_SPEC_FOR_UNITY.md`는 더 이상 사용하지 않으며, `_deprecated/` 폴더에 보관됨
 
 ### 4. 서버 vs Unity 문서 비교
-서버의 실제 구현 상태와 Unity 문서의 상태를 비교:
+서버의 실제 구현 상태와 Unity 문서(`API-Overview.md`)의 상태를 비교:
 - 차이가 있는 API 엔드포인트 식별
-- 업데이트가 필요한 항목 리스트 작성
+- 업데이트가 필요한 기능별 문서 리스트 작성 (예: `api/Character-API.md`)
 
 ### 5. Unity 문서 자동 업데이트 (기능별 분리 구조)
 
@@ -134,20 +137,19 @@ Week 2 - Idle Game Loop & Progression System
 | `DTOs/Reward/` | `dto/RewardDTO.cs` | OfflineRewardDto, ClaimOfflineRewardResponseDto |
 | 공통 | `dto/CommonDTO.cs` | ErrorResponse, ApiResponse<T> |
 
-#### 5.3 기존 통합 문서 마이그레이션 (1회만)
+#### 5.3 Unity 문서 초기화 (최초 1회)
 
-**첫 체크포인트 시 자동 수행**:
-1. 기존 `API_SPEC_FOR_UNITY.md` 읽기
-2. 내용을 기능별로 분할하여 새 파일들에 저장
-3. 기존 `Unity-DTOs.cs` 읽기
-4. DTO를 기능별로 분할하여 `dto/` 폴더에 저장
-5. 기존 파일 보관 (`_deprecated/` 폴더로 이동)
-6. `API-Overview.md`에 새 구조 안내 추가
+**Unity 문서가 존재하지 않을 경우**:
+1. `../IdleRPGClient/Docs/unity/` 디렉토리 구조 생성
+2. `API-Overview.md` 생성 (전체 API 목차 및 구현 상태 테이블)
+3. `Common-Specs.md` 생성 (인증, 응답 형식, 에러 처리)
+4. `api/` 폴더 생성 및 기능별 API 문서 생성
+5. `dto/` 폴더 생성 및 기능별 DTO 클래스 생성
 
-**마이그레이션 확인**:
-- `../IdleRPGClient/Docs/unity/api/` 폴더 존재 여부 확인
-- 존재하지 않으면 마이그레이션 수행
-- 존재하면 기능별 업데이트만 수행
+**문서 존재 확인**:
+- `../IdleRPGClient/Docs/unity/API-Overview.md` 존재 여부 확인
+- 존재하지 않으면 전체 구조 생성
+- 존재하면 기능별 업데이트만 수행 (변경된 API만)
 
 ### 6. API 구현 상태 Serena 메모리 저장
 

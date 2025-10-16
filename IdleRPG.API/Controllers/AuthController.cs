@@ -32,7 +32,7 @@ namespace IdleRPG.API.Controllers
 
                 return CreatedAtAction(nameof(GetProfile), new
                 {
-                }, response);
+                }, new { response });
             }
             catch (InvalidOperationException ex)
             {
@@ -54,7 +54,7 @@ namespace IdleRPG.API.Controllers
             try
             {
                 var response = await _authService.LoginAsync(dto);
-                return Ok(response);
+                return Ok(new { response });
             }
             catch (UnauthorizedAccessException ex)
             {
@@ -74,7 +74,7 @@ namespace IdleRPG.API.Controllers
             try
             {
                 var response = await _authService.RefreshTokenAsync(dto.RefreshToken);
-                return Ok(response);
+                return Ok(new { response });
             }
             catch (UnauthorizedAccessException ex)
             {
@@ -110,8 +110,8 @@ namespace IdleRPG.API.Controllers
 
             return Ok(new
             {
-                UserId = userId,
-                UserName = userName
+                userId = userId,
+                userName = userName
             });
         }
         

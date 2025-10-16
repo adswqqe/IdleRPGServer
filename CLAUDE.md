@@ -10,12 +10,14 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ### 🍄 버섯키우기 완전판 - Idle MMORPG
 
-This is a **commercial-scale Idle MMORPG server** project inspired by "버섯키우기" (Mushroom Cultivation Game). Built with ASP.NET Core 8.0 following **Clean Architecture** principles.
+This is an **AI-collaborative learning project** for mastering .NET backend development, inspired by "버섯키우기" (Mushroom Cultivation Game). Built with ASP.NET Core 8.0 following **Clean Architecture** principles.
 
-**Primary Goal**: Master .NET Web API + Unity Network Communication
-**Secondary Goal**: Build production-ready idle RPG with 20+ game systems
-**Timeline**: 20 weeks (5 months) development roadmap
-**Scale**: 20 major systems from basic character growth to advanced guild raids
+**Project Type**: Learning project (not commercial deployment)
+**Learning Goal**: Understand 20+ modern .NET technologies in 2 months through hands-on implementation
+**AI Collaboration**: Working with Claude Code, Gemini, and GPT for accelerated learning
+**Timeline**: 8 weeks (2 months) intensive learning roadmap
+**Learning Strategy**: T-shaped learning (6 core systems at 95% depth + 14 systems at 60-80% breadth)
+**Scale**: 20 major game systems from basic character growth to advanced guild raids
 
 ### Architecture Layers
 
@@ -239,50 +241,65 @@ The API container uses these key environment variables:
 - Equipment enhancement (probability-based)
 - Skill system foundation
 
-### 20-Week Development Roadmap
+### 8-Week Learning Roadmap (T-Shaped Strategy)
 
-**See**: `docs/MUSHROOM_GAME_PRD.md` for complete system specifications
+**See**: Serena memory `development_roadmap_checklist` for detailed task breakdown
 
-**Phase 1: Foundation (Week 1-6)** - MVP Systems
-1. ✅ Authentication System
+**Phase 1: Core Vertical Slice (Week 1-3)** - 6 Systems at 95% Depth
+1. ✅ Authentication System (JWT)
 2. ✅ Character Growth System
-3. ⏳ Inventory & Equipment
-4. ⏳ Combat System (Auto-battle)
+3. ⏳ Combat System (Auto-battle)
+4. ⏳ Inventory & Equipment
 5. ⏳ Offline Rewards
 6. ⏳ Dungeon System
-7. 📋 Equipment Enhancement
 
-**Phase 2: Expansion (Week 7-12)** - Core Gameplay
+**Learning Focus**: Complete game loop (Login → Battle → Progression), Clean Architecture mastery, Serilog from day 1
+
+**Phase 2: Core Features + SignalR (Week 4-5)** - 4 Systems, SignalR 90% Depth
+7. 📋 Equipment Enhancement
 8. 📋 Skill System
 9. 📋 Pet System
-10. 📋 PVP Arena (ELO rating)
+10. 📋 **Real-time Chat (SignalR)** ← Deep learning
+
+**Learning Focus**: SignalR real-time communication mastery, Unity ↔ Server integration, CQRS with MediatR
+
+**Phase 3: Social + Redis (Week 6-7)** - 4 Systems, Redis 90% Depth
 11. 📋 Friend System
-12. 📋 Guild System (Part 1: Basic)
-13. 📋 Guild System (Part 2: Raids)
+12. 📋 Guild System (Basic + Raid)
+13. 📋 **Ranking System (Redis)** ← Deep learning
+14. 📋 Boss Raid (Cooperative)
 
-**Phase 3: Advanced (Week 13-18)** - Social & Monetization
-14. 📋 Real-time Chat (SignalR)
-15. 📋 Boss Raid (Cooperative)
-16. 📋 Quest & Achievement
-17. 📋 Daily Mission & Attendance
-18. 📋 Gacha System
-19. 📋 Shop & VIP System
+**Learning Focus**: Redis Sorted Set ranking, distributed locking, multi-instance coordination
 
-**Phase 4: Polish (Week 19-20)** - Live Operations
-20. 📋 Ranking System (Redis)
-21. 📋 Mail & Event System
+**Phase 4: Monetization (Week 8)** - 6 Systems at 50-70% Depth
+15. 📋 Quest & Achievement (70%)
+16. 📋 Daily Mission & Attendance (70%)
+17. 📋 Gacha System (70% - probability logic)
+18. 📋 Shop & VIP (60%)
+19. 📋 Mail System (60%)
+20. 📋 Event System (50%)
+
+**Learning Focus**: Rapid implementation for broad coverage, concept understanding over perfect implementation
 
 ### Learning Milestones
 
-- **Week 1-6**: RESTful API, EF Core, JWT, Background Services
-- **Week 7-12**: Complex relationships, Game balancing, ELO systems
-- **Week 13-18**: SignalR real-time, Redis caching, Monetization
-- **Week 19-20**: Live operations, Event systems, Production optimization
+- **Week 1-3**: RESTful API, EF Core advanced, JWT, IHostedService, Serilog, Clean Architecture
+- **Week 4-5**: SignalR (90% depth), MediatR CQRS, FluentValidation, AutoMapper
+- **Week 6-7**: Redis (90% depth - ranking, distributed locking), Guild systems, Boss raid
+- **Week 8**: Monetization systems (broad coverage), Gacha probability, Event scheduling
+
+### Excluded from Scope (Out of Scope)
+- ❌ **IAP (In-App Purchase)**: Platform integration time-consuming
+- ❌ **FCM (Push Notification)**: Platform setup overhead
+- ❌ **Firebase Analytics**: Non-core learning
+- ⚠️ **PVP Arena**: Moved to post-8-week (ELO system complexity)
 
 ### PRD Documents
 
-- **Week 2 PRD**: `.taskmaster/docs/week2-prd.txt` (Idle Game Loop)
-- **Complete PRD**: `docs/MUSHROOM_GAME_PRD.md` (20-week roadmap)
+- **Week 2 PRD**: `.taskmaster/docs/week2-prd.txt` (Idle Game Loop - Combat, Offline Rewards)
+- **Complete PRD**: `docs/MUSHROOM_GAME_PRD.md` (Original 20-system specification reference)
+- **Learning Roadmap**: Serena memory `development_roadmap_checklist` (8-week T-shaped learning plan)
+- **Tech Stack**: Serena memory `tech_stack` (Technology priorities and depth levels)
 
 ## Collaboration Rules (Learning-Oriented Development)
 
@@ -343,12 +360,13 @@ The API container uses these key environment variables:
 - BCrypt password hashing with salt
 - Game-specific endpoints require [Authorize] attribute
 
-**Infrastructure Adoption Strategy:**
-- **Immediate use**: JWT, EF Core, xUnit (Week 1-2)
-- **Phase 1 (Week 3-6)**: FluentValidation, AutoMapper, Serilog
-- **Phase 2 (Week 7-12)**: MediatR (CQRS), Redis (caching)
-- **Phase 3 (Week 13-18)**: SignalR, Redis (ranking), IHostedService optimization
-- **Phase 4 (Week 19-20)**: Application Insights, Performance monitoring
+**Infrastructure Adoption Strategy (AI Learning Project):**
+- **Day 1 (Mandatory)**: Serilog - Critical for debugging and learning acceleration
+- **Week 1-3 (Core Vertical Slice)**: JWT, EF Core, PostgreSQL (advanced), xUnit, Moq, IHostedService
+- **Week 4-5 (SignalR Focus)**: SignalR (90% depth), MediatR (CQRS), FluentValidation, AutoMapper
+- **Week 6-7 (Redis Focus)**: Redis (90% depth - ranking, distributed locking)
+- **Week 8 (Broad Coverage)**: Gacha probability logic, Event scheduling
+- **Excluded**: IAP, FCM, Firebase Analytics, Application Insights (concept understanding only)
 
 ### Game Balance Philosophy
 - Server-side validation for critical operations (combat, rewards, gacha)

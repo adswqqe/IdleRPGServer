@@ -54,9 +54,9 @@ public class CharacterServiceTests
         // Assert
         result.Level.Should().Be(1, "50 경험치는 레벨업에 부족함 (필요: 100)");
         result.Experience.Should().Be(50, "경험치가 누적되어야 함");
-        result.Attack.Should().Be(10, "레벨업하지 않았으므로 스탯 변화 없음");
-        result.Defense.Should().Be(5, "레벨업하지 않았으므로 스탯 변화 없음");
-        result.MaxHealth.Should().Be(100, "레벨업하지 않았으므로 스탯 변화 없음");
+        result.Stats.Attack.Should().Be(10, "레벨업하지 않았으므로 스탯 변화 없음");
+        result.Stats.Defense.Should().Be(5, "레벨업하지 않았으므로 스탯 변화 없음");
+        result.Stats.MaxHealth.Should().Be(100, "레벨업하지 않았으므로 스탯 변화 없음");
     }
 
     [Fact]
@@ -77,9 +77,9 @@ public class CharacterServiceTests
         // Assert
         result.Level.Should().Be(2, "100 경험치로 Lv1 → Lv2 레벨업");
         result.Experience.Should().Be(0, "정확히 레벨업했으므로 남은 경험치 0");
-        result.Attack.Should().Be(20, "Lv2 자동 성장: 10 + 10 = 20");
-        result.Defense.Should().Be(10, "Lv2 자동 성장: 5 + 5 = 10");
-        result.MaxHealth.Should().Be(150, "Lv2 자동 성장: 100 + 50 = 150");
+        result.Stats.Attack.Should().Be(20, "Lv2 자동 성장: 10 + 10 = 20");
+        result.Stats.Defense.Should().Be(10, "Lv2 자동 성장: 5 + 5 = 10");
+        result.Stats.MaxHealth.Should().Be(150, "Lv2 자동 성장: 100 + 50 = 150");
     }
 
     [Fact]
@@ -100,9 +100,9 @@ public class CharacterServiceTests
         // Assert
         result.Level.Should().Be(2, "150 경험치로 Lv1 → Lv2 레벨업");
         result.Experience.Should().Be(50, "초과 경험치 50이 다음 레벨로 이월");
-        result.Attack.Should().Be(20, "Lv2 자동 성장: 10 + 10 = 20");
-        result.Defense.Should().Be(10, "Lv2 자동 성장: 5 + 5 = 10");
-        result.MaxHealth.Should().Be(150, "Lv2 자동 성장: 100 + 50 = 150");
+        result.Stats.Attack.Should().Be(20, "Lv2 자동 성장: 10 + 10 = 20");
+        result.Stats.Defense.Should().Be(10, "Lv2 자동 성장: 5 + 5 = 10");
+        result.Stats.MaxHealth.Should().Be(150, "Lv2 자동 성장: 100 + 50 = 150");
     }
 
     [Theory]
@@ -130,9 +130,9 @@ public class CharacterServiceTests
         // Assert
         result.Level.Should().Be(expectedLevel, $"Lv{startLevel} → Lv{expectedLevel} 레벨업");
         result.Experience.Should().Be(expectedExp, "초과 경험치 정확히 계산");
-        result.Attack.Should().Be(expectedAttack, "자동 성장으로 공격력 증가");
-        result.Defense.Should().Be(expectedDefense, "자동 성장으로 방어력 증가");
-        result.MaxHealth.Should().Be(expectedMaxHealth, "자동 성장으로 최대 체력 증가");
+        result.Stats.Attack.Should().Be(expectedAttack, "자동 성장으로 공격력 증가");
+        result.Stats.Defense.Should().Be(expectedDefense, "자동 성장으로 방어력 증가");
+        result.Stats.MaxHealth.Should().Be(expectedMaxHealth, "자동 성장으로 최대 체력 증가");
     }
 
     [Fact]
@@ -171,12 +171,12 @@ public class CharacterServiceTests
         // Assert
         result.Should().NotBeNull();
         result.Level.Should().Be(1);
-        result.Attack.Should().Be(10, "초기 공격력 10");
-        result.Defense.Should().Be(5, "초기 방어력 5");
-        result.MaxHealth.Should().Be(100, "초기 최대 체력 100");
-        result.CritRate.Should().BeApproximately(0.05f, 0.001f, "크리티컬 확률 5%");
-        result.CritDamage.Should().BeApproximately(1.5f, 0.001f, "크리티컬 데미지 150%");
-        result.Evasion.Should().BeApproximately(0.05f, 0.001f, "회피율 5%");
+        result.Stats.Attack.Should().Be(10, "초기 공격력 10");
+        result.Stats.Defense.Should().Be(5, "초기 방어력 5");
+        result.Stats.MaxHealth.Should().Be(100, "초기 최대 체력 100");
+        result.Stats.CritRate.Should().BeApproximately(0.05f, 0.001f, "크리티컬 확률 5%");
+        result.Stats.CritDamage.Should().BeApproximately(1.5f, 0.001f, "크리티컬 데미지 150%");
+        result.Stats.Evasion.Should().BeApproximately(0.05f, 0.001f, "회피율 5%");
     }
 
     [Fact]

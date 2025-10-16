@@ -106,7 +106,7 @@ namespace IdleRPG.API.Controllers
             try
             {
                 await _characterService.DeleteCharacterAsync(characterId);
-                return Ok();
+                return Ok(new { message = "캐릭터가 삭제되었습니다" });
             }
             catch (InvalidOperationException ex)
             {
