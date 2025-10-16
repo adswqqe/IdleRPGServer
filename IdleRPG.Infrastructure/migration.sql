@@ -407,5 +407,64 @@ BEGIN
     VALUES ('20251015085308_AddOfflineRewardTypeTable', '9.0.9');
     END IF;
 END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20251016121735_AddEquipmentTableWithOwner') THEN
+    CREATE TABLE "Equipments" (
+        "Id" uuid NOT NULL,
+        "Name" character varying(100) NOT NULL,
+        "Slot" integer NOT NULL,
+        "Rarity" integer NOT NULL,
+        "OwnerId" uuid NOT NULL,
+        "CharacterId" uuid NULL,
+        "EnhancementLevel" integer NOT NULL DEFAULT 0,
+        "BaseAttack" integer NOT NULL DEFAULT 0,
+        "BaseDefense" integer NOT NULL DEFAULT 0,
+        "BaseHp" integer NOT NULL DEFAULT 0,
+        "CreatedAt" timestamp with time zone NOT NULL DEFAULT (CURRENT_TIMESTAMP),
+        "UpdatedAt" timestamp with time zone NOT NULL DEFAULT (CURRENT_TIMESTAMP),
+        CONSTRAINT "PK_Equipments" PRIMARY KEY ("Id"),
+        CONSTRAINT "FK_Equipments_Characters_OwnerId" FOREIGN KEY ("OwnerId") REFERENCES "Characters" ("Id") ON DELETE CASCADE,
+        CONSTRAINT "FK_Equipments_Characters_CharacterId" FOREIGN KEY ("CharacterId") REFERENCES "Characters" ("Id") ON DELETE SET NULL
+    );
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20251016121735_AddEquipmentTableWithOwner') THEN
+    CREATE INDEX "IX_Equipments_OwnerId" ON "Equipments" ("OwnerId");
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20251016121735_AddEquipmentTableWithOwner') THEN
+    CREATE INDEX "IX_Equipments_CharacterId" ON "Equipments" ("CharacterId");
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20251016121735_AddEquipmentTableWithOwner') THEN
+    CREATE INDEX "IX_Equipments_CharacterId_Slot" ON "Equipments" ("CharacterId", "Slot");
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20251016121735_AddEquipmentTableWithOwner') THEN
+    CREATE INDEX "IX_Equipments_Rarity" ON "Equipments" ("Rarity");
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20251016121735_AddEquipmentTableWithOwner') THEN
+    INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
+    VALUES ('20251016121735_AddEquipmentTableWithOwner', '9.0.9');
+    END IF;
+END $EF$;
 COMMIT;
 

@@ -38,6 +38,11 @@ namespace IdleRPG.Application.Interfaces
         IRefreshTokenRepository RefreshTokens { get; }
 
         /// <summary>
+        /// 장비 Repository
+        /// </summary>
+        IEquipmentRepository Equipments { get; }
+
+        /// <summary>
         /// 변경사항을 데이터베이스에 저장 (트랜잭션 커밋)
         /// </summary>
         /// <returns>영향받은 행 수</returns>

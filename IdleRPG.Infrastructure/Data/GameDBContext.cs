@@ -13,6 +13,7 @@ public class GameDBContext : DbContext
     public DbSet<Monster> Monsters { get; set; }
     public DbSet<BattleLog> BattleLogs { get; set; }
     public DbSet<OfflineRewardType> OfflineRewardTypes { get; set; }
+    public DbSet<Equipment> Equipments { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

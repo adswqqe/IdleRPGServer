@@ -62,6 +62,7 @@ builder.Services.AddScoped<IdleRPG.Application.Character.Services.ICharacterServ
 builder.Services.AddScoped<IdleRPG.Application.Interfaces.IBattleService, IdleRPG.Infrastructure.Service.BattleService>();
 builder.Services.AddScoped<IdleRPG.Application.Interfaces.IMonsterService, IdleRPG.Infrastructure.Service.MonsterService>();
 builder.Services.AddScoped<IdleRPG.Application.Interfaces.IOfflineRewardService, IdleRPG.Infrastructure.Services.OfflineRewardService>();
+builder.Services.AddScoped<IdleRPG.Application.Interfaces.IEquipmentService, IdleRPG.Infrastructure.Service.EquipmentService>();
 
 // Unit of Work 등록 (모든 Repository를 내부에서 관리)
 builder.Services.AddScoped<IUnitOfWork, IdleRPG.Infrastructure.UnitOfWork.UnitOfWork>();

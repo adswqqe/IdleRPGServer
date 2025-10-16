@@ -19,6 +19,7 @@ namespace IdleRPG.Infrastructure.UnitOfWork
         private IBattleLogRepository? _battleLogs;
         private IPlayerRepository? _players;
         private IRefreshTokenRepository? _refreshTokens;
+        private IEquipmentRepository? _equipments;
 
         public UnitOfWork(GameDBContext context)
         {
@@ -112,6 +113,21 @@ namespace IdleRPG.Infrastructure.UnitOfWork
                     _refreshTokens = new RefreshTokenRepository(_context);
                 }
                 return _refreshTokens;
+            }
+        }
+
+        /// <summary>
+        /// 장비 Repository (Lazy 초기화)
+        /// </summary>
+        public IEquipmentRepository Equipments
+        {
+            get
+            {
+                if (_equipments == null)
+                {
+                    _equipments = new EquipmentRepository(_context);
+                }
+                return _equipments;
             }
         }
 
