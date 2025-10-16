@@ -1,87 +1,90 @@
-# API Implementation Status - Current (2025-10-16)
+# API Implementation Status - Current (Updated 2025-10-16)
 
-## 📊 전체 요약
-- **Total Endpoints**: 14개
-- **Completed**: 14개 (100%)
-- **In Progress**: 0개
-- **Planned**: Equipment API (Week 3)
+## Summary
+- **Total Endpoints**: 21 (이전 14 → 현재 21)
+- **Completed**: 21
+- **In Progress**: 0
+- **Removed**: 1 (스탯 할당 - 자동 성장으로 대체)
 
----
+## Authentication API (5 endpoints)
+- ✅ POST /api/auth/register - 회원가입
+- ✅ POST /api/auth/login - 로그인
+- ✅ POST /api/auth/refresh - 토큰 갱신
+- ✅ POST /api/auth/logout - 로그아웃
+- ✅ GET /api/auth/profile - 프로필 조회
 
-## ✅ Authentication API (5개)
-**Controller**: `IdleRPG.API/Controllers/AuthController.cs`
+## Character API (5 endpoints)
+- ✅ POST /api/character/Create - 캐릭터 생성
+- ✅ GET /api/character/GetCharacters - 캐릭터 목록 조회
+- ✅ GET /api/character/{characterId} - 캐릭터 조회
+- ✅ DELETE /api/character/{characterId} - 캐릭터 삭제
+- ✅ POST /api/character/{characterId}/experience - 경험치 획득
+- ⚠️ ~~PUT /api/character/{characterId}/stats~~ - **삭제됨** (자동 성장)
 
-| Endpoint | Method | Status | Description |
-|----------|--------|--------|-------------|
-| `/api/auth/register` | POST | ✅ 완료 | 회원가입 |
-| `/api/auth/login` | POST | ✅ 완료 | 로그인 |
-| `/api/auth/refresh` | POST | ✅ 완료 | Access Token 갱신 |
-| `/api/auth/logout` | POST | ✅ 완료 | 로그아웃 (Refresh Token 무효화) |
-| `/api/auth/profile` | GET | ✅ 완료 | 내 프로필 조회 |
+## Battle API (3 endpoints)
+- ✅ POST /api/battle/start - 전투 시작
+- ✅ GET /api/battle/logs/{characterId} - 전투 로그 조회
+- ✅ GET /api/battle/stats/{characterId} - 전투 통계 조회
 
-**Week 1 완성**
+## Monster API (1 endpoint)
+- ✅ GET /api/monster/random - 랜덤 몬스터 조회
 
----
+## Reward API (2 endpoints)
+- ✅ GET /api/reward/offline/{characterId} - 오프라인 보상 계산
+- ✅ POST /api/reward/offline/claim - 오프라인 보상 수령
 
-## ✅ Character API (5개)
-**Controller**: `IdleRPG.API/Controllers/CharacterController.cs`
+## Equipment API (7 endpoints) ← **NEW! (2025-10-16)**
+- ✅ POST /api/equipment/create - 장비 생성 (가챠/드랍)
+- ✅ GET /api/equipment/equipped/{characterId} - 장착 장비 조회 (5슬롯)
+- ✅ GET /api/equipment/inventory/{ownerId} - 인벤토리 조회 (미장착)
+- ✅ POST /api/equipment/equip - 장비 장착 (자동 교체)
+- ✅ POST /api/equipment/unequip - 장비 해제
+- ✅ POST /api/equipment/enhance - 장비 강화 (+0~+10)
+- ✅ DELETE /api/equipment/{equipmentId} - 장비 삭제
 
-| Endpoint | Method | Status | Description |
-|----------|--------|--------|-------------|
-| `/api/character/Create` | POST | ✅ 완료 | 캐릭터 생성 |
-| `/api/character/GetCharacters` | GET | ✅ 완료 | 내 캐릭터 목록 조회 |
-| `/api/character/{characterId}` | GET | ✅ 완료 | 캐릭터 상세 조회 |
-| `/api/character/{characterId}` | DELETE | ✅ 완료 | 캐릭터 삭제 |
-| `/api/character/{characterId}/experience` | POST | ✅ 완료 | 경험치 획득 (자동 레벨업) |
+## Database Tables (7 tables)
+- ✅ Players - 인증
+- ✅ RefreshTokens - 토큰
+- ✅ Characters - 캐릭터
+- ✅ Monsters - 몬스터
+- ✅ BattleLogs - 전투 로그
+- ✅ OfflineRewardTypes - 오프라인 보상 타입
+- ✅ Equipments - 장비 ← **NEW!**
 
-**Week 1 완성**
+## Recent Changes (2025-10-16)
 
----
+### Equipment System Implementation
+**Architecture**: Clean Architecture 4-Layer (Domain → Application → Infrastructure → API)
 
-## ✅ Battle API (1개)
-**Controller**: `IdleRPG.API/Controllers/BattleController.cs`
+**Key Features**:
+1. **OwnerId + CharacterId 이중 FK**
+   - OwnerId: 소유자 (Cascade 삭제)
+   - CharacterId: 장착 상태 (SetNull 삭제)
+   
+2. **자동 장비 교체**
+   - 같은 슬롯 장착 시 기존 장비 자동 인벤토리 이동
+   - 원자적 트랜잭션 보장 (UnitOfWork)
 
-| Endpoint | Method | Status | Description |
-|----------|--------|--------|-------------|
-| `/api/battle/start` | POST | ✅ 완료 | Auto-battle 시뮬레이션 시작 |
+3. **강화 시스템**
+   - 최대 +10까지
+   - 강화당 공격+5, 방어+3, HP+10
 
-**Week 2 완성**
+4. **계산 속성 패턴**
+   - Base 스탯만 DB 저장
+   - Total 스탯은 실시간 계산 (GetTotalAttack, GetTotalDefense, GetTotalHp)
 
----
+**Business Rules**:
+- 소유자 변경 불가 (OwnerId 불변)
+- CharacterId NULL = 인벤토리, NOT NULL = 장착 중
+- 같은 슬롯에 중복 장착 불가
+- 캐릭터 삭제 시 소유 장비도 삭제 (Cascade)
 
-## ✅ Monster API (1개)
-**Controller**: `IdleRPG.API/Controllers/MonsterController.cs`
+## Unity Documentation (v1.7)
+- ✅ Equipment API 명세서 (11.9KB)
+- ✅ Equipment DTO 클래스 (3.9KB)
+- ✅ README.md 업데이트 (v1.6 → v1.7)
 
-| Endpoint | Method | Status | Description |
-|----------|--------|--------|-------------|
-| `/api/monster/random` | GET | ✅ 완료 | 레벨 범위 내 랜덤 몬스터 선택 |
-
-**Week 2 완성**
-
----
-
-## ✅ Reward API (2개)
-**Controller**: `IdleRPG.API/Controllers/RewardController.cs`
-
-| Endpoint | Method | Status | Description |
-|----------|--------|--------|-------------|
-| `/api/reward/offline/{characterId}` | GET | ✅ 완료 | 오프라인 보상 조회 (지급 없음) |
-| `/api/reward/offline/{characterId}/claim` | POST | ✅ 완료 | 오프라인 보상 수령 (실제 지급) |
-
-**Week 2 완성**
-
----
-
-## 📋 Planned API (Week 3)
-
-### Equipment API (예정)
-**예상 Controller**: `IdleRPG.API/Controllers/EquipmentController.cs`
-
-| Endpoint | Method | Status | Description |
-|----------|--------|--------|-------------|
-| `/api/equipment/{characterId}` | GET | 📋 예정 | 캐릭터 장착 장비 조회 |
-| `/api/equipment/{characterId}/equip` | POST | 📋 예정 | 장비 장착 (Direct-equip) |
-| `/api/equipment/{characterId}/sell/{equipmentId}` | DELETE | 📋 예정 | 장비 판매 (골드 획득) |
-| `/api/equipment/{characterId}/compare` | POST | 📋 예정 | 장비 스탯 비교 (UI용) |
-
-**Week 3 구현 예정**
+## Next Implementation
+1. Combat System에 Equipment 스탯 통합
+2. Gacha System (10연차 장비 생성)
+3. Dungeon System (장비 드랍)
