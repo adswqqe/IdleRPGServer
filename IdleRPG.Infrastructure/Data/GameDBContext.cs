@@ -15,6 +15,20 @@ public class GameDBContext : DbContext
     public DbSet<OfflineRewardType> OfflineRewardTypes { get; set; }
     public DbSet<Equipment> Equipments { get; set; }
 
+    // Loot Table Pattern - 보상 시스템
+    public DbSet<LootTable> LootTables { get; set; }
+    public DbSet<LootItem> LootItems { get; set; }
+    public DbSet<ItemTemplate> ItemTemplates { get; set; }
+    public DbSet<PlayerItem> PlayerItems { get; set; }
+
+    // Dungeon System
+    public DbSet<DungeonTemplate> DungeonTemplates { get; set; }
+    public DbSet<DungeonDifficulty> DungeonDifficulties { get; set; }
+    public DbSet<DungeonWave> DungeonWaves { get; set; }
+    public DbSet<DungeonProgress> DungeonProgresses { get; set; }
+    public DbSet<DungeonRunHistory> DungeonRunHistories { get; set; }
+    public DbSet<UserDungeonDaily> UserDungeonDailies { get; set; }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
