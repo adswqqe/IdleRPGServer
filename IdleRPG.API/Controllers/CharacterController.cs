@@ -27,11 +27,8 @@ namespace IdleRPG.API.Controllers
         {
             try
             {
-                var response = await _characterService.CreateCharacterAsync(GetCurrentUserId(), characterDto);
-                return Ok(new
-                {
-                    response
-                });
+                var character = await _characterService.CreateCharacterAsync(GetCurrentUserId(), characterDto);
+                return Ok(character);  // 직접 반환
             }
             catch (InvalidOperationException ex)
             {
@@ -51,17 +48,11 @@ namespace IdleRPG.API.Controllers
         {
             try
             {
-                var response = await _characterService.GetCharacterByIdAsync(characterId);
-                if (response == null)
-                    return BadRequest(new
-                    {
-                    });
+                var character = await _characterService.GetCharacterByIdAsync(characterId);
+                if (character == null)
+                    return NotFound();
 
-                return Ok(new
-                {
-                    response
-                });
-
+                return Ok(character);
             }
             catch (InvalidOperationException ex)
             {
@@ -81,11 +72,8 @@ namespace IdleRPG.API.Controllers
         {
             try
             {
-                var response = await _characterService.GetPlayerCharactersAsync(GetCurrentUserId());
-                return Ok(new
-                {
-                    response = response
-                });
+                var characters = await _characterService.GetPlayerCharactersAsync(GetCurrentUserId());
+                return Ok(characters);
             }
             catch (InvalidOperationException ex)
             {
@@ -93,7 +81,7 @@ namespace IdleRPG.API.Controllers
                 {
                     message = ex.Message
                 });
-            }   
+            }
         }
 
         /// <summary>
@@ -126,11 +114,8 @@ namespace IdleRPG.API.Controllers
         {
             try
             {
-                var response = await _characterService.AddExperienceAsync(characterId, dto.Amount);
-                return Ok(new
-                {
-                    response
-                });
+                var character = await _characterService.AddExperienceAsync(characterId, dto.Amount);
+                return Ok(character);
             }
             catch (InvalidOperationException ex)
             {
