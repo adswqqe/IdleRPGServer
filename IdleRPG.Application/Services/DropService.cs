@@ -1,6 +1,7 @@
 using IdleRPG.Application.DTOs.Rewards;
 using IdleRPG.Application.Interfaces;
 using Microsoft.Extensions.Logging;
+using System.Security.Cryptography;
 
 namespace IdleRPG.Application.Services
 {
@@ -95,27 +96,40 @@ namespace IdleRPG.Application.Services
         }
 
         /// <summary>
-        /// 진짜 랜덤 Seed 생성
+        /// 진짜 랜덤 Seed 생성 (개선 버전)
         ///
-        /// [학습 포인트] 왜 XOR 연산을 사용하는가?
+        /// [학습 포인트 1] RandomNumberGenerator란?
+        /// - .NET의 암호학적으로 안전한 난수 생성기 (CSPRNG)
+        /// - OS 레벨 엔트로피 소스 활용 (Windows: CryptGenRandom, Linux: /dev/urandom)
+        /// - 예측 불가능한 고품질 난수 생성
         ///
-        /// Environment.TickCount만 사용:
-        /// - 문제: 같은 시간에 호출되면 동일한 Seed
-        /// - 예: 두 던전이 동시에 클리어되면 같은 보상
+        /// [학습 포인트 2] 기존 방식 (TickCount ^ Guid) vs 개선 방식
         ///
-        /// Guid.NewGuid().GetHashCode()만 사용:
-        /// - 문제: GetHashCode()는 32bit, 충돌 가능성
+        /// 기존:
+        /// - Environment.TickCount: 프로그램 시작 후 경과 시간 (ms)
+        /// - Guid.NewGuid().GetHashCode(): 128bit → 32bit 해시 (충돌 가능)
+        /// - XOR 조합: 복잡하지만 엔트로피 품질 일정하지 않음
         ///
-        /// XOR 조합:
-        /// - TickCount의 시간 기반 랜덤성 + Guid의 고유성
-        /// - 충돌 확률 극도로 낮음
-        /// - 게임 서버에서 널리 사용되는 패턴
+        /// 개선:
+        /// - RandomNumberGenerator.GetInt32(): OS 엔트로피 직접 활용
+        /// - 암호학적 강도 (게임에선 과도하지만 품질 보장)
+        /// - 코드 단순화 (한 줄, 의도 명확)
+        ///
+        /// [학습 포인트 3] 성능 고려사항
+        /// - RandomNumberGenerator는 System.Random보다 약 10배 느림
+        /// - 하지만 Seed 생성은 던전 클리어당 1회만 (병목 아님)
+        /// - 확률 계산(SelectItemByWeight)은 System.Random 사용 (빠름)
+        ///
+        /// [학습 포인트 4] 언제 CSPRNG를 사용해야 하는가?
+        /// - 보안 관련: JWT 토큰, 세션 ID, 비밀번호 솔트 → 필수
+        /// - 게임 로직: 가챠, 드랍, 크리티컬 → 선택적 (품질 향상)
+        /// - 성능 민감: 전투 히트 판정 (초당 100회+) → System.Random 사용
         /// </summary>
         private static int GenerateRandomSeed()
         {
-            // XOR: 두 값의 비트를 섞어서 더 랜덤하게
-            // 예: 1010 XOR 0110 = 1100
-            return Environment.TickCount ^ Guid.NewGuid().GetHashCode();
+            // OS 엔트로피 기반 고품질 난수 생성
+            // int 전체 범위에서 균등 분포 보장
+            return RandomNumberGenerator.GetInt32(int.MinValue, int.MaxValue);
         }
     }
 }
