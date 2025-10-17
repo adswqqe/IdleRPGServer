@@ -1,7 +1,9 @@
 using IdleRPG.Application.Auth.Services;
 using IdleRPG.Application.Interfaces;
+using IdleRPG.Application.Services;
 using IdleRPG.Application.Tokens.Services;
 using IdleRPG.Infrastructure.Authentication;
+using IdleRPG.Infrastructure.Caching;
 using IdleRPG.Infrastructure.Data;
 using IdleRPG.Infrastructure.Service;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -70,6 +72,20 @@ builder.Services.AddScoped<IUnitOfWork, IdleRPG.Infrastructure.UnitOfWork.UnitOf
 // 🔥 이 부분이 꼭 필요함!
 builder.Services.AddDbContext<GameDBContext>(options =>
                                                  options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+// ===== Drop System DI 등록 =====
+// [학습 포인트] IMemoryCache 등록 (ASP.NET Core 내장)
+builder.Services.AddMemoryCache();  // Singleton으로 자동 등록됨
+
+// [학습 포인트] 캐시 구현체 선택 (현재: InMemory, 미래: Redis)
+builder.Services.AddScoped<ILootTableCache, InMemoryLootTableCache>();
+// Redis 전환 시: builder.Services.AddScoped<ILootTableCache, RedisLootTableCache>();
+
+// [학습 포인트] 순수 함수는 Transient (상태 없음, 매번 새 인스턴스)
+builder.Services.AddTransient<IDropCalculator, DropCalculator>();
+
+// [학습 포인트] 비즈니스 로직은 Scoped (요청당 1개 인스턴스)
+builder.Services.AddScoped<IDropService, DropService>();
 
 // Add services to the container.
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
