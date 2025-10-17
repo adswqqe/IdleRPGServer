@@ -39,6 +39,25 @@ pipeline {
             }
         }
 
+        stage('Clean Docker Cache') {
+            steps {
+                echo 'Cleaning Docker cache and old containers...'
+                timeout(time: 5, unit: 'MINUTES') {
+                    sh '''
+                        cd /home/ec2-user/IdleRPGServer
+                        echo "Stopping and removing containers..."
+                        docker-compose -f docker-compose.production.yml down || true
+
+                        echo "Removing dangling images..."
+                        docker image prune -f || true
+
+                        echo "Removing build cache..."
+                        docker builder prune -f || true
+                    '''
+                }
+            }
+        }
+
         stage('Deploy with Docker') {
             steps {
                 echo 'Docker deployment starting...'
@@ -46,8 +65,9 @@ pipeline {
                     script {
                         sh '''
                             cd /home/ec2-user/IdleRPGServer
-                            echo "Starting Docker Compose build..."
-                            docker-compose -f docker-compose.production.yml up -d --build 2>&1 | tee /tmp/docker-build.log
+                            echo "Starting Docker Compose build (no cache)..."
+                            docker-compose -f docker-compose.production.yml build --no-cache 2>&1 | tee /tmp/docker-build.log
+                            docker-compose -f docker-compose.production.yml up -d
                             echo "Docker Compose build completed"
                         '''
                     }
