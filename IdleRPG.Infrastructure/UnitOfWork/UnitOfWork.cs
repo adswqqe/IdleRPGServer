@@ -20,6 +20,12 @@ namespace IdleRPG.Infrastructure.UnitOfWork
         private IPlayerRepository? _players;
         private IRefreshTokenRepository? _refreshTokens;
         private IEquipmentRepository? _equipments;
+        private IDungeonTemplateRepository? _dungeonTemplates;
+        private IDungeonDifficultyRepository? _dungeonDifficulties;
+        private IDungeonProgressRepository? _dungeonProgresses;
+        private IDungeonRunHistoryRepository? _dungeonRunHistories;
+        private ILootTableRepository? _lootTables;
+        private IUserDungeonDailyRepository? _userDungeonDailies;
 
         public UnitOfWork(GameDBContext context)
         {
@@ -128,6 +134,96 @@ namespace IdleRPG.Infrastructure.UnitOfWork
                     _equipments = new EquipmentRepository(_context);
                 }
                 return _equipments;
+            }
+        }
+
+        /// <summary>
+        /// 던전 템플릿 Repository (Lazy 초기화)
+        /// </summary>
+        public IDungeonTemplateRepository DungeonTemplates
+        {
+            get
+            {
+                if (_dungeonTemplates == null)
+                {
+                    _dungeonTemplates = new DungeonTemplateRepository(_context);
+                }
+                return _dungeonTemplates;
+            }
+        }
+
+        /// <summary>
+        /// 던전 난이도 Repository (Lazy 초기화)
+        /// </summary>
+        public IDungeonDifficultyRepository DungeonDifficulties
+        {
+            get
+            {
+                if (_dungeonDifficulties == null)
+                {
+                    _dungeonDifficulties = new DungeonDifficultyRepository(_context);
+                }
+                return _dungeonDifficulties;
+            }
+        }
+
+        /// <summary>
+        /// 던전 진행 상황 Repository (Lazy 초기화)
+        /// </summary>
+        public IDungeonProgressRepository DungeonProgresses
+        {
+            get
+            {
+                if (_dungeonProgresses == null)
+                {
+                    _dungeonProgresses = new DungeonProgressRepository(_context);
+                }
+                return _dungeonProgresses;
+            }
+        }
+
+        /// <summary>
+        /// 던전 플레이 기록 Repository (Lazy 초기화)
+        /// </summary>
+        public IDungeonRunHistoryRepository DungeonRunHistories
+        {
+            get
+            {
+                if (_dungeonRunHistories == null)
+                {
+                    _dungeonRunHistories = new DungeonRunHistoryRepository(_context);
+                }
+                return _dungeonRunHistories;
+            }
+        }
+
+        /// <summary>
+        /// Loot Table Repository (Lazy 초기화)
+        /// </summary>
+        public ILootTableRepository LootTables
+        {
+            get
+            {
+                if (_lootTables == null)
+                {
+                    _lootTables = new LootTableRepository(_context);
+                }
+                return _lootTables;
+            }
+        }
+
+        /// <summary>
+        /// 일일 던전 입장 횟수 Repository (Lazy 초기화)
+        /// </summary>
+        public IUserDungeonDailyRepository UserDungeonDailies
+        {
+            get
+            {
+                if (_userDungeonDailies == null)
+                {
+                    _userDungeonDailies = new UserDungeonDailyRepository(_context);
+                }
+                return _userDungeonDailies;
             }
         }
 
