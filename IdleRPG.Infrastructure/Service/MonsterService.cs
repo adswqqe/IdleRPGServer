@@ -58,5 +58,30 @@ namespace IdleRPG.Infrastructure.Service
                 Level = highestLevelMonster.Level
             };
         }
+
+        /// <summary>
+        /// 모든 몬스터 목록을 조회합니다.
+        /// Unity 클라이언트의 초기 로딩 시 사용됩니다.
+        /// </summary>
+        public async Task<List<MonsterDto>> GetAllMonstersAsync()
+        {
+            var monsters = await _unitOfWork.Monsters.GetAllAsync();
+
+            return monsters.Select(m => new MonsterDto
+            {
+                Id = m.Id,
+                Name = m.Name,
+                Level = m.Level,
+                MaxHealth = m.MaxHealth,
+                Attack = m.Attack,
+                Defense = m.Defense,
+                AttackSpeed = m.AttackSpeed,
+                CritRate = m.CritRate,
+                CritDamage = m.CritDamage,
+                Evasion = m.Evasion,
+                ExperienceReward = m.ExperienceReward,
+                GoldReward = m.GoldReward
+            }).ToList();
+        }
     }
 }

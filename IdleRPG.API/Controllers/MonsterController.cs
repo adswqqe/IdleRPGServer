@@ -23,6 +23,58 @@ namespace IdleRPG.API.Controllers
         }
 
         /// <summary>
+        /// 전체 몬스터 목록 조회
+        /// </summary>
+        /// <remarks>
+        /// 데이터베이스에 등록된 모든 몬스터의 정보를 반환합니다.
+        /// Unity 클라이언트가 게임 시작 시 한 번 호출하여 캐싱합니다.
+        ///
+        /// **사용 시나리오**:
+        /// - 게임 초기 로딩 시 몬스터 데이터 다운로드
+        /// - 몬스터 도감 UI 표시
+        /// - 클라이언트 캐싱 (24시간 유효)
+        ///
+        /// **응답 예시**:
+        /// ```json
+        /// {
+        ///   "monsters": [
+        ///     {
+        ///       "id": "guid",
+        ///       "name": "슬라임",
+        ///       "level": 1,
+        ///       "maxHealth": 100,
+        ///       "attack": 10,
+        ///       "defense": 5,
+        ///       "attackSpeed": 1.0,
+        ///       "critRate": 0.05,
+        ///       "critDamage": 1.5,
+        ///       "evasion": 0.05,
+        ///       "experienceReward": 10,
+        ///       "goldReward": 5
+        ///     }
+        ///   ]
+        /// }
+        /// ```
+        /// </remarks>
+        [HttpGet("all")]
+        [Authorize]
+        [ProducesResponseType(typeof(object), 200)]
+        [ProducesResponseType(typeof(object), 500)]
+        public async Task<IActionResult> GetAllMonsters()
+        {
+            try
+            {
+                var monsters = await _monsterService.GetAllMonstersAsync();
+                return Ok(new { monsters });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "전체 몬스터 목록 조회 중 오류 발생");
+                return StatusCode(500, new { message = "몬스터 목록 조회 중 오류가 발생했습니다." });
+            }
+        }
+
+        /// <summary>
         /// 레벨 범위 내에서 랜덤 몬스터 선택
         /// </summary>
         /// <remarks>

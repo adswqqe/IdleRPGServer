@@ -15,5 +15,12 @@ namespace IdleRPG.Application.Interfaces
         /// <param name="maxLevel">최대 레벨</param>
         /// <returns>선택된 몬스터의 ID와 레벨</returns>
         Task<RandomMonsterResponse> GetRandomMonsterAsync(int minLevel, int maxLevel);
+
+        /// <summary>
+        /// 모든 몬스터 목록을 조회합니다.
+        /// Unity 클라이언트의 초기 로딩 시 사용됩니다.
+        /// </summary>
+        /// <returns>전체 몬스터 목록</returns>
+        Task<List<MonsterDto>> GetAllMonstersAsync();
     }
 }

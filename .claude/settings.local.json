@@ -98,7 +98,12 @@
       "mcp__zen__listmodels",
       "mcp__project-filesystem__write_file",
       "Bash(python:*)",
-      "Bash(cp:*)"
+      "Bash(cp:*)",
+      "mcp__zen__debug",
+      "Bash(curl:*)",
+      "mcp__zen__clink",
+      "Read(//tmp/**)",
+      "Bash(TOKEN=\"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJmOWVmNTdlMS1mMDA2LTRmYmEtOTIzOS00ZDY2YjhmOTk3ZjQiLCJqdGkiOiIxNTk3MjJlMy01MjMwLTQwMzctOTY0Mi1lZjUwNDkzZjlhMzEiLCJpYXQiOiIxNzYwNzY3MzgxIiwiaHR0cDovL3NjaGVtYXMueG1sc29hcC5vcmcvd3MvMjAwNS8wNS9pZGVudGl0eS9jbGFpbXMvbmFtZWlkZW50aWZpZXIiOiJmOWVmNTdlMS1mMDA2LTRmYmEtOTIzOS00ZDY2YjhmOTk3ZjQiLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1lIjoidGVzdHVzZXIiLCJodHRwOi8vc2NoZW1hcy5taWNyb3NvZnQuY29tL3dzLzIwMDgvMDYvaWRlbnRpdHkvY2xhaW1zL3JvbGUiOiJQbGF5ZXIiLCJleHAiOjE3NjA3NzA5ODEsImlzcyI6IklkbGVSUEdTZXJ2ZXIiLCJhdWQiOiJJZGxlUlBHQ2xpZW50In0.zKYxJBAoKRJBc0k_JH6aMKbkW5l4uG2qoCEmUodk3-I\")"
     ]
   },
   "enableAllProjectMcpServers": true,
