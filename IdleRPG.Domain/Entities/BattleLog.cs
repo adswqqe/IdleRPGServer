@@ -51,6 +51,13 @@ namespace IdleRPG.Domain.Entities
         /// </summary>
         public DateTime BattleDate { get; set; } = DateTime.UtcNow;
 
+
+        /// <summary>
+        /// 던전 스테이지 ID (nullable) - 던전 전투인 경우에만 값이 있음
+        /// null이면 일반 몬스터 전투, 값이 있으면 던전 전투
+        /// </summary>
+        public int? DungeonStageId { get; set; }
+
         // Navigation Properties
         /// <summary>
         /// 전투를 수행한 캐릭터

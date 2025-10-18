@@ -26,6 +26,8 @@ namespace IdleRPG.Infrastructure.UnitOfWork
         private IDungeonRunHistoryRepository? _dungeonRunHistories;
         private ILootTableRepository? _lootTables;
         private IUserDungeonDailyRepository? _userDungeonDailies;
+        private IDungeonStageRepository? _dungeonStages;
+        private ICharacterDungeonProgressRepository? _characterDungeonProgresses;
 
         public UnitOfWork(GameDBContext context)
         {
@@ -224,6 +226,36 @@ namespace IdleRPG.Infrastructure.UnitOfWork
                     _userDungeonDailies = new UserDungeonDailyRepository(_context);
                 }
                 return _userDungeonDailies;
+            }
+        }
+
+        /// <summary>
+        /// 던전 스테이지 Repository (Lazy 초기화) - Week 3
+        /// </summary>
+        public IDungeonStageRepository DungeonStages
+        {
+            get
+            {
+                if (_dungeonStages == null)
+                {
+                    _dungeonStages = new DungeonStageRepository(_context);
+                }
+                return _dungeonStages;
+            }
+        }
+
+        /// <summary>
+        /// 캐릭터 던전 진행도 Repository (Lazy 초기화) - Week 3
+        /// </summary>
+        public ICharacterDungeonProgressRepository CharacterDungeonProgresses
+        {
+            get
+            {
+                if (_characterDungeonProgresses == null)
+                {
+                    _characterDungeonProgresses = new CharacterDungeonProgressRepository(_context);
+                }
+                return _characterDungeonProgresses;
             }
         }
 

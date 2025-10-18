@@ -73,16 +73,6 @@ namespace IdleRPG.Application.Interfaces
         IUserDungeonDailyRepository UserDungeonDailies { get; }
 
         /// <summary>
-        /// 던전 스테이지 Repository (Week 3 - New Stage-based Dungeon System)
-        /// </summary>
-        IDungeonStageRepository DungeonStages { get; }
-
-        /// <summary>
-        /// 캐릭터 던전 진행도 Repository (Week 3 - New Stage-based Dungeon System)
-        /// </summary>
-        ICharacterDungeonProgressRepository CharacterDungeonProgresses { get; }
-
-        /// <summary>
         /// 변경사항을 데이터베이스에 저장 (트랜잭션 커밋)
         /// </summary>
         /// <returns>영향받은 행 수</returns>
