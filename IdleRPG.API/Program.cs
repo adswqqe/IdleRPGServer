@@ -120,31 +120,28 @@ builder.Services.AddSwaggerGen(options =>
 });
 var app = builder.Build();
 
-// Seed Data 초기화 (개발 환경에서만 실행)
-if (app.Environment.IsDevelopment())
+// Seed Data 초기화 (모든 환경에서 실행, idempotent 설계로 안전)
+using (var scope = app.Services.CreateScope())
 {
-    using (var scope = app.Services.CreateScope())
+    var services = scope.ServiceProvider;
+    try
     {
-        var services = scope.ServiceProvider;
-        try
-        {
-            var context = services.GetRequiredService<GameDBContext>();
-            var logger = services.GetRequiredService<ILogger<Program>>();
+        var context = services.GetRequiredService<GameDBContext>();
+        var logger = services.GetRequiredService<ILogger<Program>>();
 
-            // 던전 스테이지 Seed Data 생성
-            var dungeonSeeder = new IdleRPG.Infrastructure.Data.Seeders.DungeonStageSeeder(
-                context,
-                services.GetRequiredService<ILogger<IdleRPG.Infrastructure.Data.Seeders.DungeonStageSeeder>>());
+        // 던전 스테이지 Seed Data 생성
+        var dungeonSeeder = new IdleRPG.Infrastructure.Data.Seeders.DungeonStageSeeder(
+            context,
+            services.GetRequiredService<ILogger<IdleRPG.Infrastructure.Data.Seeders.DungeonStageSeeder>>());
 
-            await dungeonSeeder.SeedAsync();
+        await dungeonSeeder.SeedAsync();
 
-            logger.LogInformation("Seed Data 초기화 완료");
-        }
-        catch (Exception ex)
-        {
-            var logger = services.GetRequiredService<ILogger<Program>>();
-            logger.LogError(ex, "Seed Data 초기화 중 오류 발생");
-        }
+        logger.LogInformation("Seed Data 초기화 완료");
+    }
+    catch (Exception ex)
+    {
+        var logger = services.GetRequiredService<ILogger<Program>>();
+        logger.LogError(ex, "Seed Data 초기화 중 오류 발생");
     }
 }
 
