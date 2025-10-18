@@ -7,8 +7,8 @@ using System.Linq.Expressions;
 namespace IdleRPG.Infrastructure.Repositories;
 
 /// <summary>
-/// CharacterDungeonProgress Repository implementation.
-/// Tracks character progression through dungeon stages.
+/// CharacterDungeonProgress Repository 구현체입니다.
+/// 던전 스테이지를 통한 캐릭터 진행 상황을 추적합니다.
 /// </summary>
 public class CharacterDungeonProgressRepository : ICharacterDungeonProgressRepository
 {
@@ -19,12 +19,12 @@ public class CharacterDungeonProgressRepository : ICharacterDungeonProgressRepos
         _context = context;
     }
 
-    // ICharacterDungeonProgressRepository specific methods
+    // ICharacterDungeonProgressRepository 전용 메서드
 
     /// <summary>
-    /// Gets the dungeon progress for a specific character.
-    /// Creates a new progress record if one doesn't exist.
-    /// Uses unique CharacterId index for efficient lookup.
+    /// 특정 캐릭터의 던전 진행 상황을 가져옵니다.
+    /// 진행 상황 레코드가 없으면 새로 생성합니다.
+    /// 효율적인 조회를 위해 고유 CharacterId 인덱스를 사용합니다.
     /// </summary>
     public async Task<CharacterDungeonProgress> GetOrCreateByCharacterIdAsync(Guid characterId)
     {
@@ -50,7 +50,7 @@ public class CharacterDungeonProgressRepository : ICharacterDungeonProgressRepos
         return progress;
     }
 
-    // IRepository<CharacterDungeonProgress> interface implementation
+    // IRepository<CharacterDungeonProgress> 인터페이스 구현
 
     public async Task<IEnumerable<CharacterDungeonProgress>> GetAllAsync()
     {

@@ -95,19 +95,38 @@ namespace IdleRPG.Infrastructure.Service
             return CreateCharacterDto(character);
         }
 
+        public async Task<(bool IsLevelUp, int NewLevel, int LevelUps)> AddExperienceWithResultAsync(Guid characterId, int amount)
+        {
+            var character = await _unitOfWork.Characters.GetByIdAsync(characterId);
+            if (character == null)
+                throw new InvalidOperationException("캐릭터를 찾을 수 없습니다");
+
+            // 레벨업 처리 (SaveChanges 없이)
+            var (isLevelUp, levelUps) = ProcessExperienceGain(character, amount);
+
+            character.UpdatedAt = DateTime.UtcNow;
+            await _unitOfWork.SaveChangesAsync();
+
+            return (isLevelUp, character.Level, levelUps);
+        }
+
         /// <summary>
         /// 경험치 추가 및 레벨업 처리 (SaveChanges 없음)
         /// OfflineRewardService 등에서 여러 작업을 한 트랜잭션으로 처리할 때 사용
         /// </summary>
-        public void ProcessExperienceGain(CharacterEntity character, int amount)
+        /// <returns>(IsLevelUp: 레벨업 여부, LevelUps: 레벨업 횟수)</returns>
+        public (bool IsLevelUp, int LevelUps) ProcessExperienceGain(CharacterEntity character, int amount)
         {
             character.Experience += amount;
+
+            int levelUps = 0;
 
             // 레벨업 체크 및 자동 성장
             while (character.Experience >= GetRequiredExp(character.Level))
             {
                 character.Experience -= GetRequiredExp(character.Level);
                 character.Level++;
+                levelUps++;
 
                 // 레벨업 시 전투 스탯 자동 증가
                 // TODO: 직업별 성장 공식 추가 시 character.Job에 따라 분기
@@ -123,6 +142,8 @@ namespace IdleRPG.Infrastructure.Service
             }
 
             character.UpdatedAt = DateTime.UtcNow;
+
+            return (levelUps > 0, levelUps);
         }
 
         private int GetRequiredExp(int level)

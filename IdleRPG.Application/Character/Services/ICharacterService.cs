@@ -14,9 +14,17 @@ namespace IdleRPG.Application.Character.Services
         Task<CharacterDto> AddExperienceAsync(Guid characterId, int amount);
 
         /// <summary>
+        /// 경험치 추가 및 레벨업 처리 (레벨업 정보 반환)
+        /// DungeonService 등에서 레벨업 여부를 확인해야 할 때 사용
+        /// </summary>
+        /// <returns>(IsLevelUp: 레벨업 여부, NewLevel: 최종 레벨, LevelUps: 레벨업 횟수)</returns>
+        Task<(bool IsLevelUp, int NewLevel, int LevelUps)> AddExperienceWithResultAsync(Guid characterId, int amount);
+
+        /// <summary>
         /// 경험치 추가 및 레벨업 처리 (SaveChanges 없음)
         /// 여러 작업을 한 트랜잭션으로 묶을 때 사용
         /// </summary>
-        void ProcessExperienceGain(CharacterEntity character, int amount);
+        /// <returns>(IsLevelUp: 레벨업 여부, LevelUps: 레벨업 횟수)</returns>
+        (bool IsLevelUp, int LevelUps) ProcessExperienceGain(CharacterEntity character, int amount);
     }
 }

@@ -5,8 +5,8 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 namespace IdleRPG.Infrastructure.Data.Configurations;
 
 /// <summary>
-/// EF Core configuration for DungeonStage entity.
-/// Defines table mappings, indexes, and relationships.
+/// DungeonStage 엔티티에 대한 EF Core 구성입니다.
+/// 테이블 매핑, 인덱스, 관계를 정의합니다.
 /// </summary>
 public class DungeonStageConfiguration : IEntityTypeConfiguration<DungeonStage>
 {
@@ -32,7 +32,7 @@ public class DungeonStageConfiguration : IEntityTypeConfiguration<DungeonStage>
         builder.Property(d => d.BaseGold)
             .IsRequired();
 
-        // Nullable fields
+        // Nullable 필드
         builder.Property(d => d.FirstClearBonusExp)
             .IsRequired(false);
 
@@ -46,14 +46,14 @@ public class DungeonStageConfiguration : IEntityTypeConfiguration<DungeonStage>
         builder.HasOne(d => d.Monster)
             .WithMany()
             .HasForeignKey(d => d.MonsterId)
-            .OnDelete(DeleteBehavior.Restrict); // Don't delete monster if dungeon exists
+            .OnDelete(DeleteBehavior.Restrict); // 던전이 존재하면 몬스터 삭제 안 함
 
-        // Indexes
-        // Option A: Index on RequiredLevel for character level filtering queries
+        // 인덱스
+        // Option A: 캐릭터 레벨 필터링 쿼리를 위한 RequiredLevel 인덱스
         builder.HasIndex(d => d.RequiredLevel)
             .HasDatabaseName("IX_DungeonStages_RequiredLevel");
 
-        // Optional: Composite index for name + level queries (uncomment if needed)
+        // 선택사항: 이름 + 레벨 쿼리를 위한 복합 인덱스 (필요시 주석 해제)
         // builder.HasIndex(d => new { d.Name, d.RequiredLevel })
         //     .HasDatabaseName("IX_DungeonStages_Name_RequiredLevel");
     }

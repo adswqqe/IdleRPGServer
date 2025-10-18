@@ -65,6 +65,7 @@ builder.Services.AddScoped<IdleRPG.Application.Interfaces.IBattleService, IdleRP
 builder.Services.AddScoped<IdleRPG.Application.Interfaces.IMonsterService, IdleRPG.Infrastructure.Service.MonsterService>();
 builder.Services.AddScoped<IdleRPG.Application.Interfaces.IOfflineRewardService, IdleRPG.Infrastructure.Services.OfflineRewardService>();
 builder.Services.AddScoped<IdleRPG.Application.Interfaces.IEquipmentService, IdleRPG.Infrastructure.Service.EquipmentService>();
+builder.Services.AddScoped<IdleRPG.Application.Interfaces.IDungeonService, IdleRPG.Infrastructure.Service.DungeonService>();
 
 // Unit of Work 등록 (모든 Repository를 내부에서 관리)
 builder.Services.AddScoped<IUnitOfWork, IdleRPG.Infrastructure.UnitOfWork.UnitOfWork>();
@@ -118,6 +119,34 @@ builder.Services.AddSwaggerGen(options =>
     });
 });
 var app = builder.Build();
+
+// Seed Data 초기화 (개발 환경에서만 실행)
+if (app.Environment.IsDevelopment())
+{
+    using (var scope = app.Services.CreateScope())
+    {
+        var services = scope.ServiceProvider;
+        try
+        {
+            var context = services.GetRequiredService<GameDBContext>();
+            var logger = services.GetRequiredService<ILogger<Program>>();
+
+            // 던전 스테이지 Seed Data 생성
+            var dungeonSeeder = new IdleRPG.Infrastructure.Data.Seeders.DungeonStageSeeder(
+                context,
+                services.GetRequiredService<ILogger<IdleRPG.Infrastructure.Data.Seeders.DungeonStageSeeder>>());
+
+            await dungeonSeeder.SeedAsync();
+
+            logger.LogInformation("Seed Data 초기화 완료");
+        }
+        catch (Exception ex)
+        {
+            var logger = services.GetRequiredService<ILogger<Program>>();
+            logger.LogError(ex, "Seed Data 초기화 중 오류 발생");
+        }
+    }
+}
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

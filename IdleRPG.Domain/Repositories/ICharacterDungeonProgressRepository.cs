@@ -3,16 +3,16 @@ using IdleRPG.Domain.Entities;
 namespace IdleRPG.Domain.Repositories;
 
 /// <summary>
-/// Repository interface for CharacterDungeonProgress entity.
-/// Tracks character progression through dungeon stages.
+/// CharacterDungeonProgress 엔티티의 Repository 인터페이스입니다.
+/// 던전 스테이지를 통한 캐릭터 진행 상황을 추적합니다.
 /// </summary>
 public interface ICharacterDungeonProgressRepository : IRepository<CharacterDungeonProgress>
 {
     /// <summary>
-    /// Gets the dungeon progress for a specific character.
-    /// Creates a new progress record if one doesn't exist.
+    /// 특정 캐릭터의 던전 진행 상황을 가져옵니다.
+    /// 진행 상황 레코드가 없으면 새로 생성합니다.
     /// </summary>
-    /// <param name="characterId">The character's ID</param>
-    /// <returns>The character's dungeon progress</returns>
+    /// <param name="characterId">캐릭터의 ID</param>
+    /// <returns>캐릭터의 던전 진행 상황</returns>
     Task<CharacterDungeonProgress> GetOrCreateByCharacterIdAsync(Guid characterId);
 }

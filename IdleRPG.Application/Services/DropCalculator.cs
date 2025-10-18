@@ -74,7 +74,7 @@ namespace IdleRPG.Application.Services
                 "Calculating rewards for LootTable {Id} with seed {Seed}, allowDuplicates: {AllowDuplicates}",
                 lootTable.Id, seed, allowDuplicates);
 
-            // Step 1: IsGuaranteed = true 아이템들을 무조건 추가
+            // 1단계: IsGuaranteed = true 아이템들을 무조건 추가
             var guaranteedItems = lootTable.Items.Where(i => i.IsGuaranteed).ToList();
             foreach (var item in guaranteedItems)
             {
@@ -86,7 +86,7 @@ namespace IdleRPG.Application.Services
                     reward.Type, reward.Quantity, item.Id);
             }
 
-            // Step 2: IsGuaranteed = false 아이템들을 확률 기반으로 추첨
+            // 2단계: IsGuaranteed = false 아이템들을 확률 기반으로 추첨
             var probabilityItems = lootTable.Items.Where(i => !i.IsGuaranteed).ToList();
 
             if (probabilityItems.Any())
@@ -187,7 +187,7 @@ namespace IdleRPG.Application.Services
             if (items == null || items.Count == 0)
                 return null;
 
-            // Step 1: 양수 가중치만 필터링 (방어적 프로그래밍)
+            // 1단계: 양수 가중치만 필터링 (방어적 프로그래밍)
             var validItems = new List<LootItem>(items.Count);
             foreach (var item in items)
             {
@@ -209,7 +209,7 @@ namespace IdleRPG.Application.Services
                 return null;
             }
 
-            // Step 2: 총 가중치 계산 (long 사용으로 오버플로우 방지)
+            // 2단계: 총 가중치 계산 (long 사용으로 오버플로우 방지)
             long totalWeight = 0;
             foreach (var item in validItems)
             {
@@ -222,12 +222,12 @@ namespace IdleRPG.Application.Services
                 return null;
             }
 
-            // Step 3: 0 ~ totalWeight 범위에서 랜덤 값 생성 (.NET 8 NextInt64)
+            // 3단계: 0 ~ totalWeight 범위에서 랜덤 값 생성 (.NET 8 NextInt64)
             long randomValue = random.NextInt64(0, totalWeight);
 
             _logger.LogTrace("Random value: {RandomValue} / {TotalWeight}", randomValue, totalWeight);
 
-            // Step 4: 누적 가중치로 아이템 선택
+            // 4단계: 누적 가중치로 아이템 선택
             long cumulativeWeight = 0;
 
             foreach (var item in validItems)
@@ -247,7 +247,7 @@ namespace IdleRPG.Application.Services
             // 이론상 도달 불가능 (total weight가 양수이고 randomValue < totalWeight이면)
             // 하지만 부동소수점 오차나 동시성 이슈로 도달할 수 있음
             _logger.LogError("No item selected despite valid weights. Returning last valid item as fallback.");
-            return validItems[validItems.Count - 1];  // Fallback
+            return validItems[validItems.Count - 1];  // 폴백
         }
 
         /// <summary>
@@ -271,19 +271,19 @@ namespace IdleRPG.Application.Services
         /// </summary>
         private RewardDto CreateReward(LootItem item, Random random)
         {
-            // Step 1: MinQuantity/MaxQuantity 정렬 및 음수 방지
+            // 1단계: MinQuantity/MaxQuantity 정렬 및 음수 방지
             int minQ = Math.Max(0, Math.Min(item.MinQuantity, item.MaxQuantity));
             int maxQ = Math.Max(0, Math.Max(item.MinQuantity, item.MaxQuantity));
 
-            // Step 2: 오버플로우 방지 (maxQ가 int.MaxValue일 때 +1 오버플로우)
+            // 2단계: 오버플로우 방지 (maxQ가 int.MaxValue일 때 +1 오버플로우)
             maxQ = Math.Min(maxQ, int.MaxValue - 1);
 
-            // Step 3: 랜덤 수량 결정
+            // 3단계: 랜덤 수량 결정
             int quantity = minQ == maxQ
                 ? minQ
                 : random.Next(minQ, maxQ + 1);  // Max는 exclusive이므로 +1
 
-            // Step 4: RewardDto 생성
+            // 4단계: RewardDto 생성
             var reward = new RewardDto
             {
                 Type = item.Type,
@@ -292,7 +292,7 @@ namespace IdleRPG.Application.Services
                 SourceLootItemId = item.Id
             };
 
-            // Step 5: 하위 호환성 보장 (Type에 따라 Gold/Experience 필드 채우기)
+            // 5단계: 하위 호환성 보장 (Type에 따라 Gold/Experience 필드 채우기)
             // - BattleService는 여전히 Gold/Experience 필드를 읽음
             // - DropService 소비자는 Type + Quantity를 읽음
             // - 둘 다 정상 동작하도록 중복 설정

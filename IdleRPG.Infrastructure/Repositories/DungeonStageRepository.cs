@@ -7,8 +7,8 @@ using System.Linq.Expressions;
 namespace IdleRPG.Infrastructure.Repositories;
 
 /// <summary>
-/// DungeonStage Repository implementation.
-/// Provides data access methods for dungeon stage information.
+/// DungeonStage Repository 구현체입니다.
+/// 던전 스테이지 정보에 대한 데이터 액세스 메서드를 제공합니다.
 /// </summary>
 public class DungeonStageRepository : IDungeonStageRepository
 {
@@ -19,11 +19,11 @@ public class DungeonStageRepository : IDungeonStageRepository
         _context = context;
     }
 
-    // IDungeonStageRepository specific methods
+    // IDungeonStageRepository 전용 메서드
 
     /// <summary>
-    /// Gets all dungeon stages accessible by a character of the specified level.
-    /// Uses RequiredLevel index for efficient filtering.
+    /// 지정된 레벨의 캐릭터가 접근 가능한 모든 던전 스테이지를 가져옵니다.
+    /// 효율적인 필터링을 위해 RequiredLevel 인덱스를 사용합니다.
     /// </summary>
     public async Task<List<DungeonStage>> GetAccessibleStagesAsync(int characterLevel)
     {
@@ -34,7 +34,7 @@ public class DungeonStageRepository : IDungeonStageRepository
     }
 
     /// <summary>
-    /// Gets a dungeon stage by its ID, including the Monster navigation property.
+    /// ID로 던전 스테이지를 가져오며, Monster 탐색 속성을 포함합니다.
     /// </summary>
     public async Task<DungeonStage?> GetByIdWithMonsterAsync(int stageId)
     {
@@ -43,7 +43,7 @@ public class DungeonStageRepository : IDungeonStageRepository
             .SingleOrDefaultAsync(d => d.Id == stageId);
     }
 
-    // IRepository<DungeonStage> interface implementation
+    // IRepository<DungeonStage> 인터페이스 구현
 
     public async Task<IEnumerable<DungeonStage>> GetAllAsync()
     {

@@ -105,14 +105,14 @@ namespace IdleRPG.Infrastructure.Caching
         {
             var cacheKey = GetCacheKey(id);
 
-            // Step 1: 캐시 확인 (캐시된 Lazy<Task<T>> 확인)
+            // 1단계: 캐시 확인 (캐시된 Lazy<Task<T>> 확인)
             if (_cache.TryGetValue<LootTable>(cacheKey, out var cachedTable))
             {
                 _logger.LogDebug("Cache HIT for LootTable {Id}.", id);
                 return cachedTable;
             }
 
-            // Step 2: Cache Miss → Lazy<Task<T>> 생성 또는 재사용
+            // 2단계: Cache Miss → Lazy<Task<T>> 생성 또는 재사용
             // GetOrAdd: key가 없으면 factory 실행, 있으면 기존 값 반환
             var lazyTask = _ongoingRequests.GetOrAdd(cacheKey, _ =>
             {
@@ -154,13 +154,13 @@ namespace IdleRPG.Infrastructure.Caching
 
             try
             {
-                // Step 3: Lazy.Value await (다른 스레드가 이미 실행 중이면 대기)
+                // 3단계: Lazy.Value await (다른 스레드가 이미 실행 중이면 대기)
                 var result = await lazyTask.Value;
                 return result;
             }
             finally
             {
-                // Step 4: 완료 후 정리 (메모리 누수 방지)
+                // 4단계: 완료 후 정리 (메모리 누수 방지)
                 // TryRemove: 다른 스레드가 이미 제거했을 수 있으므로 Try 사용
                 _ongoingRequests.TryRemove(cacheKey, out _);
             }
@@ -203,16 +203,16 @@ namespace IdleRPG.Infrastructure.Caching
         {
             _logger.LogInformation("Invalidating all LootTable cache entries via global token.");
 
-            // Step 1: 기존 토큰 취소 (모든 캐시 엔트리 제거 트리거)
+            // 1단계: 기존 토큰 취소 (모든 캐시 엔트리 제거 트리거)
             _globalCts.Cancel();
 
-            // Step 2: 기존 CTS 리소스 해제
+            // 2단계: 기존 CTS 리소스 해제
             _globalCts.Dispose();
 
-            // Step 3: 새로운 CTS 생성 (향후 캐시용)
+            // 3단계: 새로운 CTS 생성 (향후 캐시용)
             _globalCts = new CancellationTokenSource();
 
-            // Step 4: ongoingRequests도 전체 정리
+            // 4단계: ongoingRequests도 전체 정리
             _ongoingRequests.Clear();
 
             _logger.LogInformation("All LootTable cache entries invalidated successfully.");

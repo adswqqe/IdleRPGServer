@@ -1,7 +1,7 @@
 namespace IdleRPG.Domain.Enums;
 
 /// <summary>
-/// Represents the difficulty levels for a dungeon.
+/// 던전의 난이도 레벨을 나타냅니다.
 /// </summary>
 public enum DungeonDifficulty
 {

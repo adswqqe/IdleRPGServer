@@ -3,42 +3,42 @@ using IdleRPG.Domain.Enums;
 namespace IdleRPG.Domain.ValueObjects;
 
 /// <summary>
-/// A Value Object that encapsulates the multipliers for a given dungeon difficulty.
-/// This object is immutable. Once created, its values cannot be changed.
+/// 주어진 던전 난이도에 대한 배수를 캡슐화하는 값 객체입니다.
+/// 이 객체는 불변입니다. 생성 후 값을 변경할 수 없습니다.
 /// </summary>
 public sealed class DifficultyMultiplier
 {
     /// <summary>
-    /// The multiplier applied to monster stats (e.g., HP, Attack).
+    /// 몬스터 스탯에 적용되는 배수 (예: HP, 공격력)
     /// </summary>
     public double MonsterStatMultiplier { get; }
 
     /// <summary>
-    /// The multiplier applied to rewards (e.g., experience, currency).
+    /// 보상에 적용되는 배수 (예: 경험치, 화폐)
     /// </summary>
     public double RewardMultiplier { get; }
 
     /// <summary>
-    /// The multiplier applied to the chance of finding rare items.
+    /// 희귀 아이템 발견 확률에 적용되는 배수
     /// </summary>
     public double DropChanceMultiplier { get; }
 
-    // The constructor is private to enforce creation through the factory method.
+    // 팩토리 메서드를 통한 생성을 강제하기 위해 생성자는 private입니다.
     private DifficultyMultiplier(double monsterStatMultiplier, double rewardMultiplier, double dropChanceMultiplier)
     {
-        // In a more complex scenario, you might add validation here, e.g., ensuring multipliers are positive.
+        // 더 복잡한 시나리오에서는 여기에 유효성 검사를 추가할 수 있습니다. 예: 배수가 양수인지 확인
         MonsterStatMultiplier = monsterStatMultiplier;
         RewardMultiplier = rewardMultiplier;
         DropChanceMultiplier = dropChanceMultiplier;
     }
 
     /// <summary>
-    /// Factory method to create a DifficultyMultiplier instance based on the selected difficulty.
-    /// This is the single point of entry for creating this object, which centralizes the business logic.
+    /// 선택된 난이도를 기반으로 DifficultyMultiplier 인스턴스를 생성하는 팩토리 메서드입니다.
+    /// 이것은 이 객체를 생성하는 단일 진입점으로, 비즈니스 로직을 중앙화합니다.
     /// </summary>
-    /// <param name="difficulty">The dungeon difficulty enum.</param>
-    /// <returns>A new instance of DifficultyMultiplier with the correct values.</returns>
-    /// <exception cref="ArgumentOutOfRangeException">Thrown if the difficulty is not supported.</exception>
+    /// <param name="difficulty">던전 난이도 enum</param>
+    /// <returns>올바른 값을 가진 새로운 DifficultyMultiplier 인스턴스</returns>
+    /// <exception cref="ArgumentOutOfRangeException">난이도가 지원되지 않는 경우 발생</exception>
     public static DifficultyMultiplier Create(DungeonDifficulty difficulty)
     {
         return difficulty switch
@@ -46,8 +46,8 @@ public sealed class DifficultyMultiplier
             DungeonDifficulty.Normal    => new DifficultyMultiplier(1.0, 1.0, 1.0),
             DungeonDifficulty.Hard      => new DifficultyMultiplier(1.5, 1.25, 1.1),
             DungeonDifficulty.Nightmare => new DifficultyMultiplier(2.5, 1.75, 1.25),
-            // This is the guard clause. It ensures that if a new enum value is added in the future,
-            // this code will fail loudly, forcing the developer to define its multipliers.
+            // 가드 절입니다. 향후 새로운 enum 값이 추가되면
+            // 이 코드가 명시적으로 실패하여 개발자가 배수를 정의하도록 강제합니다.
             _ => throw new ArgumentOutOfRangeException(nameof(difficulty), $"Difficulty '{difficulty}' is not supported.")
         };
     }

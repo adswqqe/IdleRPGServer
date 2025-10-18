@@ -3,62 +3,62 @@ using IdleRPG.Domain.Entities;
 namespace IdleRPG.Domain.Entities;
 
 /// <summary>
-/// Represents a dungeon stage with static configuration data.
-/// Each stage has a boss monster, level requirements, and reward values.
+/// 정적 구성 데이터를 가진 던전 스테이지를 나타냅니다.
+/// 각 스테이지는 보스 몬스터, 레벨 요구사항, 보상 값을 가집니다.
 /// </summary>
 public class DungeonStage
 {
     /// <summary>
-    /// Stage number (Primary Key). Stage 1, 2, 3, etc.
+    /// 스테이지 번호 (기본 키). 스테이지 1, 2, 3, 등
     /// </summary>
     public int Id { get; set; }
 
     /// <summary>
-    /// Display name of the dungeon stage.
+    /// 던전 스테이지의 표시 이름
     /// </summary>
     public string Name { get; set; } = string.Empty;
 
     /// <summary>
-    /// Minimum character level required to enter this stage.
+    /// 이 스테이지에 입장하기 위한 최소 캐릭터 레벨
     /// </summary>
     public int RequiredLevel { get; set; }
 
     /// <summary>
-    /// The boss monster ID for this stage.
+    /// 이 스테이지의 보스 몬스터 ID
     /// </summary>
     public Guid MonsterId { get; set; }
 
     /// <summary>
-    /// Navigation property to the boss monster.
+    /// 보스 몬스터로의 탐색 속성
     /// </summary>
     public Monster? Monster { get; set; }
 
     /// <summary>
-    /// Base experience reward for clearing this stage.
-    /// Will be multiplied by difficulty multiplier.
+    /// 이 스테이지 클리어 시 기본 경험치 보상
+    /// 난이도 배수로 곱해집니다.
     /// </summary>
     public int BaseExperience { get; set; }
 
     /// <summary>
-    /// Base gold reward for clearing this stage.
-    /// Will be multiplied by difficulty multiplier.
+    /// 이 스테이지 클리어 시 기본 골드 보상
+    /// 난이도 배수로 곱해집니다.
     /// </summary>
     public int BaseGold { get; set; }
 
     /// <summary>
-    /// Bonus experience granted on first clear of this stage (any difficulty).
-    /// Nullable - not all stages may have first clear bonuses.
+    /// 이 스테이지의 첫 클리어 시 부여되는 보너스 경험치 (모든 난이도)
+    /// Nullable - 모든 스테이지가 첫 클리어 보너스를 가지지는 않습니다.
     /// </summary>
     public int? FirstClearBonusExp { get; set; }
 
     /// <summary>
-    /// Bonus gold granted on first clear of this stage (any difficulty).
-    /// Nullable - not all stages may have first clear bonuses.
+    /// 이 스테이지의 첫 클리어 시 부여되는 보너스 골드 (모든 난이도)
+    /// Nullable - 모든 스테이지가 첫 클리어 보너스를 가지지는 않습니다.
     /// </summary>
     public int? FirstClearBonusGold { get; set; }
 
     /// <summary>
-    /// When this stage was created in the database.
+    /// 이 스테이지가 데이터베이스에 생성된 시간
     /// </summary>
     public DateTime CreatedAt { get; set; }
 }
