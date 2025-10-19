@@ -1,8 +1,8 @@
-# API Implementation Status - Current (Updated 2025-10-16)
+# API Implementation Status - Current (Updated 2025-10-18)
 
 ## Summary
-- **Total Endpoints**: 21 (이전 14 → 현재 21)
-- **Completed**: 21
+- **Total Endpoints**: 24 (이전 21 → 현재 24)
+- **Completed**: 24
 - **In Progress**: 0
 - **Removed**: 1 (스탯 할당 - 자동 성장으로 대체)
 
@@ -33,7 +33,7 @@
 - ✅ GET /api/reward/offline/{characterId} - 오프라인 보상 계산
 - ✅ POST /api/reward/offline/claim - 오프라인 보상 수령
 
-## Equipment API (7 endpoints) ← **NEW! (2025-10-16)**
+## Equipment API (7 endpoints)
 - ✅ POST /api/equipment/create - 장비 생성 (가챠/드랍)
 - ✅ GET /api/equipment/equipped/{characterId} - 장착 장비 조회 (5슬롯)
 - ✅ GET /api/equipment/inventory/{ownerId} - 인벤토리 조회 (미장착)
@@ -42,49 +42,91 @@
 - ✅ POST /api/equipment/enhance - 장비 강화 (+0~+10)
 - ✅ DELETE /api/equipment/{equipmentId} - 장비 삭제
 
-## Database Tables (7 tables)
+## Dungeon API (3 endpoints) ← **NEW! (2025-10-18)**
+- ✅ GET /api/dungeons/stages - 던전 스테이지 목록 (난이도별 보상 계산)
+- ✅ GET /api/dungeons/progress - 캐릭터 던전 진행도 조회
+- ✅ POST /api/dungeons/clear - 던전 클리어 및 보상 지급
+
+## Database Tables (9 tables)
 - ✅ Players - 인증
 - ✅ RefreshTokens - 토큰
 - ✅ Characters - 캐릭터
 - ✅ Monsters - 몬스터
-- ✅ BattleLogs - 전투 로그
+- ✅ BattleLogs - 전투 로그 (DungeonStageId 추가)
 - ✅ OfflineRewardTypes - 오프라인 보상 타입
-- ✅ Equipments - 장비 ← **NEW!**
+- ✅ Equipments - 장비
+- ✅ DungeonStages - 던전 스테이지 ← **NEW!**
+- ✅ CharacterDungeonProgresses - 던전 진행도 ← **NEW!**
 
-## Recent Changes (2025-10-16)
+## Recent Changes (2025-10-18)
 
-### Equipment System Implementation
+### Dungeon System Implementation
 **Architecture**: Clean Architecture 4-Layer (Domain → Application → Infrastructure → API)
 
 **Key Features**:
-1. **OwnerId + CharacterId 이중 FK**
-   - OwnerId: 소유자 (Cascade 삭제)
-   - CharacterId: 장착 상태 (SetNull 삭제)
-   
-2. **자동 장비 교체**
-   - 같은 슬롯 장착 시 기존 장비 자동 인벤토리 이동
-   - 원자적 트랜잭션 보장 (UnitOfWork)
+1. **15 Dungeon Stages (Lv 1-30)**
+   - 초보 던전 (Stage 1-5, Lv 1-10)
+   - 중급 던전 (Stage 6-10, Lv 11-20)
+   - 고급 던전 (Stage 11-15, Lv 21-30)
 
-3. **강화 시스템**
-   - 최대 +10까지
-   - 강화당 공격+5, 방어+3, HP+10
+2. **3 Difficulty Levels**
+   - Normal (1.0x multiplier) - 항상 잠금 해제
+   - Hard (1.5x multiplier) - Normal 클리어 후 잠금 해제
+   - Hell (2.0x multiplier) - Hard 클리어 후 잠금 해제
 
-4. **계산 속성 패턴**
-   - Base 스탯만 DB 저장
-   - Total 스탯은 실시간 계산 (GetTotalAttack, GetTotalDefense, GetTotalHp)
+3. **Progressive Difficulty Unlock System**
+   - Same Stage Prerequisite: Stage 5 Hard는 Stage 5 Normal 클리어 필요
+   - Level Gate: CharacterLevel ≥ RequiredLevel
+
+4. **Reward Calculation**
+   - Base Reward × Difficulty Multiplier
+   - First Clear Bonus: +50% (한 번만)
+   - Example: Stage 1 Hell (첫 클리어) = 200G × 1.5 = 300G
+
+5. **ValueObject Pattern**
+   - DifficultyMultiplier (Immutable Instance)
+   - Factory Method: Create(DungeonDifficulty)
+
+6. **Progress Tracking**
+   - 3-field design (각 난이도별 별도 필드)
+   - HighestStageClearedNormal/Hard/Hell
+   - CharacterId Unique Index
 
 **Business Rules**:
-- 소유자 변경 불가 (OwnerId 불변)
-- CharacterId NULL = 인벤토리, NOT NULL = 장착 중
-- 같은 슬롯에 중복 장착 불가
-- 캐릭터 삭제 시 소유 장비도 삭제 (Cascade)
+- 레벨 부족 시 입장 불가
+- 이전 난이도 미클리어 시 잠금
+- 동일 스테이지+난이도 중복 클리어 불가 (재도전 보상 없음)
+- 전투 승리 시에만 진행도 업데이트
 
-## Unity Documentation (v1.7)
-- ✅ Equipment API 명세서 (11.9KB)
-- ✅ Equipment DTO 클래스 (3.9KB)
-- ✅ README.md 업데이트 (v1.6 → v1.7)
+**Database Schema**:
+- DungeonStages: int PK (IDENTITY), FK to Monsters (RESTRICT)
+- CharacterDungeonProgresses: Guid PK, FK to Characters (CASCADE)
+- Indexes: RequiredLevel, CharacterId (Unique), MonsterId
+
+**Seed Data**:
+- DungeonStageSeeder: 15 stages with balanced rewards
+- Runs in all environments (idempotent design)
+- Monster FK dependency check
+
+## Unity Documentation (v1.8)
+- ✅ Dungeon API 명세서 (dungeon/API_SPEC.md)
+- ✅ Dungeon DTO 클래스 (dungeon/DTOs.cs)
+- ✅ README.md 업데이트 (v1.7 → v1.8)
+- ✅ CLAUDE.md Unity 가이드라인 개선 (기능별 폴더 구조 명시)
+
+## Testing Status (2025-10-18)
+- ✅ EC2 Production 환경 테스트 완료
+- ✅ GET /api/dungeons/stages: 45개 스테이지 반환 (15 × 3 난이도)
+- ✅ GET /api/dungeons/progress: 초기 진행도 조회 (0, 0, 0)
+- ✅ POST /api/dungeons/clear: Stage 1 클리어 성공 (+100G, +50XP)
+
+## Migration Status
+- ✅ Migration 20251018112141_AddDungeonStageSystem 생성
+- ✅ EC2 RDS 적용 완료 (fix-dungeon-migration.sql)
+- ✅ Seed Data 자동 생성 (Program.cs)
 
 ## Next Implementation
-1. Combat System에 Equipment 스탯 통합
-2. Gacha System (10연차 장비 생성)
-3. Dungeon System (장비 드랍)
+1. Drop System에 Dungeon 보상 연동
+2. Combat System에 Dungeon Monster 스탯 적용
+3. BattleLog에 DungeonStageId 기록 활용
+4. Unity 클라이언트 Dungeon UI 구현

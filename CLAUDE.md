@@ -180,11 +180,42 @@ Claude가 독립적으로 완료:
 
 **CRITICAL**: When adding/modifying APIs or DTOs, **ALWAYS** update Unity documentation.
 
-### Standard Checklist
+### Documentation Structure (v1.7+)
 
-- [ ] Update `../IdleRPGClient/Docs/unity/API_SPEC_FOR_UNITY.md`
-- [ ] Add/update DTO in `../IdleRPGClient/Docs/Unity-DTOs.cs`
-- [ ] Update summary table in `../IdleRPGClient/Docs/unity/Unity-Quick-Reference.md`
+Unity 문서는 **기능별 폴더 구조**로 관리됩니다:
+
+```
+../IdleRPGClient/Docs/unity/
+├── README.md                    # 메인 인덱스 (구현 상태 테이블)
+├── auth/
+│   ├── API_SPEC.md
+│   └── DTOs.cs
+├── character/
+│   ├── API_SPEC.md
+│   └── DTOs.cs
+├── {feature}/                   # 새 기능 추가 시
+│   ├── API_SPEC.md              # API 명세서
+│   └── DTOs.cs                  # C# DTO 클래스
+```
+
+### Standard Checklist (새 기능 추가 시)
+
+1. **폴더 생성**: `../IdleRPGClient/Docs/unity/{feature}/`
+2. **API 명세 작성**: `{feature}/API_SPEC.md`
+   - 엔드포인트별 Request/Response 예제
+   - Unity C# 코드 예제 포함
+3. **DTO 작성**: `{feature}/DTOs.cs`
+   - JsonProperty 어트리뷰트 사용
+   - Newtonsoft.Json 기준
+4. **메인 인덱스 업데이트**: `unity/README.md`
+   - 구현 상태 테이블에 엔드포인트 추가
+   - 빠른 시작 가이드 업데이트 (필요시)
+   - 버전 히스토리 추가
+
+### File Naming Convention
+
+- API 명세: `API_SPEC.md` (표준) 또는 `{Feature}-API.md`
+- DTO 클래스: `DTOs.cs` (표준) 또는 `{Feature}DTO.cs`
 
 **Detailed Guide**: See `docs/unity/UNITY_DOCUMENTATION_GUIDE.md`
 

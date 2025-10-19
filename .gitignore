@@ -42,10 +42,6 @@ node_modules/
 # OS specific
 .DS_Store
 
-# Task files
-# tasks.json
-# tasks/ 
-
 # Local development settings with secrets
 appsettings.Development.json
 
@@ -60,3 +56,7 @@ docker-compose.prod.yml
 nul
 nul*
 nuldocker-compose.prod.yml.BACKUP_WITH_SECRETS
+
+# Task files
+# tasks.json
+# tasks/ 

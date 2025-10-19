@@ -32,16 +32,18 @@
 6. **수익화**: 가챠, VIP 시스템, 상점
 7. **라이브 운영**: 일일 미션, 출석 체크, 이벤트, 우편함
 
-## 20개 시스템 목록
+## 20개 시스템 목록 (v1.8 업데이트)
 
 ### Phase 1: Foundation (Week 1-6) - MVP 시스템
-1. ✅ **인증 시스템** - JWT Bearer Token (Access + Refresh)
-2. ✅ **캐릭터 성장** - 레벨업, 자동 스탯 증가, 다중 캐릭터
-3. ⏳ **인벤토리 & 장비** - 아이템 관리, 장착, 스탯 적용
-4. ⏳ **전투 시스템** - 서버 기반 자동 전투 시뮬레이션
-5. ⏳ **오프라인 보상** - 시간 기반 보상 계산 (최대 12-48시간)
-6. 📋 **던전 시스템** - 스테이지 진행, 난이도별 보상
-7. 📋 **장비 강화** - 확률 기반 강화 (+0 ~ +15)
+1. ✅ **인증 시스템** (Week 1) - JWT Bearer Token (Access + Refresh)
+2. ✅ **캐릭터 성장** (Week 1) - 레벨업, 자동 스탯 증가, 다중 캐릭터
+3. ✅ **인벤토리 & 장비** (Week 3 Day 1) - 아이템 관리, 장착, 스탯 적용
+4. ✅ **전투 시스템** (Week 2) - 서버 기반 자동 전투 시뮬레이션
+5. ✅ **오프라인 보상** (Week 2) - 시간 기반 보상 계산 (최대 12-48시간)
+6. ✅ **던전 시스템** (Week 3 Day 2) - 스테이지 진행, 난이도별 보상 ← **NEW!**
+7. 📋 **장비 강화** (Week 3 계획) - 확률 기반 강화 (+0 ~ +15)
+
+**Phase 1 진행률**: 6/7 완료 (86%)
 
 ### Phase 2: Expansion (Week 7-12) - 핵심 게임플레이
 8. 📋 **스킬 시스템** - 스킬 습득, 레벨업, 전투 중 자동 사용
@@ -103,53 +105,73 @@
 - **Jenkins**: CI/CD 파이프라인
 - **Docker**: 컨테이너화 배포
 
-## 현재 진행 상황
+## 현재 진행 상황 (Updated 2025-10-18)
 
-**✅ Week 1 완료**:
+### ✅ Week 1 완료 (2025-10-14)
 - JWT 인증 시스템 (5 endpoints)
-- 캐릭터 성장 시스템 (6 endpoints)
+- 캐릭터 성장 시스템 (5 endpoints)
 - Monster 엔티티 (5종 시딩)
 - Jenkins CI/CD + AWS 배포
 - 단위 테스트 (17 tests)
 
-**🔄 Week 2 진행 중**:
-- 전투 시스템 핵심 로직
-- 오프라인 보상 계산
-- Background Service (IHostedService)
+### ✅ Week 2 완료 (2025-10-16)
+- 전투 시스템 핵심 로직 (3 endpoints)
+- 오프라인 보상 계산 (2 endpoints)
 - 전투 로그 시스템
+- Background Service 스케줄러 계획
 
-**📋 다음 우선순위 (Week 3-6)**:
-- 인벤토리 & 장비 시스템
-- 던전 진행 시스템
-- 장비 강화 시스템
-- 스킬 시스템 기초
+### ✅ Week 3 Day 1 완료 (2025-10-16)
+- Equipment System (7 endpoints)
+  - 장비 생성, 조회, 장착/해제
+  - 장비 강화 (+0~+10)
+  - 자동 장비 교체
+- OwnerId + CharacterId 이중 FK
+- 계산 속성 패턴 (Base + Total)
+
+### ✅ Week 3 Day 2 완료 (2025-10-18)
+- **Dungeon System** (3 endpoints) ← **NEW!**
+  - 15 Stages (Lv 1-30)
+  - 3 Difficulties (Normal, Hard, Hell)
+  - Progressive Difficulty Unlock
+  - First Clear Bonus (+50%)
+  - ValueObject Pattern (DifficultyMultiplier)
+  - 3-Field Progress Tracking
+- **Production 배포 완료**
+- **Unity 문서화 완료** (v1.8)
+
+### 📋 다음 우선순위 (Week 3-4)
+- Drop System (던전 보상 → Equipment 드랍)
+- Combat System 통합 (Dungeon Monster 스탯)
+- BattleLog DungeonStageId 활용
+- Skill System 기초
 
 ## 학습 목표 (단계별)
 
 **Phase 1 (Week 1-6)**: 
-- RESTful API 설계
-- EF Core, 마이그레이션
-- JWT 인증/인가
-- Background Services
-- 게임 로직 서버 검증
+- ✅ RESTful API 설계
+- ✅ EF Core, 마이그레이션
+- ✅ JWT 인증/인가
+- ✅ Background Services
+- ✅ 게임 로직 서버 검증
+- ✅ ValueObject 패턴 (DDD)
 
 **Phase 2 (Week 7-12)**:
-- 복잡한 데이터 관계 (M:N, 자기 참조)
-- 게임 밸런싱 (전투 공식, 확률)
-- ELO 레이팅 시스템
-- 트랜잭션 및 동시성
+- 📋 복잡한 데이터 관계 (M:N, 자기 참조)
+- 📋 게임 밸런싱 (전투 공식, 확률)
+- 📋 ELO 레이팅 시스템
+- 📋 트랜잭션 및 동시성
 
 **Phase 3 (Week 13-18)**:
-- SignalR 실시간 통신
-- Redis 고급 활용 (캐싱, 랭킹)
-- 수익화 시스템 설계
-- 치팅 방지 (서버 권위 설계)
+- 📋 SignalR 실시간 통신
+- 📋 Redis 고급 활용 (캐싱, 랭킹)
+- 📋 수익화 시스템 설계
+- 📋 치팅 방지 (서버 권위 설계)
 
 **Phase 4 (Week 19-20)**:
-- 라이브 운영 시스템
-- 이벤트 스케줄링
-- 성능 모니터링
-- Production 최적화
+- 📋 라이브 운영 시스템
+- 📋 이벤트 스케줄링
+- 📋 성능 모니터링
+- 📋 Production 최적화
 
 ## 개발 원칙
 
@@ -160,9 +182,34 @@
 5. **테스트 작성**: 단위 테스트 (서버), E2E (Unity)
 6. **문서화**: API 문서 (Swagger), Unity 통합 가이드
 
+## 현재 구현 상태 요약
+
+**API 엔드포인트**: 24개 완료
+- Authentication: 5개
+- Character: 5개
+- Battle: 3개
+- Monster: 1개
+- Reward: 2개
+- Equipment: 7개
+- Dungeon: 3개 ← **NEW!**
+
+**Database Tables**: 9개
+- Players, RefreshTokens
+- Characters, Monsters
+- BattleLogs (DungeonStageId 추가)
+- OfflineRewardTypes
+- Equipments
+- DungeonStages, CharacterDungeonProgresses ← **NEW!**
+
+**Unity Documentation**: v1.8
+- 7개 시스템 문서화
+- 기능별 폴더 구조
+- C# DTO + API 명세
+
 ## 프로젝트 최종 목표
 
 - **기술적 목표**: 풀스택 게임 개발 역량 확보
 - **학습 목표**: .NET + Unity 네트워크 통신 완전 마스터
 - **결과물**: 상용 수준의 방치형 MMORPG (포트폴리오급)
 - **기간**: 20주 (2025년 10월 ~ 2026년 3월)
+- **현재 진행**: Week 3 Day 2 (Phase 1: 86% 완료)
