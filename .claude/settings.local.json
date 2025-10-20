@@ -114,7 +114,12 @@
       "mcp__project-filesystem__create_directory",
       "Bash(Get-Content \"E:\\StudyGameProj\\IdleRPGServer\\docs\\MUSHROOM_GAME_PRD.md\")",
       "Bash(Select-String -Pattern \"펫 시스템|Pet System\")",
-      "Bash(Select-Object -First 1 LineNumber, Line)"
+      "Bash(Select-Object -First 1 LineNumber, Line)",
+      "Bash(claude config list)",
+      "Bash(claude mcp add taskmaster-ai -- npx -y task-master-ai)",
+      "mcp__zen__codereview",
+      "Bash(dotnet --list-sdks)",
+      "mcp__serena__insert_after_symbol"
     ]
   },
   "enableAllProjectMcpServers": true,

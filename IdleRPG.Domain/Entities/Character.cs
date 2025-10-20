@@ -20,6 +20,9 @@ namespace IdleRPG.Domain.Entities
         /// </summary>
         public long Gold { get; set; } = 0;
 
+        public long Crystal { get; set; } = 0;
+        public int GachaPityCount { get; set; } = 0;
+
         /// <summary>
         /// 마지막 로그인 시간 (오프라인 보상 계산 기준)
         /// </summary>
@@ -32,5 +35,6 @@ namespace IdleRPG.Domain.Entities
 
         // Navigation Property
         public Player Player { get; set; }
+        public ICollection<CharacterSkill> Skills { get; set; } = new List<CharacterSkill>();
     }
 }

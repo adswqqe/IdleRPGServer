@@ -33,6 +33,11 @@ public class GameDBContext : DbContext
     public DbSet<DungeonStage> DungeonStages { get; set; }
     public DbSet<CharacterDungeonProgress> CharacterDungeonProgresses { get; set; }
 
+    // Skill System
+    public DbSet<CharacterSkill> CharacterSkills { get; set; }
+    public DbSet<SkillTemplate> SkillTemplates { get; set; }
+    public DbSet<GachaHistory> GachaHistories { get; set; }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
