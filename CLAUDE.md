@@ -172,6 +172,41 @@ Claude가 독립적으로 완료:
 
 ---
 
+## Project Memory Management
+
+### File-Based Memory System
+
+**프로젝트 상태는 Git 저장소의 문서로 관리합니다:**
+
+- **`docs/PROGRESS.md`**: 현재 진행 상황, 작업 중인 시스템, 완료된 기능
+  - 현재 상태 Quick View
+  - 설계 결정 히스토리
+  - 알려진 이슈 및 기술 부채
+  - 주간 학습 목표 달성률
+
+- **`docs/learning/PROJECT_ROADMAP.md`**: 8주 학습 계획, 마일스톤
+  - T-shaped 학습 전략 (6개 시스템 95% 깊이, 14개 시스템 60-80% 넓이)
+  - 주차별 기술 스택 목표
+  - Phase별 완료 기준
+
+- **`CLAUDE.md`** (이 파일): 프로젝트 룰, 아키텍처 원칙, 협업 규칙
+
+### Update Policy
+
+**PROGRESS.md 업데이트 시점:**
+- 새 시스템 완료 시
+- 중요한 설계 결정 시
+- 주간 회고 시 (매주 금요일 권장)
+
+**장점:**
+- ✅ Git 버전 관리
+- ✅ 팀원과 공유 가능
+- ✅ GitHub에서 바로 확인 가능
+- ✅ 검색 용이 (Ctrl+Shift+F)
+- ✅ 단일 진실 공급원 (Single Source of Truth)
+
+---
+
 ## Unity Client Documentation
 
 ### Policy
