@@ -11,16 +11,16 @@
         "ACCESS_DIRS": "./IdleRPG.API,./IdleRPG.Application,./IdleRPG.Domain,./IdleRPG.Infrastructure,./Documentation,./claude-configs"
       },
       "description": "프로젝트 파일 접근"
+    },
+    "serena": {
+      "type": "stdio",
+      "command": "uvx",
+      "args": [
+        "--from",
+        "git+https://github.com/oraios/serena",
+        "serena-mcp-server"
+      ],
+      "description": "Serena 코드베이스 분석 및 메모리 관리"
     }
-//    "serena": {
-//      "type": "stdio",
-//      "command": "uvx",
-//      "args": [
-//        "--from",
-//        "git+https://github.com/oraios/serena",
-//        "serena-mcp-server"
-//      ],
-//      "description": "Serena 코드베이스 분석 및 메모리 관리"
-//    }
   }
 }

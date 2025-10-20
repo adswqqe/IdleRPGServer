@@ -20,20 +20,20 @@
         "testStrategy": "No specific tests required for enums, but they will be validated by their usage in other components' tests.",
         "priority": "high",
         "dependencies": [],
-        "status": "pending",
+        "status": "done",
         "subtasks": []
       },
       {
         "id": 3,
-        "title": "Define Skill Entity",
-        "description": "Create the `Skill` entity in the Domain layer to store skill properties.",
-        "details": "In the `IdleGameServer.Domain/Entities` folder, create `Skill.cs`. The entity should include properties like `Id` (int), `Name` (string), `Description` (string), `Rarity` (SkillRarity), and `Type` (SkillType). It should inherit from a base entity if one exists.",
-        "testStrategy": "Entity property validation will be covered by EF Core model configuration tests and integration tests.",
-        "priority": "high",
+        "title": "Extend SkillTemplate Entity with Description and Type",
+        "description": "Extend the existing `SkillTemplate` entity, which serves as the master template for all skills. It needs additional properties to fully define a skill's behavior and information, as the original concept of a 'Skill' entity is already implemented as `SkillTemplate.cs`.",
+        "status": "done",
         "dependencies": [
           2
         ],
-        "status": "pending",
+        "priority": "high",
+        "details": "Based on the existing architecture, the `SkillTemplate` entity in `IdleGameServer.Domain/Entities/SkillTemplate.cs` needs to be expanded.\n\n1.  **Create Enum:** In the `IdleGameServer.Domain/Enums` directory, create a new file `SkillType.cs` to define the `SkillType` enum. Example values could include `Active`, `Passive`, `Aura`.\n    ```csharp\n    // IdleGameServer.Domain/Enums/SkillType.cs\n    namespace IdleGameServer.Domain.Enums;\n\n    public enum SkillType\n    {\n        Active,\n        Passive,\n        Aura\n    }\n    ```\n2.  **Update Entity:** Modify `IdleGameServer.Domain/Entities/SkillTemplate.cs` to add the new properties:\n    - `Description` (string)\n    - `Type` (SkillType)\n\nThe `SkillTemplate` entity already contains `Id` (from its base class), `Name`, and `Rarity`. This change will complete its definition.",
+        "testStrategy": "Entity property validation will be covered by EF Core model configuration tests and integration tests.",
         "subtasks": []
       },
       {
@@ -46,7 +46,7 @@
         "dependencies": [
           3
         ],
-        "status": "pending",
+        "status": "done",
         "subtasks": []
       },
       {
@@ -70,7 +70,7 @@
         "testStrategy": "Interfaces themselves are not tested, but their implementations will be.",
         "priority": "high",
         "dependencies": [],
-        "status": "pending",
+        "status": "done",
         "subtasks": []
       },
       {
@@ -122,7 +122,7 @@
         "testStrategy": "Verify the new column is added to the `Players` table after applying the migration. Integration tests for gacha will confirm it can be read and updated.",
         "priority": "high",
         "dependencies": [],
-        "status": "pending",
+        "status": "done",
         "subtasks": []
       },
       {
@@ -217,7 +217,7 @@
         "testStrategy": "These are data structures; their validation is implicit in the integration tests of the application service.",
         "priority": "high",
         "dependencies": [],
-        "status": "pending",
+        "status": "done",
         "subtasks": []
       },
       {
@@ -336,7 +336,7 @@
     ],
     "metadata": {
       "created": "2025-10-19T07:20:43.806Z",
-      "updated": "2025-10-20T04:51:39.511Z",
+      "updated": "2025-10-20T07:39:01.397Z",
       "description": "Tasks for master context"
     }
   }

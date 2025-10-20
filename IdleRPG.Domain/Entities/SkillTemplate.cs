@@ -21,5 +21,15 @@ namespace IdleRPG.Domain.Entities
         /// The rarity of the skill.
         /// </summary>
         public SkillRarity Rarity { get; set; }
+
+        /// <summary>
+        /// The description of the skill.
+        /// </summary>
+        public string Description { get; set; } = string.Empty;
+
+        /// <summary>
+        /// The type of the skill (Active or Passive).
+        /// </summary>
+        public SkillType Type { get; set; }
     }
 }

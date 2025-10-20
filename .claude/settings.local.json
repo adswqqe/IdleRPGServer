@@ -119,7 +119,15 @@
       "Bash(claude mcp add taskmaster-ai -- npx -y task-master-ai)",
       "mcp__zen__codereview",
       "Bash(dotnet --list-sdks)",
-      "mcp__serena__insert_after_symbol"
+      "mcp__serena__insert_after_symbol",
+      "mcp__taskmaster-ai__next_task",
+      "mcp__taskmaster-ai__set_task_status",
+      "mcp__taskmaster-ai__update_task",
+      "Bash(claude mcp remove taskmaster-ai)",
+      "Read(//d/Proj/zen-mcp-server/**)",
+      "Read(//c/Users/KTS_Eight/.claude/**)",
+      "Read(//c/Users/KTS_Eight/**)",
+      "Bash(env)"
     ]
   },
   "enableAllProjectMcpServers": true,

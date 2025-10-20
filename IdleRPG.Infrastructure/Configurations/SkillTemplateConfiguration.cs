@@ -20,7 +20,16 @@ namespace IdleRPG.Infrastructure.Configurations
                 .IsRequired()
                 .HasConversion<int>(); // Enum을 int로 저장
 
+            builder.Property(s => s.Description)
+                .IsRequired()
+                .HasMaxLength(500);
+
+            builder.Property(s => s.Type)
+                .IsRequired()
+                .HasConversion<int>(); // Enum을 int로 저장
+
             builder.HasIndex(s => s.Rarity); // 희귀도별 조회 최적화
+            builder.HasIndex(s => s.Type);   // 타입별 조회 최적화
         }
     }
 }
