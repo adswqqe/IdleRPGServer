@@ -1,6 +1,6 @@
-# Update Current Memory (2-current/)
+# Update Current Memory (1-current/)
 
-프로젝트의 현재 상태를 분석하여 `.claude/memories/2-current/` 폴더의 메모리를 업데이트합니다.
+프로젝트의 현재 상태를 분석하여 `.claude/memories/1-current/` 폴더의 메모리를 업데이트합니다.
 
 ## 작업 순서
 
@@ -22,15 +22,15 @@
 - 주요 기능 상세 (엔티티, 비즈니스 로직)
 
 **다음 우선순위**:
-- `2-current/roadmap.md`의 현재 Phase
+- `1-current/roadmap.md`의 현재 Phase
 - 진행 중인 작업 (TODO 주석, 미완성 기능)
 
 ### 2. status.md 업데이트
 
-`.claude/memories/2-current/status.md` 파일을 다음 형식으로 업데이트하세요:
+`.claude/memories/1-current/status.md` 파일을 다음 형식으로 업데이트하세요:
 
 ```markdown
-# 현재 구현 상태 (Week X Day Y 완료)
+# 현재 구현 상태
 
 **업데이트**: YYYY-MM-DD
 
@@ -39,28 +39,39 @@
 ## API 엔드포인트 (N개)
 
 ### Authentication (N개)
-- ✅ POST /api/auth/register - 회원가입
+- POST /api/auth/register
+- POST /api/auth/login
 ...
 
 ### [기능명] (N개)
-- ✅ [Method] [URL] - [설명]
+- [Method] [URL]
 ...
 
 ---
 
 ## Database Tables (N개)
 
-### 카테고리
-- ✅ **TableName** - 설명 (PK 타입, FK 관계)
+- **Players**: 플레이어 계정 (GUID PK)
+- **Characters**: 게임 캐릭터 (GUID PK, FK → Players)
 ...
 
 ---
 
-## 주요 기능 상세
+## Unity 문서화 체크리스트 ⚠️ CRITICAL
 
-### 1. [기능명]
-- [핵심 특징]
-- [비즈니스 규칙]
+**언제**: API/DTO 추가/수정 시 반드시 실행
+
+1. **폴더**: `../IdleRPGClient/Docs/unity/{feature}/`
+2. **API_SPEC.md**: Request/Response 예제 + Unity C# 코드
+3. **DTOs.cs**: `[Serializable]`, `[JsonProperty]` (Newtonsoft.Json)
+4. **README.md**: 구현 상태 테이블 업데이트
+
+---
+
+## 완료된 기능 (Week X Day Y)
+
+1. ✅ **인증 시스템**: JWT (Access 15분, Refresh 7일), BCrypt
+2. ✅ **캐릭터 성장**: 레벨업, 경험치 공식
 ...
 
 ---
@@ -68,76 +79,86 @@
 ## 다음 우선순위
 
 ### Immediate (이번 주)
-1. [작업명]
-   - [세부사항]
+1. [작업명]: [세부사항]
+2. [작업명]: [세부사항]
 ...
 
 ### Short-term (다음 주)
 ...
 
----
-
-## 기술 부채
-
-### Critical (즉시 해결)
-- [ ] [항목]
+### Mid-term (Week X-Y)
 ...
 ```
 
 ### 3. roadmap.md 업데이트
 
-`.claude/memories/2-current/roadmap.md` 파일을 다음 형식으로 업데이트하세요:
+`.claude/memories/1-current/roadmap.md` 파일을 다음 형식으로 업데이트하세요:
 
 ```markdown
 # 프로젝트 로드맵
 
-**프로젝트 기간**: 8주 (시작일 ~ 종료일)
+> **시스템 상세 명세**: `0-core/game-design.md` 참조
+
+**프로젝트 기간**: 8주 (2025-10-14 ~ 2025-12-06)
 **현재 진행**: Week X Day Y (YYYY-MM-DD)
 
 ---
 
-## Phase 1: Foundation (Week 1-3)
+## Phase 1: Foundation (Week 1-3) - MVP 시스템
 
-### 시스템 목록
-1. ✅ [완료 시스템] (Week N)
-2. 📋 [진행 중 시스템] (진행 중)
-...
+**시스템**: 1-7 (game-design.md 참조)
+**진행률**: **X/7 완료 (XX%)**
 
-**진행률**: **X/Y 완료 (ZZ%)**
+**완료**: ✅ 1, 2, 3, ...
+**진행 중**: 📋 N
 
 ---
 
-## Phase 2-4: ...
+## Phase 2: Expansion (Week 4-5) - 핵심 게임플레이
 
-[동일한 형식]
+**시스템**: 8-11
+**진행률**: **X/4 (XX%)**
+
+**다음 작업**: N번 (시스템명 - 현재 상태)
+
+---
+
+## Phase 3: Advanced (Week 6-7) - 소셜 & 수익화
+
+**시스템**: 12-16
+**진행률**: **X/5 (XX%)**
+
+---
+
+## Phase 4: Polish (Week 8) - 라이브 운영
+
+**시스템**: 17-21
+**진행률**: **X/5 (XX%)**
 
 ---
 
 ## 전체 진행률
 
 **완료된 시스템**: X개 / 21개 (XX%)
-**진행 중 시스템**: N개 (시스템명)
+**진행 중 시스템**: N개 (시스템 N)
 
 **Phase 별**:
-- Phase 1 (MVP): X/Y = ZZ% [✅ 또는 📋]
-...
-
----
-
-## 다음 우선순위
-
-[status.md와 동일]
+- Phase 1 (MVP): X/7 = XX% [✅ 또는 📋]
+- Phase 2 (핵심): X/4 = XX%
+- Phase 3 (소셜): X/5 = XX%
+- Phase 4 (운영): X/5 = XX%
 
 ---
 
 ## 주요 마일스톤
 
-### ✅ Week N 완료 (YYYY-MM-DD)
+### ✅ Week N (YYYY-MM-DD)
+- 시스템 N, M 완료
 - [주요 성과]
-...
 
-### 📋 Week N 목표
-- [목표 항목]
+### 📋 Week N-M 목표
+- 시스템 N 완성: [세부사항]
+- 시스템 M: [세부사항]
 ...
 ```
 
@@ -176,8 +197,8 @@
 
 ## 참고 파일
 
-- 기존 status.md: `.claude/memories/2-current/status.md`
-- 기존 roadmap.md: `.claude/memories/2-current/roadmap.md`
+- 기존 status.md: `.claude/memories/1-current/status.md`
+- 기존 roadmap.md: `.claude/memories/1-current/roadmap.md`
 - Controllers: `IdleRPG.API/Controllers/`
 - DbContext: `IdleRPG.Infrastructure/Data/GameDBContext.cs`
 - Git log: `git log --oneline -10`

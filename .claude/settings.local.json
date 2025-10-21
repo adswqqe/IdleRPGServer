@@ -128,7 +128,9 @@
       "Read(//c/Users/KTS_Eight/.claude/**)",
       "Read(//c/Users/KTS_Eight/**)",
       "Bash(env)",
-      "Bash(claude mcp list:*)"
+      "Bash(claude mcp list:*)",
+      "Bash(claude config:*)",
+      "Bash(chmod:*)"
     ]
   },
   "enableAllProjectMcpServers": true,
@@ -137,5 +139,40 @@
     "project-memory",
     "project-unity"
   ],
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/auto-start-session.sh",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/auto-update-session-full.sh",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "SessionEnd": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/auto-end-session-llm.sh",
+            "timeout": 10
+          }
+        ]
+      }
+    ]
+  },
   "outputStyle": "Learning"
 }
