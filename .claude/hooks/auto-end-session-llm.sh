@@ -23,8 +23,8 @@ GIT_COMMITS=$(git log --oneline --since="$TODAY 00:00" --until="$TODAY 23:59" 2>
 
 # 2. Week/Day 정보
 ROADMAP_FILE=".claude/memories/1-current/roadmap.md"
-CURRENT_WEEK=$(grep -oP '현재 진행: Week \K[0-9]+' "$ROADMAP_FILE" 2>/dev/null || echo "3")
-CURRENT_DAY=$(grep -oP 'Week [0-9]+ Day \K[0-9]+' "$ROADMAP_FILE" 2>/dev/null || echo "3")
+CURRENT_WEEK=$(grep -oP '\*\*현재 진행\*\*: Week \K[0-9]+' "$ROADMAP_FILE" 2>/dev/null | head -1 || echo "3")
+CURRENT_DAY=$(grep -oP '\*\*현재 진행\*\*.*Week [0-9]+ Day \K[0-9]+' "$ROADMAP_FILE" 2>/dev/null | head -1 || echo "3")
 
 # 3. 세션 파일 크기 확인
 FILE_SIZE=$(stat -c%s "$SESSION_FILE" 2>/dev/null || stat -f%z "$SESSION_FILE" 2>/dev/null || echo "0")
@@ -96,11 +96,13 @@ rm "$SESSION_FILE"
 
 # 6. roadmap.md 업데이트
 NEXT_DAY=$((CURRENT_DAY + 1))
-sed -i "s/현재 진행: Week $CURRENT_WEEK Day $CURRENT_DAY/현재 진행: Week $CURRENT_WEEK Day $NEXT_DAY/" "$ROADMAP_FILE" 2>/dev/null
+TEMP_FILE="$ROADMAP_FILE.tmp"
+sed "s/현재 진행: Week $CURRENT_WEEK Day $CURRENT_DAY/현재 진행: Week $CURRENT_WEEK Day $NEXT_DAY/" "$ROADMAP_FILE" > "$TEMP_FILE" 2>/dev/null && mv "$TEMP_FILE" "$ROADMAP_FILE"
 
 # 7. status.md 업데이트
 STATUS_FILE=".claude/memories/1-current/status.md"
-sed -i "s/\*\*업데이트\*\*: [0-9]\{4\}-[0-9]\{2\}-[0-9]\{2\}/**업데이트**: $TODAY/" "$STATUS_FILE" 2>/dev/null
+TEMP_FILE="$STATUS_FILE.tmp"
+sed "s/\*\*업데이트\*\*: [0-9]\{4\}-[0-9]\{2\}-[0-9]\{2\}/**업데이트**: $TODAY/" "$STATUS_FILE" > "$TEMP_FILE" 2>/dev/null && mv "$TEMP_FILE" "$STATUS_FILE"
 
 # 8. 로그
 echo "[$(date +"%Y-%m-%d %H:%M:%S")] 세션 종료: Week $CURRENT_WEEK Day $CURRENT_DAY | Size: ${FILE_SIZE_MB}MB | API: $API_COUNT | DB: $DB_COUNT | Commits: $GIT_COMMITS" >> ".claude/hooks/session-end.log"

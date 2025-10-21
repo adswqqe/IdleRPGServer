@@ -20,8 +20,8 @@ fi
 
 # Week/Day 계산 (roadmap.md에서 추출)
 ROADMAP_FILE=".claude/memories/1-current/roadmap.md"
-CURRENT_WEEK=$(grep -oP '현재 진행: Week \K[0-9]+' "$ROADMAP_FILE" 2>/dev/null || echo "3")
-CURRENT_DAY=$(grep -oP 'Week [0-9]+ Day \K[0-9]+' "$ROADMAP_FILE" 2>/dev/null || echo "3")
+CURRENT_WEEK=$(grep -oP '\*\*현재 진행\*\*: Week \K[0-9]+' "$ROADMAP_FILE" 2>/dev/null | head -1 || echo "3")
+CURRENT_DAY=$(grep -oP '\*\*현재 진행\*\*.*Week [0-9]+ Day \K[0-9]+' "$ROADMAP_FILE" 2>/dev/null | head -1 || echo "3")
 
 # 오늘의 목표 추출 (status.md의 "다음 우선순위" 섹션)
 STATUS_FILE=".claude/memories/1-current/status.md"
@@ -40,21 +40,17 @@ CURRENT_TIME=$(date +"%H:%M")
 
 cp "$TEMPLATE_FILE" "$SESSION_FILE"
 
-# macOS/Linux 호환 sed (in-place 수정)
-if [[ "$OSTYPE" == "darwin"* ]]; then
-    SED_INPLACE="sed -i ''"
-else
-    SED_INPLACE="sed -i"
-fi
+# 임시 파일 사용 (Windows Git Bash 호환)
+TEMP_FILE="$SESSION_FILE.tmp"
 
 # 변수 치환
-$SED_INPLACE "s/{DATE}/$TODAY/g" "$SESSION_FILE"
-$SED_INPLACE "s/{TIME}/$CURRENT_TIME/g" "$SESSION_FILE"
-$SED_INPLACE "s/{X}/$CURRENT_WEEK/g" "$SESSION_FILE"
-$SED_INPLACE "s/{Y}/$CURRENT_DAY/g" "$SESSION_FILE"
+sed "s/{DATE}/$TODAY/g" "$SESSION_FILE" > "$TEMP_FILE" && mv "$TEMP_FILE" "$SESSION_FILE"
+sed "s/{TIME}/$CURRENT_TIME/g" "$SESSION_FILE" > "$TEMP_FILE" && mv "$TEMP_FILE" "$SESSION_FILE"
+sed "s/{X}/$CURRENT_WEEK/g" "$SESSION_FILE" > "$TEMP_FILE" && mv "$TEMP_FILE" "$SESSION_FILE"
+sed "s/{Y}/$CURRENT_DAY/g" "$SESSION_FILE" > "$TEMP_FILE" && mv "$TEMP_FILE" "$SESSION_FILE"
 
 # 목표 삽입 (템플릿의 placeholder 제거하고 실제 목표 삽입)
-$SED_INPLACE '/^1\. \[ \] {목표1}/,/^3\. \[ \] {목표3}/d' "$SESSION_FILE"
+sed '/^1\. \[ \] {목표1}/,/^3\. \[ \] {목표3}/d' "$SESSION_FILE" > "$TEMP_FILE" && mv "$TEMP_FILE" "$SESSION_FILE"
 echo "" >> "$SESSION_FILE"
 echo "$GOALS" >> "$SESSION_FILE"
 
