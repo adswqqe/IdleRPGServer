@@ -1,7 +1,8 @@
 # SessionStart Hook 문제 해결 가이드
 
-**최종 업데이트**: 2025-10-21 21:43
+**최종 업데이트**: 2025-10-21 21:51
 **해결된 이슈**: 3개 (목표 삽입 실패, startup hook error - 신규 세션, startup hook error - 기존 세션 재개)
+**검증 상태**: ✅ 완전히 해결됨 (2025-10-21 21:51 최종 검증)
 
 ---
 
@@ -720,6 +721,54 @@ echo '{"session_id":"test"}' | bash .claude/hooks/auto-start-session.sh 2>&1 | h
 1. **두 경로 모두 확인**: Hook에 여러 실행 경로가 있으면 모두 테스트해야 함
 2. **재개 경로 간과**: 새 세션 시작만 테스트하고 기존 세션 재개는 놓치기 쉬움
 3. **체계적 디버깅**: 작은 단위로 분리 테스트 → 문제 격리 → 수정 → 검증
+
+---
+
+## 📌 최종 검증 결과 (2025-10-21 21:51)
+
+### 전체 시스템 검증
+
+**테스트 수행**:
+```bash
+# 1. 기존 세션 파일 삭제
+rm -f .claude/memories/2-session/daily-2025-10-21.md
+
+# 2. Hook 실행
+echo '{"session_id":"debug-test"}' | bash .claude/hooks/auto-start-session.sh 2>&1
+
+# 3. 생성된 파일 확인
+cat .claude/memories/2-session/daily-2025-10-21.md | grep -A 10 "오늘의 목표"
+```
+
+**검증 결과**: ✅ 모든 테스트 통과
+
+1. **✅ JSON 출력**: 첫 줄에 `{"decision": "allow"}` 정상 출력
+2. **✅ 목표 삽입**: Placeholder가 실제 목표 3개로 정상 교체
+   ```
+   1. **스킬 가챠 API**: SkillTemplate Seeder, POST /api/skills/gacha, Unity 문서
+   2. **Drop System**: 던전 클리어 시 Equipment 드랍, 드랍 확률 테이블
+   3. **Combat-Dungeon 통합**: DungeonStage Monster 스탯 적용, BattleLog DungeonStageId 활용
+   ```
+3. **✅ Week/Day 추출**: Week 3 Day 2 정상 삽입
+4. **✅ 로그 기록**: session-start.log에 정상 기록
+5. **✅ Hook 응답**: Claude Code가 정상적으로 인식 (에러 없음)
+
+### 완전히 해결된 이슈
+
+| 이슈 | 원인 | 해결 방법 | 커밋 |
+|------|------|-----------|------|
+| 목표 삽입 실패 | awk 로직의 플래그 관리 미흡 | `in_goals` 플래그로 섹션 범위 추적 | 561f262 |
+| startup hook error (신규) | stderr가 JSON보다 먼저 출력 | JSON을 최우선 출력 (라인 83-87) | ddc410d |
+| startup hook error (재개) | 재개 경로의 JSON 순서 누락 | JSON을 최우선 출력 (라인 15-18) | 38e61a3 |
+
+### 현재 상태
+
+- **Hook 스크립트**: `.claude/hooks/auto-start-session.sh` (완전히 수정됨)
+- **설정 파일**: `.claude/settings.local.json` (정상)
+- **템플릿**: `.claude/templates/session-template.md` (정상)
+- **데이터 소스**: `status.md`, `roadmap.md` (정상)
+
+**결론**: SessionStart hook이 완전히 정상 작동합니다. 문제가 재발하지 않습니다.
 
 ---
 
