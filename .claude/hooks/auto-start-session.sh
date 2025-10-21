@@ -20,8 +20,13 @@ fi
 
 # Week/Day 계산 (roadmap.md에서 추출)
 ROADMAP_FILE=".claude/memories/1-current/roadmap.md"
-CURRENT_WEEK=$(grep -oP '\*\*현재 진행\*\*:\s*Week\s+\K[0-9]+' "$ROADMAP_FILE" 2>/dev/null | head -1 || echo "3")
-CURRENT_DAY=$(grep -oP '\*\*현재 진행\*\*:.*Week\s+[0-9]+\s+Day\s+\K[0-9]+' "$ROADMAP_FILE" 2>/dev/null | head -1 || echo "3")
+# "**현재 진행**: Week 3 Day 2 (2025-10-20)" 형식에서 Week, Day 추출
+CURRENT_WEEK=$(grep "^\*\*현재 진행\*\*:" "$ROADMAP_FILE" 2>/dev/null | sed -n 's/.*Week \([0-9]\+\).*/\1/p' | head -1)
+CURRENT_DAY=$(grep "^\*\*현재 진행\*\*:" "$ROADMAP_FILE" 2>/dev/null | sed -n 's/.*Day \([0-9]\+\).*/\1/p' | head -1)
+
+# 기본값 설정 (추출 실패 시)
+CURRENT_WEEK=${CURRENT_WEEK:-3}
+CURRENT_DAY=${CURRENT_DAY:-2}
 
 # 오늘의 목표 추출 (status.md의 "다음 우선순위" 섹션)
 STATUS_FILE=".claude/memories/1-current/status.md"
@@ -53,15 +58,20 @@ sed "s/{Y}/$CURRENT_DAY/g" "$SESSION_FILE" > "$TEMP_FILE" && mv "$TEMP_FILE" "$S
 # 목표 삽입 (템플릿의 placeholder를 실제 목표로 교체)
 # "## 🎯 오늘의 목표" 섹션 다음에 목표 삽입
 awk -v goals="$GOALS" '
+BEGIN { in_goals = 0 }
 /^> `1-current\/status.md`의 "다음 우선순위" 기반$/ {
     print;
     print "";
     print goals;
+    in_goals = 1;
     next;
 }
-/^$/ && prev_goals { prev_goals=0; next; }
-/^1\. \[ \] {목표1}$/ || /^2\. \[ \] {목표2}$/ || /^3\. \[ \] {목표3}$/ {
-    prev_goals=1;
+in_goals && /^---$/ {
+    in_goals = 0;
+    print;
+    next;
+}
+in_goals {
     next;
 }
 { print }
