@@ -130,7 +130,15 @@
       "Bash(env)",
       "Bash(claude mcp list:*)",
       "Bash(claude config:*)",
-      "Bash(chmod:*)"
+      "Bash(chmod:*)",
+      "Bash(dos2unix:*)",
+      "Bash(sed:*)",
+      "Bash(git config:*)",
+      "Bash(for file in .claude/hooks/*.sh)",
+      "Bash(do sed -i 's/\\r$//' \"$file\")",
+      "Bash(done)",
+      "Bash(bash:*)",
+      "Bash(awk:*)"
     ]
   },
   "enableAllProjectMcpServers": true,
