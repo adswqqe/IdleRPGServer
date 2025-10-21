@@ -80,16 +80,10 @@ in_goals {
 # 로그 기록
 echo "[$(date +"%Y-%m-%d %H:%M:%S")] 새 세션 시작: Week $CURRENT_WEEK Day $CURRENT_DAY" >> ".claude/hooks/session-start.log"
 
-# Claude에게 알림 메시지 (stderr로 출력하면 Claude가 볼 수 있음)
-echo "
-✅ 세션 자동 시작: $TODAY
-📅 진행도: Week $CURRENT_WEEK Day $CURRENT_DAY
-📂 파일: 2-session/daily-$TODAY.md
-
-🎯 오늘의 목표:
-$GOALS
-" >&2
-
-# 항상 allow
+# 항상 allow (JSON을 먼저 출력)
 echo '{"decision": "allow"}'
+
+# Claude에게 알림 메시지 (JSON 출력 후 stderr로)
+echo "✅ 세션 자동 시작: $TODAY | Week $CURRENT_WEEK Day $CURRENT_DAY | 목표: 3개" >&2
+
 exit 0

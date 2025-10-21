@@ -1,8 +1,11 @@
 # Troubleshooting: SessionStart Hook 목표 삽입 에러
 
 **날짜**: 2025-10-21
-**이슈**: SessionStart hook이 실행되지만 세션 파일에 placeholder가 남아있음
+**이슈 1**: SessionStart hook이 실행되지만 세션 파일에 placeholder가 남아있음
 **상태**: ✅ 해결 완료
+
+**이슈 2**: Claude Code 시작 시 "SessionStart:startup hook error" 발생
+**상태**: ✅ 해결 완료 (2025-10-21 21:32)
 
 ---
 
@@ -241,3 +244,87 @@ fix(hook): SessionStart 목표 삽입 awk 로직 개선
 - **템플릿**: `.claude/templates/session-template.md`
 - **목표 소스**: `.claude/memories/1-current/status.md` (### Immediate 섹션)
 - **로그**: `.claude/hooks/session-start.log`
+
+---
+
+## 🐛 이슈 2: "SessionStart:startup hook error" (2025-10-21 21:32)
+
+### 증상
+```
+▐▛███▜▌   Claude Code v2.0.24
+▝▜█████▛▘  Sonnet 4.5 · Claude Max
+  ▘▘ ▝▝    E:\StudyGameProj\IdleRPGServer
+  ⎿  SessionStart:startup hook error
+```
+
+### 원인
+**Hook의 JSON 출력 순서 문제**
+
+기존 코드 (문제):
+```bash
+# stderr로 여러 줄 메시지 먼저 출력
+echo "
+✅ 세션 자동 시작: $TODAY
+📅 진행도: Week $CURRENT_WEEK Day $CURRENT_DAY
+...
+" >&2
+
+# 그 다음 JSON 출력
+echo '{"decision": "allow"}'
+```
+
+**문제점**:
+- Claude Code hook은 **stdout의 첫 번째 줄이 유효한 JSON**이어야 함
+- stderr 출력이 먼저 나가면서 hook 파싱에 혼란
+- 특히 이모지와 여러 줄 출력이 문제 유발
+
+### 해결 방법
+
+**JSON을 먼저 출력하고, stderr 메시지는 나중에**:
+
+```bash
+# 로그 기록
+echo "[$(date +"%Y-%m-%d %H:%M:%S")] 새 세션 시작: Week $CURRENT_WEEK Day $CURRENT_DAY" >> ".claude/hooks/session-start.log"
+
+# 항상 allow (JSON을 먼저 출력)
+echo '{"decision": "allow"}'
+
+# Claude에게 알림 메시지 (JSON 출력 후 stderr로)
+echo "✅ 세션 자동 시작: $TODAY | Week $CURRENT_WEEK Day $CURRENT_DAY | 목표: 3개" >&2
+
+exit 0
+```
+
+### 핵심 개선 사항
+
+1. **JSON 우선 출력**: `echo '{"decision": "allow"}'`를 제일 먼저 실행
+2. **stderr는 나중에**: JSON 출력 후 알림 메시지 출력
+3. **간결한 메시지**: 여러 줄 대신 한 줄로 압축
+
+### 테스트 결과
+
+```bash
+$ echo '{"session_id":"test"}' | bash .claude/hooks/auto-start-session.sh 2>&1
+{"decision": "allow"}
+✅ 세션 자동 시작: 2025-10-21 | Week 3 Day 2 | 목표: 3개
+```
+
+✅ **JSON이 첫 번째 줄에 깨끗하게 출력됨!**
+
+### 교훈
+
+**Claude Code Hook 규칙**:
+1. **stdout의 첫 번째 줄은 반드시 유효한 JSON**
+2. stderr 메시지는 JSON 출력 **후**에
+3. 이모지나 특수문자는 stderr에만 사용
+4. 여러 줄 출력보다는 간결한 한 줄 메시지 권장
+
+### 관련 커밋
+```
+commit {hash}
+fix(hook): SessionStart JSON 출력 순서 수정
+
+- JSON을 stderr 메시지보다 먼저 출력
+- 여러 줄 메시지를 한 줄로 압축
+- "startup hook error" 해결
+```
