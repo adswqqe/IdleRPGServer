@@ -127,7 +127,8 @@
       "Read(//d/Proj/zen-mcp-server/**)",
       "Read(//c/Users/KTS_Eight/.claude/**)",
       "Read(//c/Users/KTS_Eight/**)",
-      "Bash(env)"
+      "Bash(env)",
+      "Bash(claude mcp list:*)"
     ]
   },
   "enableAllProjectMcpServers": true,
