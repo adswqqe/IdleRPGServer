@@ -19,7 +19,12 @@ fi
 
 # Transcript에서 마지막 대화 추출 (사용자 메시지 + Claude 응답)
 # JSONL 파싱: 마지막 2개 entry (user + assistant)
-LAST_MESSAGES=$(tail -n 2 "$TRANSCRIPT_PATH" 2>/dev/null | jq -r '.content[] | select(.type == "text") | .text' 2>/dev/null || echo "")
+if command -v jq &> /dev/null; then
+    LAST_MESSAGES=$(tail -n 2 "$TRANSCRIPT_PATH" 2>/dev/null | jq -r '.content[] | select(.type == "text") | .text' 2>/dev/null || echo "")
+else
+    # jq 없으면 간단한 grep으로 텍스트 추출
+    LAST_MESSAGES=$(tail -n 2 "$TRANSCRIPT_PATH" 2>/dev/null | grep -o '"text":"[^"]*"' | cut -d'"' -f4 || echo "")
+fi
 
 # 빈 응답이면 종료
 if [ -z "$LAST_MESSAGES" ]; then
@@ -85,8 +90,8 @@ echo "" >> "$SESSION_FILE"
 # 대화 내용 저장 (전체)
 echo "$LAST_MESSAGES" >> "$SESSION_FILE"
 
-# 파일 크기 체크 (10MB 초과 시 경고)
-FILE_SIZE=$(stat -f%z "$SESSION_FILE" 2>/dev/null || stat -c%s "$SESSION_FILE" 2>/dev/null || echo "0")
+# 파일 크기 체크 (10MB 초과 시 경고) - Windows Git Bash 호환
+FILE_SIZE=$(stat -c%s "$SESSION_FILE" 2>/dev/null || stat -f%z "$SESSION_FILE" 2>/dev/null || wc -c < "$SESSION_FILE" 2>/dev/null || echo "0")
 if [ "$FILE_SIZE" -gt 10485760 ]; then
     echo "⚠️  세션 파일이 10MB를 초과했습니다. SessionEnd에서 LLM 요약이 권장됩니다." >&2
 fi

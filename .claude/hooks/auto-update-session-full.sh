@@ -19,23 +19,42 @@ fi
 # Transcript 마지막 entry 추출 (JSONL 형식)
 LAST_ENTRY=$(tail -n 1 "$TRANSCRIPT_PATH" 2>/dev/null)
 
-# role이 assistant인지 확인 (Claude의 응답만 저장)
-ROLE=$(echo "$LAST_ENTRY" | jq -r '.role' 2>/dev/null)
-if [ "$ROLE" != "assistant" ]; then
-    echo '{"decision": "allow"}'
-    exit 0
-fi
+# jq 사용 가능 여부 확인
+if command -v jq &> /dev/null; then
+    # jq로 파싱
+    ROLE=$(echo "$LAST_ENTRY" | jq -r '.role' 2>/dev/null)
+    if [ "$ROLE" != "assistant" ]; then
+        echo '{"decision": "allow"}'
+        exit 0
+    fi
 
-# 서브에이전트 응답인지 확인 (Task tool 사용 여부)
-IS_AGENT=$(echo "$LAST_ENTRY" | jq -r '.content[] | select(.type == "tool_use") | select(.name == "Task")' 2>/dev/null)
-if [ -n "$IS_AGENT" ]; then
-    # 서브에이전트 작업이면 저장 안 함
-    echo '{"decision": "allow"}'
-    exit 0
-fi
+    # 서브에이전트 응답인지 확인 (Task tool 사용 여부)
+    IS_AGENT=$(echo "$LAST_ENTRY" | jq -r '.content[] | select(.type == "tool_use") | select(.name == "Task")' 2>/dev/null)
+    if [ -n "$IS_AGENT" ]; then
+        # 서브에이전트 작업이면 저장 안 함
+        echo '{"decision": "allow"}'
+        exit 0
+    fi
 
-# 텍스트 내용 추출
-MESSAGE_TEXT=$(echo "$LAST_ENTRY" | jq -r '.content[] | select(.type == "text") | .text' 2>/dev/null)
+    # 텍스트 내용 추출
+    MESSAGE_TEXT=$(echo "$LAST_ENTRY" | jq -r '.content[] | select(.type == "text") | .text' 2>/dev/null)
+else
+    # jq 없으면 간단한 grep/sed로 파싱
+    ROLE=$(echo "$LAST_ENTRY" | grep -o '"role":"[^"]*"' | cut -d'"' -f4)
+    if [ "$ROLE" != "assistant" ]; then
+        echo '{"decision": "allow"}'
+        exit 0
+    fi
+
+    # Task tool 사용 여부 (간단 체크)
+    if echo "$LAST_ENTRY" | grep -q '"name":"Task"'; then
+        echo '{"decision": "allow"}'
+        exit 0
+    fi
+
+    # 텍스트 내용 추출 (간단한 방법 - 완벽하지 않지만 작동함)
+    MESSAGE_TEXT=$(echo "$LAST_ENTRY" | grep -o '"text":"[^"]*"' | cut -d'"' -f4 | head -1)
+fi
 
 # 빈 메시지면 종료
 if [ -z "$MESSAGE_TEXT" ] || [ "$MESSAGE_TEXT" = "null" ]; then
@@ -97,15 +116,15 @@ echo "" >> "$SESSION_FILE"
 echo "$MESSAGE_TEXT" >> "$SESSION_FILE"
 echo "" >> "$SESSION_FILE"
 
-# 파일 크기 및 토큰 수 계산
-FILE_SIZE=$(stat -c%s "$SESSION_FILE" 2>/dev/null || stat -f%z "$SESSION_FILE" 2>/dev/null || echo "0")
-FILE_SIZE_MB=$(echo "scale=2; $FILE_SIZE / 1048576" | bc 2>/dev/null || echo "0")
+# 파일 크기 및 토큰 수 계산 (Windows Git Bash 호환)
+FILE_SIZE=$(stat -c%s "$SESSION_FILE" 2>/dev/null || stat -f%z "$SESSION_FILE" 2>/dev/null || wc -c < "$SESSION_FILE" 2>/dev/null || echo "0")
+FILE_SIZE_MB=$(awk "BEGIN {printf \"%.2f\", $FILE_SIZE / 1048576}")
 
 # 토큰 수 추정 (1 token ≈ 4 characters for English, ≈ 2 for Korean)
 # 한글/영어 혼합이므로 평균 3 characters per token으로 계산
 CHAR_COUNT=$(wc -m < "$SESSION_FILE" 2>/dev/null || echo "0")
-TOKEN_COUNT=$(echo "scale=0; $CHAR_COUNT / 3" | bc 2>/dev/null || echo "0")
-TOKEN_COUNT_K=$(echo "scale=1; $TOKEN_COUNT / 1000" | bc 2>/dev/null || echo "0")
+TOKEN_COUNT=$(awk "BEGIN {printf \"%.0f\", $CHAR_COUNT / 3}")
+TOKEN_COUNT_K=$(awk "BEGIN {printf \"%.1f\", $TOKEN_COUNT / 1000}")
 
 # 경고 메시지
 if [ "$FILE_SIZE" -gt 10485760 ]; then
