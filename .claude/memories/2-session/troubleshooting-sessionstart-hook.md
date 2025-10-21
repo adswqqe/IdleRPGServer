@@ -1,8 +1,8 @@
 # SessionStart Hook 문제 해결 가이드
 
-**최종 업데이트**: 2025-10-21 21:51
-**해결된 이슈**: 3개 (목표 삽입 실패, startup hook error - 신규 세션, startup hook error - 기존 세션 재개)
-**검증 상태**: ✅ 완전히 해결됨 (2025-10-21 21:51 최종 검증)
+**최종 업데이트**: 2025-10-21 22:21
+**해결된 이슈**: 5개 (목표 삽입 실패, startup hook error - 신규 세션, startup hook error - 기존 세션 재개, Windows Git Bash 호환성 문제, 기존 세션 placeholder 잔존 문제)
+**검증 상태**: ✅ 완전히 해결됨 (2025-10-21 22:21 최종 검증)
 
 ---
 
@@ -65,7 +65,66 @@ echo '{"session_id":"test"}' | bash .claude/hooks/auto-start-session.sh 2>&1 | h
 
 ---
 
-#### 2️⃣ 세션 파일에 `{목표1}`, `{목표2}` placeholder가 남아있다
+#### 2️⃣ "syntax error: unexpected end of file" 에러가 발생한다
+
+```bash
+bash .claude/hooks/auto-start-session.sh
+# 출력:
+# .claude/hooks/auto-start-session.sh: line 138: syntax error: unexpected end of file
+```
+
+**원인**: if/else 블록이 fi로 제대로 닫히지 않음
+**해결**: 스크립트의 모든 if/else 블록 검증
+
+**주요 확인 위치**:
+1. **라인 8-16**: 입력 처리 if/else 블록
+```bash
+if [ -t 0 ]; then
+    SESSION_ID=""
+else
+    INPUT=$(cat 2>/dev/null || echo "{}")
+    SESSION_ID=$(echo "$INPUT" | sed -n 's/.*"session_id"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' 2>/dev/null || echo "")
+fi  # ← fi 필수!
+```
+
+2. **라인 31-37**: roadmap.md 파일 존재 확인 블록
+```bash
+if [ -f "$ROADMAP_FILE" ]; then
+    CURRENT_WEEK=$(...)
+    CURRENT_DAY=$(...)
+else
+    CURRENT_WEEK=""
+    CURRENT_DAY=""
+fi  # ← fi 필수!
+```
+
+3. **라인 59-92**: 템플릿 파일 처리 블록
+```bash
+if [ ! -f "$TEMPLATE_FILE" ]; then
+    cat > "$SESSION_FILE" << 'EOF'
+...
+EOF
+else
+    cp "$TEMPLATE_FILE" "$SESSION_FILE"
+fi  # ← fi 필수!
+```
+
+4. **라인 106-126**: awk 명령어 존재 확인 블록
+```bash
+if command -v awk >/dev/null 2>&1; then
+    awk -v goals="$GOALS" '...'
+fi  # ← fi 필수!
+```
+
+**즉시 검증**:
+```bash
+bash -n .claude/hooks/auto-start-session.sh
+# 에러 없으면 문법 정상
+```
+
+---
+
+#### 3️⃣ 세션 파일에 `{목표1}`, `{목표2}` placeholder가 남아있다
 
 **원인**: awk 스크립트의 목표 삽입 로직 실패
 **해결**: `.claude/hooks/auto-start-session.sh`의 awk 부분 수정
@@ -106,7 +165,42 @@ cat .claude/memories/2-session/daily-$(date +%Y-%m-%d).md | grep -A 5 "오늘의
 
 ---
 
-#### 3️⃣ Hook이 아예 실행되지 않는다
+#### 4️⃣ Windows Git Bash에서 JSON 파싱 실패
+
+```bash
+# grep -o 옵션 사용 시
+SESSION_ID=$(echo "$INPUT" | grep -o '"session_id":"[^"]*"' | cut -d'"' -f4)
+# 결과: 빈 문자열 또는 에러
+```
+
+**원인**: Windows Git Bash에서 grep -o 옵션 미지원 또는 불안정
+**해결**: sed 명령어로 대체
+
+**수정 전 (라인 8)**:
+```bash
+SESSION_ID=$(echo "$INPUT" | grep -o '"session_id":"[^"]*"' | cut -d'"' -f4)
+```
+
+**수정 후**:
+```bash
+SESSION_ID=$(echo "$INPUT" | sed -n 's/.*"session_id"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' 2>/dev/null || echo "")
+```
+
+**장점**:
+- ✅ Windows Git Bash와 Linux/Mac 모두 호환
+- ✅ 공백 처리 강건 (`[[:space:]]*`)
+- ✅ 에러 발생 시 빈 문자열 반환 (`|| echo ""`)
+
+**즉시 테스트**:
+```bash
+# JSON 파싱 테스트
+echo '{"session_id":"test-123"}' | sed -n 's/.*"session_id"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p'
+# 출력: test-123
+```
+
+---
+
+#### 5️⃣ Hook이 아예 실행되지 않는다
 
 **진단 체크리스트**:
 ```bash
@@ -769,6 +863,230 @@ cat .claude/memories/2-session/daily-2025-10-21.md | grep -A 10 "오늘의 목�
 - **데이터 소스**: `status.md`, `roadmap.md` (정상)
 
 **결론**: SessionStart hook이 완전히 정상 작동합니다. 문제가 재발하지 않습니다.
+
+---
+
+---
+
+## 📌 최근 해결 사례 #2 (2025-10-21 22:08)
+
+### 증상
+- troubleshooting 문서의 해결 방법을 적용했지만 여전히 "SessionStart:startup hook error" 발생
+- 스크립트 실행 시 "syntax error: unexpected end of file" 에러 발생
+
+### 디버깅 과정
+
+1. **이전 문서 확인**: 라인 15-18과 83-87의 JSON 순서 문제 해결 확인 ✅
+2. **스크립트 문법 검증**: ❌ **문법 에러 발견!**
+```bash
+bash -n .claude/hooks/auto-start-session.sh
+# 출력: line 138: syntax error: unexpected end of file
+```
+
+3. **if/else 블록 검증**: ❌ **누락된 fi 발견!**
+
+### 근본 원인
+
+**3개의 if 블록에서 fi가 누락됨**:
+
+1. **라인 8-15**: 입력 처리 블록
+```bash
+# ❌ 문제 코드
+else
+    INPUT=$(cat 2>/dev/null || echo "{}")
+    SESSION_ID=$(...)
+
+# 날짜 확인  ← fi 없이 다음 코드로 넘어감!
+```
+
+2. **라인 31-36**: roadmap.md 파일 확인 블록
+```bash
+# ❌ 문제 코드
+else
+    CURRENT_WEEK=""
+    CURRENT_DAY=""
+
+# 기본값 설정  ← fi 없음!
+```
+
+3. **라인 59-91**: 템플릿 파일 처리 블록
+```bash
+# ❌ 문제 코드
+else
+    cp "$TEMPLATE_FILE" "$SESSION_FILE"
+
+# 임시 파일 사용  ← fi 없음!
+```
+
+4. **라인 106-125**: awk 명령어 존재 확인 블록
+```bash
+# ❌ 문제 코드
+if command -v awk >/dev/null 2>&1; then
+    awk -v goals="$GOALS" '...'
+
+# 로그 기록  ← fi 없음!
+```
+
+### 추가 문제: Windows Git Bash 호환성
+
+**grep -o 옵션 실패**:
+```bash
+# ❌ Windows Git Bash에서 작동 불안정
+SESSION_ID=$(echo "$INPUT" | grep -o '"session_id":"[^"]*"' | cut -d'"' -f4)
+```
+
+### 해결
+
+1. **모든 if 블록에 fi 추가**:
+```bash
+# ✅ 수정 후
+if [ -t 0 ]; then
+    SESSION_ID=""
+else
+    INPUT=$(cat 2>/dev/null || echo "{}")
+    SESSION_ID=$(...)
+fi  # ← fi 추가!
+```
+
+2. **sed로 JSON 파싱 대체**:
+```bash
+# ✅ Windows 호환 버전
+SESSION_ID=$(echo "$INPUT" | sed -n 's/.*"session_id"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' 2>/dev/null || echo "")
+```
+
+3. **에러 핸들링 강화**:
+```bash
+# ✅ 모든 파일 작업에 에러 무시 처리
+sed "s/{DATE}/$TODAY/g" "$SESSION_FILE" > "$TEMP_FILE" 2>/dev/null && mv "$TEMP_FILE" "$SESSION_FILE" 2>/dev/null || true
+```
+
+4. **템플릿 없는 경우 대비**:
+```bash
+# ✅ 템플릿 파일이 없으면 기본 템플릿 생성
+if [ ! -f "$TEMPLATE_FILE" ]; then
+    cat > "$SESSION_FILE" << 'EOF'
+# 📅 {DATE} | Week {X} Day {Y}
+...
+EOF
+else
+    cp "$TEMPLATE_FILE" "$SESSION_FILE"
+fi
+```
+
+### 검증
+
+```bash
+# 문법 검증
+bash -n .claude/hooks/auto-start-session.sh
+# 에러 없음 ✅
+
+# 실행 테스트
+bash .claude/hooks/auto-start-session.sh
+# 출력:
+# {"decision": "allow"}
+# ✅ 세션 자동 시작: 2025-10-21 | Week 3 Day 2 | 목표: 3개
+```
+
+### 교훈
+
+1. **문법 검증 필수**: 스크립트 수정 후 `bash -n script.sh` 실행
+2. **Windows 호환성**: grep -o, sed -i 등은 플랫폼별 동작 차이 있음
+3. **에러 핸들링**: 모든 외부 명령어는 실패해도 스크립트가 계속되도록 `|| true` 추가
+4. **폴백 로직**: 템플릿 파일 없는 경우 등 예외 상황 대비
+
+### 완전한 해결 체크리스트
+
+- ✅ if/else 블록 모두 fi로 닫힘
+- ✅ Windows Git Bash 호환 (sed 사용)
+- ✅ 에러 핸들링 강화 (2>/dev/null, || true)
+- ✅ 템플릿 없는 경우 대비
+- ✅ JSON 출력 순서 (기존 세션 재개 포함)
+- ✅ awk 섹션 범위 추적
+
+---
+
+## 📌 최근 해결 사례 #3 (2025-10-21 22:21)
+
+### 증상
+- 수동으로 hook을 테스트하면 정상 작동 (목표 정상 삽입)
+- Claude Code 시작 시 목표가 `{목표1}`, `{목표2}` placeholder로 남아있음
+
+### 원인 분석
+
+**기존 세션 재개 로직의 문제**:
+```bash
+# ❌ 문제 코드 (라인 23-26)
+if [ -f "$SESSION_FILE" ]; then
+    echo '{"decision": "allow"}'
+    echo "✅ 기존 세션 재개: $TODAY" >&2
+    exit 0
+fi
+```
+
+**문제점**:
+1. 오늘 날짜의 파일이 이미 있으면 무조건 재개
+2. 파일이 이전에 placeholder를 가진 상태로 생성되었어도 체크하지 않음
+3. 수동 테스트는 파일을 삭제하고 실행하므로 정상 작동
+4. Claude Code 자동 실행은 기존 파일을 재사용하므로 문제 발생
+
+### 해결
+
+**Placeholder 감지 로직 추가**:
+```bash
+# ✅ 수정 후 (라인 22-34)
+# 기존 세션 파일이 있는지 확인
+if [ -f "$SESSION_FILE" ]; then
+    # Placeholder가 있으면 파일을 다시 생성해야 함
+    if grep -q "{목표" "$SESSION_FILE" 2>/dev/null; then
+        # Placeholder 발견 - 파일을 삭제하고 새로 생성
+        rm -f "$SESSION_FILE" 2>/dev/null || true
+    else
+        # 정상 파일 - 재개
+        echo '{"decision": "allow"}'
+        echo "✅ 기존 세션 재개: $TODAY" >&2
+        exit 0
+    fi
+fi
+```
+
+**장점**:
+- ✅ 기존 파일이 placeholder를 가지고 있으면 자동으로 재생성
+- ✅ 정상 파일은 그대로 재사용 (불필요한 재생성 방지)
+- ✅ 수동 테스트와 자동 실행이 동일하게 작동
+
+### 검증
+
+**Placeholder 감지 테스트**:
+```bash
+# 1. Placeholder 포함 파일 생성
+cat > .claude/memories/2-session/daily-2025-10-21.md << 'EOF'
+## 🎯 오늘의 목표
+1. [ ] {목표1}
+2. [ ] {목표2}
+EOF
+
+# 2. Hook 실행
+echo '{"session_id":"test"}' | bash .claude/hooks/auto-start-session.sh
+
+# 3. 결과 확인
+cat .claude/memories/2-session/daily-2025-10-21.md | grep -A 5 "오늘의 목표"
+# 출력: 실제 목표 3개가 정상 삽입됨 ✅
+```
+
+**정상 파일 재개 테스트**:
+```bash
+# 정상 파일이 있을 때
+echo '{"session_id":"test"}' | bash .claude/hooks/auto-start-session.sh 2>&1
+# 출력:
+# {"decision": "allow"}
+# ✅ 기존 세션 재개: 2025-10-21
+```
+
+### 교훈
+
+1. **재개 로직 검증**: 기존 파일을 재사용하는 경우 파일 상태도 검증해야 함
+2. **자동 복구**: Placeholder 같은 비정상 상태를 감지하면 자동으로 수정
+3. **테스트 시나리오**: 수동 실행뿐만 아니라 기존 파일이 있는 상태도 테스트
 
 ---
 
