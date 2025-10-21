@@ -1,7 +1,7 @@
 # SessionStart Hook 문제 해결 가이드
 
-**최종 업데이트**: 2025-10-21 21:32
-**해결된 이슈**: 2개 (목표 삽입 실패, startup hook error)
+**최종 업데이트**: 2025-10-21 21:43
+**해결된 이슈**: 3개 (목표 삽입 실패, startup hook error - 신규 세션, startup hook error - 기존 세션 재개)
 
 ---
 
@@ -17,23 +17,49 @@
   ⎿  SessionStart:startup hook error
 ```
 
-**원인**: Hook의 JSON 출력 순서 문제
-**해결**: `.claude/hooks/auto-start-session.sh` 파일 끝부분 수정
+**원인**: Hook의 JSON 출력 순서 문제 (2개 경로 모두 확인 필요!)
+**해결**: `.claude/hooks/auto-start-session.sh`의 **두 곳** 수정
 
+**🔴 Critical: 두 경로 모두 수정해야 함!**
+
+1. **라인 15-18**: 기존 세션 재개 시
 ```bash
-# ❌ 잘못된 순서 (stderr 먼저)
-echo "여러 줄 메시지..." >&2
-echo '{"decision": "allow"}'
+# ❌ 잘못된 순서
+if [ -f "$SESSION_FILE" ]; then
+    echo "✅ 기존 세션 재개: $TODAY" >&2  # stderr 먼저
+    echo '{"decision": "allow"}'
+    exit 0
+fi
 
-# ✅ 올바른 순서 (JSON 먼저)
+# ✅ 올바른 순서
+if [ -f "$SESSION_FILE" ]; then
+    echo '{"decision": "allow"}'          # JSON 먼저!
+    echo "✅ 기존 세션 재개: $TODAY" >&2
+    exit 0
+fi
+```
+
+2. **라인 83-87**: 새 세션 시작 시 (이미 올바름)
+```bash
+# ✅ 올바른 순서
 echo '{"decision": "allow"}'
-echo "한 줄 메시지" >&2
+echo "✅ 세션 자동 시작: $TODAY | Week $CURRENT_WEEK Day $CURRENT_DAY | 목표: 3개" >&2
 ```
 
 **즉시 테스트**:
 ```bash
-echo '{"session_id":"test"}' | bash .claude/hooks/auto-start-session.sh 2>&1
-# 첫 줄이 {"decision": "allow"}이면 성공!
+# 기존 세션 재개 경로 테스트 (오늘 파일이 있는 상태)
+echo '{"session_id":"test"}' | bash .claude/hooks/auto-start-session.sh 2>&1 | head -2
+# 출력:
+# {"decision": "allow"}
+# ✅ 기존 세션 재개: 2025-10-21
+
+# 새 세션 시작 경로 테스트 (오늘 파일 삭제 후)
+rm -f .claude/memories/2-session/daily-$(date +%Y-%m-%d).md
+echo '{"session_id":"test"}' | bash .claude/hooks/auto-start-session.sh 2>&1 | head -2
+# 출력:
+# {"decision": "allow"}
+# ✅ 세션 자동 시작: ...
 ```
 
 ---
@@ -511,6 +537,13 @@ sed 's/old/new/' file > temp && mv temp file
 ## 🔄 관련 커밋
 
 ```
+commit TBD (2025-10-21 21:43)
+fix(hook): SessionStart 기존 세션 재개 시 JSON 출력 순서 수정
+
+- 라인 15-18: 기존 세션 재개 경로에서 JSON을 stderr보다 먼저 출력
+- 이전 수정(ddc410d)은 새 세션 시작 경로만 수정했으나, 재개 경로는 누락
+- "SessionStart:startup hook error" 완전 해결
+
 commit 561f262
 fix(hook): SessionStart 목표 삽입 awk 로직 개선
 
@@ -519,11 +552,11 @@ fix(hook): SessionStart 목표 삽입 awk 로직 개선
 - 플레이스홀더 개수와 무관하게 안정적 처리
 
 commit ddc410d
-fix(hook): SessionStart JSON 출력 순서 수정
+fix(hook): SessionStart JSON 출력 순서 수정 (신규 세션 시작 경로)
 
 - JSON을 stderr 메시지보다 먼저 출력하여 hook 파싱 안정화
 - 여러 줄 이모지 메시지를 한 줄로 압축
-- "SessionStart:startup hook error" 해결
+- 라인 83-87 수정 (새 세션 시작 시)
 ```
 
 ---
@@ -617,6 +650,76 @@ cp .claude/hooks/auto-start-session.sh .claude/hooks/auto-start-session.sh.backu
 git add .claude/hooks/auto-start-session.sh
 git commit -m "fix(hook): 수정 내용"
 ```
+
+---
+
+## 📌 최근 해결 사례 (2025-10-21 21:43)
+
+### 증상
+- "SessionStart:startup hook error" 메시지가 계속 나타남
+- troubleshooting 문서에 해결 방법이 있었지만 여전히 에러 발생
+
+### 디버깅 과정
+
+1. **목표 추출 테스트**: ✅ 정상
+```bash
+sed -n '/### Immediate/,/^$/p' .claude/memories/1-current/status.md | grep -E "^[0-9]\." | head -3
+# 결과: 3개 목표 정상 추출
+```
+
+2. **awk 스크립트 테스트**: ✅ 정상
+```bash
+# 하드코딩된 목표로 테스트 → 정상 작동
+```
+
+3. **Hook 전체 실행 테스트**: ❌ **문제 발견!**
+```bash
+echo '{"session_id":"test"}' | bash .claude/hooks/auto-start-session.sh 2>&1 | head -2
+# 출력:
+# ✅ 기존 세션 재개: 2025-10-21  ← stderr 먼저 (잘못됨!)
+# {"decision": "allow"}           ← JSON 나중
+```
+
+### 근본 원인
+
+**라인 15-18 (기존 세션 재개 경로)**에서 JSON 순서가 잘못됨:
+```bash
+# ❌ 문제 코드
+if [ -f "$SESSION_FILE" ]; then
+    echo "✅ 기존 세션 재개: $TODAY" >&2  # stderr 먼저
+    echo '{"decision": "allow"}'
+    exit 0
+fi
+```
+
+이전 커밋(ddc410d)에서 **라인 83-87 (새 세션 시작 경로)**만 수정했고, **기존 세션 재개 경로는 수정을 놓쳤음**.
+
+### 해결
+
+라인 16-17 순서 변경:
+```bash
+# ✅ 수정 후
+if [ -f "$SESSION_FILE" ]; then
+    echo '{"decision": "allow"}'          # JSON 먼저!
+    echo "✅ 기존 세션 재개: $TODAY" >&2
+    exit 0
+fi
+```
+
+### 검증
+
+```bash
+echo '{"session_id":"test"}' | bash .claude/hooks/auto-start-session.sh 2>&1 | head -2
+# 출력:
+# {"decision": "allow"}           ✅ JSON 첫 줄!
+# ✅ 기존 세션 재개: 2025-10-21  ✅ stderr 나중
+```
+
+### 교훈
+
+1. **두 경로 모두 확인**: Hook에 여러 실행 경로가 있으면 모두 테스트해야 함
+2. **재개 경로 간과**: 새 세션 시작만 테스트하고 기존 세션 재개는 놓치기 쉬움
+3. **체계적 디버깅**: 작은 단위로 분리 테스트 → 문제 격리 → 수정 → 검증
 
 ---
 

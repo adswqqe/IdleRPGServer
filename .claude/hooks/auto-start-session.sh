@@ -13,8 +13,8 @@ SESSION_FILE=".claude/memories/2-session/daily-$TODAY.md"
 
 # 이미 오늘 세션 파일이 있으면 종료 (재개 시)
 if [ -f "$SESSION_FILE" ]; then
-    echo "✅ 기존 세션 재개: $TODAY" >&2
     echo '{"decision": "allow"}'
+    echo "✅ 기존 세션 재개: $TODAY" >&2
     exit 0
 fi
 
