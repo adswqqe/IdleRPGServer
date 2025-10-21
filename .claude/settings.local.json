@@ -138,7 +138,18 @@
       "Bash(do sed -i 's/\\r$//' \"$file\")",
       "Bash(done)",
       "Bash(bash:*)",
-      "Bash(awk:*)"
+      "Bash(awk:*)",
+      "Bash(GOALS=\"1. **스킬 가챠 API**: SkillTemplate Seeder, POST /api/skills/gacha, Unity 문서\n2. **Drop System**: 던전 클리어 시 Equipment 드랍, 드랍 확률 테이블\n3. **Combat-Dungeon 통합**: DungeonStage Monster 스탯 적용, BattleLog DungeonStageId 활용\")",
+      "Bash(tee:*)",
+      "Read(//c/Users/xotjd/.claude/**)",
+      "Read(//e/**)",
+      "Bash(TODAY=\"2025-10-21\")",
+      "Bash(grep:*)",
+      "Bash(sudo apt-get update:*)",
+      "Bash(sudo apt-get:*)",
+      "Bash(command -v:*)",
+      "Bash(where jq:*)",
+      "Bash(export PATH=\"$HOME/bin:$PATH\")"
     ]
   },
   "enableAllProjectMcpServers": true,
