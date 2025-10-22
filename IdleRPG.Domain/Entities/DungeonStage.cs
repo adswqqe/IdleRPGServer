@@ -58,6 +58,17 @@ public class DungeonStage
     public int? FirstClearBonusGold { get; set; }
 
     /// <summary>
+    /// 이 스테이지 클리어 시 적용할 보상 테이블 ID
+    /// Nullable - LootTable이 없으면 BaseGold/BaseExperience만 지급
+    /// </summary>
+    public int? LootTableId { get; set; }
+
+    /// <summary>
+    /// 보상 테이블로의 탐색 속성
+    /// </summary>
+    public LootTable? LootTable { get; set; }
+
+    /// <summary>
     /// 이 스테이지가 데이터베이스에 생성된 시간
     /// </summary>
     public DateTime CreatedAt { get; set; }

@@ -1,9 +1,7 @@
 using IdleRPG.Application.Auth.Services;
 using IdleRPG.Application.Interfaces;
-using IdleRPG.Application.Services;
 using IdleRPG.Application.Tokens.Services;
 using IdleRPG.Infrastructure.Authentication;
-using IdleRPG.Infrastructure.Caching;
 using IdleRPG.Infrastructure.Data;
 using IdleRPG.Infrastructure.Service;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -66,10 +64,11 @@ builder.Services.AddScoped<IdleRPG.Application.Interfaces.IMonsterService, IdleR
 builder.Services.AddScoped<IdleRPG.Application.Interfaces.IOfflineRewardService, IdleRPG.Infrastructure.Services.OfflineRewardService>();
 builder.Services.AddScoped<IdleRPG.Application.Interfaces.IEquipmentService, IdleRPG.Infrastructure.Service.EquipmentService>();
 builder.Services.AddScoped<IdleRPG.Application.Interfaces.IDungeonService, IdleRPG.Infrastructure.Service.DungeonService>();
-builder.Services.AddScoped<ISkillService, IdleRPG.Infrastructure.Services.SkillService>();
+builder.Services.AddScoped<IdleRPG.Application.Services.ISkillService, IdleRPG.Infrastructure.Services.SkillService>();
 
-// Domain Services (가챠 로직)
+// Domain Services (순수 비즈니스 로직)
 builder.Services.AddScoped<IdleRPG.Domain.Services.GachaLogicService>();
+builder.Services.AddScoped<IdleRPG.Domain.Services.LootCalculator>();
 builder.Services.AddSingleton<IdleRPG.Domain.Services.IRandomProvider, IdleRPG.Infrastructure.Services.SystemRandomProvider>();
 
 // Unit of Work 등록 (모든 Repository를 내부에서 관리)
@@ -79,19 +78,8 @@ builder.Services.AddScoped<IUnitOfWork, IdleRPG.Infrastructure.UnitOfWork.UnitOf
 builder.Services.AddDbContext<GameDBContext>(options =>
                                                  options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// ===== Drop System DI 등록 =====
-// [학습 포인트] IMemoryCache 등록 (ASP.NET Core 내장)
-builder.Services.AddMemoryCache();  // Singleton으로 자동 등록됨
-
-// [학습 포인트] 캐시 구현체 선택 (현재: InMemory, 미래: Redis)
-builder.Services.AddScoped<ILootTableCache, InMemoryLootTableCache>();
-// Redis 전환 시: builder.Services.AddScoped<ILootTableCache, RedisLootTableCache>();
-
-// [학습 포인트] 순수 함수는 Transient (상태 없음, 매번 새 인스턴스)
-builder.Services.AddTransient<IDropCalculator, DropCalculator>();
-
-// [학습 포인트] 비즈니스 로직은 Scoped (요청당 1개 인스턴스)
-builder.Services.AddScoped<IDropService, DropService>();
+// Loot System DI 등록 (순수 확률 계산 로직만)
+// LootCalculator는 나중에 Domain으로 이동 후 등록
 
 // Add services to the container.
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
