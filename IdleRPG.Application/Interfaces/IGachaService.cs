@@ -2,6 +2,15 @@ using IdleRPG.Application.DTOs.Gacha;
 
 namespace IdleRPG.Application.Interfaces
 {
+    // TODO: 스킬 가챠 확장 기능 (Phase 2)
+    // - 10회 연속 가챠
+    // - 스킬 인벤토리 조회
+    // - 가챠 히스토리
+    // - 스킬 장착/해제
+
+    // 현재는 SkillService로 단순 1회 가챠만 구현
+
+    /*
     /// <summary>
     /// 가챠 서비스 인터페이스
     /// 스킬 가챠, 스킬 인벤토리, 가챠 히스토리 관리
@@ -54,4 +63,5 @@ namespace IdleRPG.Application.Interfaces
         /// <returns>성공 여부</returns>
         Task<bool> ToggleSkillEquipAsync(Guid characterSkillId, bool isEquipped);
     }
+    */
 }

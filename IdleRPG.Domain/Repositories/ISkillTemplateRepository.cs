@@ -7,8 +7,12 @@ namespace IdleRPG.Domain.Repositories
     /// Repository interface for SkillTemplate entity.
     /// Handles skill template data access operations.
     /// </summary>
-    public interface ISkillTemplateRepository : IRepository<SkillTemplate>
+    public interface ISkillTemplateRepository
     {
+        /// <summary>
+        /// Gets all skill templates.
+        /// </summary>
+        Task<List<SkillTemplate>> GetAllAsync();
         /// <summary>
         /// Gets a skill template by its ID.
         /// </summary>

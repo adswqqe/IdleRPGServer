@@ -387,7 +387,7 @@ public class BattleServiceTests
     {
         // Arrange
         var characterId = Guid.NewGuid();
-        var stats = new Domain.Repositories.BattleStatistics
+        var stats = new IdleRPG.Domain.Repositories.BattleStatistics
         {
             TotalBattles = 4,
             Victories = 3,
@@ -421,7 +421,7 @@ public class BattleServiceTests
     {
         // Arrange
         var characterId = Guid.NewGuid();
-        var stats = new Domain.Repositories.BattleStatistics
+        var stats = new IdleRPG.Domain.Repositories.BattleStatistics
         {
             TotalBattles = 0,
             Victories = 0,

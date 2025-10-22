@@ -7,8 +7,12 @@ namespace IdleRPG.Domain.Repositories
     /// Repository interface for CharacterSkill entity.
     /// Handles character skill inventory operations.
     /// </summary>
-    public interface ICharacterSkillRepository : IRepository<CharacterSkill>
+    public interface ICharacterSkillRepository
     {
+        /// <summary>
+        /// Adds a new character skill.
+        /// </summary>
+        Task AddAsync(CharacterSkill entity);
         /// <summary>
         /// Gets a character skill by its ID.
         /// </summary>

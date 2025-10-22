@@ -155,7 +155,9 @@
       "Bash(do echo \"=== $file ===\")",
       "Bash(TRANSCRIPT_PATH='C:\\\\Users\\\\KTS_Eight\\\\.claude\\\\projects\\\\D--Proj-IdleGameServer\\\\8ebe456c-1147-4a90-845f-6eb99ef37261.jsonl' bash:*)",
       "Bash(export TRANSCRIPT_PATH:*)",
-      "Bash(python3:*)"
+      "Bash(python3:*)",
+      "Bash(dotnet --version:*)",
+      "Read(//d/Proj/**)"
     ]
   },
   "enableAllProjectMcpServers": true,

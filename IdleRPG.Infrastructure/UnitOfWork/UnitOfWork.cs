@@ -28,6 +28,8 @@ namespace IdleRPG.Infrastructure.UnitOfWork
         private IUserDungeonDailyRepository? _userDungeonDailies;
         private IDungeonStageRepository? _dungeonStages;
         private ICharacterDungeonProgressRepository? _characterDungeonProgresses;
+        private ISkillTemplateRepository? _skillTemplates;
+        private ICharacterSkillRepository? _characterSkills;
 
         public UnitOfWork(GameDBContext context)
         {
@@ -256,6 +258,36 @@ namespace IdleRPG.Infrastructure.UnitOfWork
                     _characterDungeonProgresses = new CharacterDungeonProgressRepository(_context);
                 }
                 return _characterDungeonProgresses;
+            }
+        }
+
+        /// <summary>
+        /// 스킬 템플릿 Repository (Lazy 초기화) - Week 3
+        /// </summary>
+        public ISkillTemplateRepository SkillTemplates
+        {
+            get
+            {
+                if (_skillTemplates == null)
+                {
+                    _skillTemplates = new SkillTemplateRepository(_context);
+                }
+                return _skillTemplates;
+            }
+        }
+
+        /// <summary>
+        /// 캐릭터 스킬 Repository (Lazy 초기화) - Week 3
+        /// </summary>
+        public ICharacterSkillRepository CharacterSkills
+        {
+            get
+            {
+                if (_characterSkills == null)
+                {
+                    _characterSkills = new CharacterSkillRepository(_context);
+                }
+                return _characterSkills;
             }
         }
 

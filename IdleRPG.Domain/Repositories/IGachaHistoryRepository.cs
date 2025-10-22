@@ -6,7 +6,7 @@ namespace IdleRPG.Domain.Repositories
     /// Repository interface for GachaHistory entity.
     /// Handles gacha history tracking and analytics.
     /// </summary>
-    public interface IGachaHistoryRepository : IRepository<GachaHistory>
+    public interface IGachaHistoryRepository
     {
         /// <summary>
         /// Gets a gacha history record by its ID.

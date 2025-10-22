@@ -1,6 +1,6 @@
 # Daily Session: 2025-10-22
 
-**시작 시간**: 11:08
+**시작 시간**: 13:23
 **Week 3 Day 2**
 
 ---
@@ -78,15 +78,20 @@
 1. {다음 작업1}
 2. {다음 작업2}
 
+### 🐛 이슈 [13:29:12]
+
+API Error: 400 {"type":"error","error":{"type":"invalid_request_error","message":"The long context beta is not yet available for this subscription."},"request_id":"req_011CUMc9YEXhmq1vkqp6uqWE"}
+
+
 ---
 
 ## 🏁 세션 종료 (자동)
 
-**종료 시간**: 11:08:38
+**종료 시간**: 13:29:42
 **세션 파일 크기**: 0MB
 
 **최종 통계**:
 - API 엔드포인트: 28개
 - Database Tables: 22개
-- Git Commits: 0개
+- Git Commits: 3개
 

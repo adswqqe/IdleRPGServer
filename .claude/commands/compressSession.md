@@ -40,17 +40,14 @@ if [ ! -f "$SESSION_FILE" ]; then
 fi
 ```
 
-### 2. 파일 크기 및 토큰 확인
+### 2. 토큰 수 확인
 
 ```bash
-FILE_SIZE=$(stat -c%s "$SESSION_FILE" 2>/dev/null || stat -f%z "$SESSION_FILE" 2>/dev/null)
-FILE_SIZE_MB=$(echo "scale=2; $FILE_SIZE / 1048576" | bc)
-
 CHAR_COUNT=$(wc -m < "$SESSION_FILE")
-TOKEN_COUNT=$(echo "scale=0; $CHAR_COUNT / 3" | bc)
-TOKEN_COUNT_K=$(echo "scale=1; $TOKEN_COUNT / 1000" | bc)
+TOKEN_COUNT=$(awk "BEGIN {printf \"%.0f\", $CHAR_COUNT / 3}")
+TOKEN_COUNT_K=$(awk "BEGIN {printf \"%.1f\", $TOKEN_COUNT / 1000}")
 
-echo "📊 현재 세션 메모리: ${FILE_SIZE_MB}MB | ~${TOKEN_COUNT_K}k tokens"
+echo "📊 현재 세션 메모리: ~${TOKEN_COUNT_K}k tokens"
 ```
 
 **압축 실행 조건**:
@@ -80,7 +77,7 @@ CLI Name: gemini
 Role: default (또는 명시 안 함)
 
 Prompt:
-"다음은 현재 진행 중인 개발 세션 기록입니다 (${FILE_SIZE_MB}MB, ~${TOKEN_COUNT_K}k tokens).
+"다음은 현재 진행 중인 개발 세션 기록입니다 (~${TOKEN_COUNT_K}k tokens).
 
 **중요**: 원본의 모든 핵심 정보를 보존하면서 압축해주세요.
 
@@ -142,14 +139,11 @@ echo "💾 원본 백업: $BACKUP_FILE"
 ### 6. 압축 결과 확인
 
 ```bash
-NEW_SIZE=$(stat -c%s "$SESSION_FILE" 2>/dev/null || stat -f%z "$SESSION_FILE" 2>/dev/null)
-NEW_SIZE_MB=$(echo "scale=2; $NEW_SIZE / 1048576" | bc)
-
 NEW_CHAR=$(wc -m < "$SESSION_FILE")
-NEW_TOKEN=$(echo "scale=0; $NEW_CHAR / 3" | bc)
-NEW_TOKEN_K=$(echo "scale=1; $NEW_TOKEN / 1000" | bc)
+NEW_TOKEN=$(awk "BEGIN {printf \"%.0f\", $NEW_CHAR / 3}")
+NEW_TOKEN_K=$(awk "BEGIN {printf \"%.1f\", $NEW_TOKEN / 1000}")
 
-COMPRESSION_RATE=$(echo "scale=1; (1 - $NEW_SIZE / $FILE_SIZE) * 100" | bc)
+COMPRESSION_RATE=$(awk "BEGIN {printf \"%.1f\", (1 - $NEW_TOKEN / $TOKEN_COUNT) * 100}")
 ```
 
 ### 7. 결과 출력
@@ -158,8 +152,8 @@ COMPRESSION_RATE=$(echo "scale=1; (1 - $NEW_SIZE / $FILE_SIZE) * 100" | bc)
 ✅ 세션 메모리 압축 완료
 
 📊 압축 결과:
-- 원본: ${FILE_SIZE_MB}MB (~${TOKEN_COUNT_K}k tokens)
-- 압축: ${NEW_SIZE_MB}MB (~${NEW_TOKEN_K}k tokens)
+- 원본: ~${TOKEN_COUNT_K}k tokens
+- 압축: ~${NEW_TOKEN_K}k tokens
 - 압축률: ${COMPRESSION_RATE}%
 
 📂 저장 위치:
@@ -203,7 +197,7 @@ COMPRESSION_RATE=$(echo "scale=1; (1 - $NEW_SIZE / $FILE_SIZE) * 100" | bc)
 ## 주의사항
 
 1. **LLM 비용**: Gemini CLI 사용 (비용은 zen MCP 설정에 따름)
-   - 예상: 5MB ≈ ~1.6M tokens ≈ $1.5-2 (Gemini 2.5 Pro 기준)
+   - 예상: ~1000k tokens ≈ $1.5-2 (Gemini 2.5 Pro 기준)
 
 2. **원본 보존**: 항상 `-full.md` 백업 생성됨
    - 압축 후 중요한 정보가 누락되었다면 백업 참조
@@ -234,17 +228,17 @@ COMPRESSION_RATE=$(echo "scale=1; (1 - $NEW_SIZE / $FILE_SIZE) * 100" | bc)
       → SessionStart Hook (세션 파일 생성)
 
 09:00-12:00 - 작업 진행
-      → Stop Hook (대화 누적: 2.5MB)
+      → Stop Hook (대화 누적: ~800k tokens)
 
 12:00 - /compressSession 실행
-      → 압축: 2.5MB → 800KB (68% 압축)
+      → 압축: ~800k tokens → ~250k tokens (68% 압축)
       → 백업: daily-2025-10-21-full.md
 
 12:00-18:00 - 작업 계속
-      → Stop Hook (압축본에 계속 추가: 800KB → 2MB)
+      → Stop Hook (압축본에 계속 추가: ~250k → ~650k tokens)
 
 18:00 - /compressSession 다시 실행
-      → 압축: 2MB → 600KB (70% 압축)
+      → 압축: ~650k tokens → ~200k tokens (69% 압축)
 
 18:00 - Claude Code 종료
       → SessionEnd Hook (아카이브로 이동)

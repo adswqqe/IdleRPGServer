@@ -4,7 +4,7 @@
 
 ---
 
-## API 엔드포인트 (24개)
+## API 엔드포인트 (25개)
 
 ### Authentication (5개)
 - POST /api/auth/register
@@ -46,19 +46,32 @@
 - GET /api/dungeons/progress
 - POST /api/dungeons/clear
 
+### Skill (1개)
+- POST /api/skills/gacha
+
 ---
 
-## Database Tables (9개)
+## Database Tables (12개)
 
+### Core Tables (6개)
 - **Players**: 플레이어 계정 (GUID PK)
-- **RefreshTokens**: JWT Refresh Token (GUID PK)
-- **Characters**: 게임 캐릭터 (GUID PK, FK → Players)
+- **RefreshTokens**: JWT Refresh Token (GUID PK, FK → Players)
+- **Characters**: 게임 캐릭터 (GUID PK, FK → Players) + Crystal, GachaPityCount
 - **BattleLogs**: 전투 로그 (GUID PK, FK → Characters, Monsters, DungeonStages)
 - **OfflineRewardTypes**: 오프라인 보상 타입 (int PK)
+- **Monsters**: 몬스터 템플릿 (int PK)
+
+### Equipment System (1개)
 - **Equipments**: 장비 (GUID PK, FK → Players, Characters)
+
+### Dungeon System (2개)
 - **DungeonStages**: 던전 스테이지 (int PK, FK → Monsters)
 - **CharacterDungeonProgresses**: 던전 진행도 (GUID PK, FK → Characters)
-- **Monsters**: 몬스터 템플릿 (int PK)
+
+### Skill System (3개)
+- **SkillTemplates**: 스킬 마스터 데이터 (int PK) - 24개 스킬
+- **CharacterSkills**: 캐릭터 보유 스킬 (GUID PK, FK → Characters, SkillTemplates)
+- **GachaHistories**: 가챠 히스토리 (GUID PK, FK → Characters, SkillTemplates)
 
 ---
 
@@ -81,20 +94,22 @@
 4. ✅ **오프라인 보상**: `CharacterLevel * OfflineHours * 10` (최대 12시간)
 5. ✅ **장비 시스템**: 5슬롯, 강화 (+0~+10), `TotalAttack = BaseAttack + (EnhancementLevel * 5)`
 6. ✅ **던전 시스템**: 15 Stages, 3 Difficulties (Normal/Hard/Hell), 첫 클리어 보너스 +50%, Progressive Unlock
+7. ✅ **스킬 가챠 API**: POST /api/skills/gacha, 확률 (Common 60%, Rare 30%, Epic 9%, Legendary 1%), 천장 시스템 100회, 24개 스킬, Unity 문서화
 
 ---
 
 ## 다음 우선순위
 
 ### Immediate (이번 주)
-1. **스킬 가챠 API**: SkillTemplate Seeder, POST /api/skills/gacha, Unity 문서
+1. ✅ ~~**스킬 가챠 API**~~ (완료)
 2. **Drop System**: 던전 클리어 시 Equipment 드랍, 드랍 확률 테이블
 3. **Combat-Dungeon 통합**: DungeonStage Monster 스탯 적용, BattleLog DungeonStageId 활용
+4. **장비 강화 완성**: Phase 1 시스템 7 마무리
 
 ### Short-term (다음 주)
-4. **장비 강화 완성**: UI/UX 개선, 실패 처리 로직
 5. **펫 시스템**: Pet Entity, PetTemplate, 스탯 버프 계산
+6. **스킬 장착/해제 API**: CharacterSkill IsEquipped 활용
 
 ### Mid-term (Week 4-5)
-6. **SignalR 채팅**: Hub 구현 (전체, 길드, 귓속말), Unity Client 연동
-7. **PVP 아레나**: ELO 매칭, 랭킹 (Redis 준비)
+7. **SignalR 채팅**: Hub 구현 (전체, 길드, 귓속말), Unity Client 연동
+8. **PVP 아레나**: ELO 매칭, 랭킹 (Redis 준비)

@@ -25,6 +25,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\IdleRPG.API\IdleRPG.API.csproj" />
     <ProjectReference Include="..\IdleRPG.Application\IdleRPG.Application.csproj" />
     <ProjectReference Include="..\IdleRPG.Domain\IdleRPG.Domain.csproj" />
     <ProjectReference Include="..\IdleRPG.Infrastructure\IdleRPG.Infrastructure.csproj" />

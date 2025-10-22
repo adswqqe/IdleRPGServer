@@ -83,6 +83,16 @@ namespace IdleRPG.Application.Interfaces
         ICharacterDungeonProgressRepository CharacterDungeonProgresses { get; }
 
         /// <summary>
+        /// 스킬 템플릿 Repository (Week 3 - Skill Gacha System)
+        /// </summary>
+        ISkillTemplateRepository SkillTemplates { get; }
+
+        /// <summary>
+        /// 캐릭터 스킬 Repository (Week 3 - Skill Gacha System)
+        /// </summary>
+        ICharacterSkillRepository CharacterSkills { get; }
+
+        /// <summary>
         /// 변경사항을 데이터베이스에 저장 (트랜잭션 커밋)
         /// </summary>
         /// <returns>영향받은 행 수</returns>

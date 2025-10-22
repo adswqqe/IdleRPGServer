@@ -66,6 +66,11 @@ builder.Services.AddScoped<IdleRPG.Application.Interfaces.IMonsterService, IdleR
 builder.Services.AddScoped<IdleRPG.Application.Interfaces.IOfflineRewardService, IdleRPG.Infrastructure.Services.OfflineRewardService>();
 builder.Services.AddScoped<IdleRPG.Application.Interfaces.IEquipmentService, IdleRPG.Infrastructure.Service.EquipmentService>();
 builder.Services.AddScoped<IdleRPG.Application.Interfaces.IDungeonService, IdleRPG.Infrastructure.Service.DungeonService>();
+builder.Services.AddScoped<ISkillService, IdleRPG.Infrastructure.Services.SkillService>();
+
+// Domain Services (가챠 로직)
+builder.Services.AddScoped<IdleRPG.Domain.Services.GachaLogicService>();
+builder.Services.AddSingleton<IdleRPG.Domain.Services.IRandomProvider, IdleRPG.Infrastructure.Services.SystemRandomProvider>();
 
 // Unit of Work 등록 (모든 Repository를 내부에서 관리)
 builder.Services.AddScoped<IUnitOfWork, IdleRPG.Infrastructure.UnitOfWork.UnitOfWork>();
@@ -135,6 +140,13 @@ using (var scope = app.Services.CreateScope())
             services.GetRequiredService<ILogger<IdleRPG.Infrastructure.Data.Seeders.DungeonStageSeeder>>());
 
         await dungeonSeeder.SeedAsync();
+
+        // 스킬 템플릿 Seed Data 생성
+        var skillSeeder = new IdleRPG.Infrastructure.Data.Seeders.SkillTemplateSeeder(
+            context,
+            services.GetRequiredService<ILogger<IdleRPG.Infrastructure.Data.Seeders.SkillTemplateSeeder>>());
+
+        await skillSeeder.SeedAsync();
 
         logger.LogInformation("Seed Data 초기화 완료");
     }
