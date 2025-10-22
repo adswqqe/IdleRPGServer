@@ -219,10 +219,20 @@ echo "  ✅ 저장 실행: CATEGORY=$CATEGORY" >> ".claude/hooks/stop-hook-debug
 # 대화 내용 저장
 TIMESTAMP=$(date +"%H:%M:%S")
 
+# Insight 블록 제거 (★ Insight로 시작하는 박스형 텍스트)
+# 패턴: `★ Insight ─...` ~ `─...` 사이의 모든 내용 (Python 정규식)
+if [ -n "$PYTHON_CMD" ]; then
+    MESSAGE_TEXT_FILTERED=$(echo "$MESSAGE_TEXT" | $PYTHON_CMD -c "import sys, re; content = sys.stdin.read(); print(re.sub(r'\`★ Insight ─+\`.*?\`─+\`', '', content, flags=re.DOTALL).strip())" 2>/dev/null || echo "$MESSAGE_TEXT")
+    echo "  Insight 제거 완료 (길이: ${#MESSAGE_TEXT} → ${#MESSAGE_TEXT_FILTERED})" >> ".claude/hooks/stop-hook-debug.log"
+else
+    MESSAGE_TEXT_FILTERED="$MESSAGE_TEXT"
+    echo "  Insight 제거 건너뜀 (Python 없음)" >> ".claude/hooks/stop-hook-debug.log"
+fi
+
 echo "" >> "$SESSION_FILE"
 echo "### $CATEGORY [$TIMESTAMP]" >> "$SESSION_FILE"
 echo "" >> "$SESSION_FILE"
-echo "$MESSAGE_TEXT" >> "$SESSION_FILE"
+echo "$MESSAGE_TEXT_FILTERED" >> "$SESSION_FILE"
 echo "" >> "$SESSION_FILE"
 
 # 파일 크기 및 토큰 수 계산 (Windows Git Bash 호환)
