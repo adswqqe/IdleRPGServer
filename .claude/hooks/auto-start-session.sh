@@ -104,6 +104,11 @@ echo "[DEBUG] GOAL1: $GOAL1" >> "$DEBUG_LOG"
 echo "[DEBUG] GOAL2: $GOAL2" >> "$DEBUG_LOG"
 echo "[DEBUG] GOAL3: $GOAL3" >> "$DEBUG_LOG"
 
+# 체크포인트 파일 확인 (week{X}-day{Y}.md 형식)
+CHECKPOINT_FILE=".claude/memories/9-archive/checkpoints/week${CURRENT_WEEK}-day${CURRENT_DAY}.md"
+echo "[DEBUG] CHECKPOINT_FILE: $CHECKPOINT_FILE" >> "$DEBUG_LOG"
+echo "[DEBUG] CHECKPOINT_FILE exists: $([ -f "$CHECKPOINT_FILE" ] && echo 'YES' || echo 'NO')" >> "$DEBUG_LOG"
+
 # 템플릿 복사 및 변수 치환
 TEMPLATE_FILE=".claude/templates/session-template.md"
 CURRENT_TIME=$(date +"%H:%M")
@@ -112,8 +117,21 @@ echo "[DEBUG] TEMPLATE_FILE: $TEMPLATE_FILE" >> "$DEBUG_LOG"
 echo "[DEBUG] TEMPLATE_FILE exists: $([ -f "$TEMPLATE_FILE" ] && echo 'YES' || echo 'NO')" >> "$DEBUG_LOG"
 echo "[DEBUG] CURRENT_TIME: $CURRENT_TIME" >> "$DEBUG_LOG"
 
-# 템플릿 파일 확인 및 복사
-if [ ! -f "$TEMPLATE_FILE" ]; then
+# 체크포인트 파일이 있으면 우선 사용
+if [ -f "$CHECKPOINT_FILE" ] && [ -s "$CHECKPOINT_FILE" ]; then
+    echo "[DEBUG] 체크포인트 파일 발견 - 내용 복사" >> "$DEBUG_LOG"
+    cp "$CHECKPOINT_FILE" "$SESSION_FILE"
+    echo "[DEBUG] 체크포인트 파일 복사 완료" >> "$DEBUG_LOG"
+
+    # 체크포인트에서 시작 시간만 현재 시간으로 업데이트
+    TEMP_FILE="$SESSION_FILE.tmp"
+    sed "s/\*\*시작 시간\*\*: [0-9:]\+/\*\*시작 시간\*\*: $CURRENT_TIME/g" "$SESSION_FILE" > "$TEMP_FILE" 2>/dev/null && mv "$TEMP_FILE" "$SESSION_FILE" 2>/dev/null || true
+
+    # 체크포인트 파일 사용 시 변수 치환 단계 스킵
+    echo "[DEBUG] 체크포인트 파일 사용 - 변수 치환 스킵" >> "$DEBUG_LOG"
+
+# 체크포인트가 없으면 템플릿 사용
+elif [ ! -f "$TEMPLATE_FILE" ]; then
     echo "[DEBUG] 템플릿 파일이 없음 - 기본 세션 파일 생성" >> "$DEBUG_LOG"
     # 템플릿이 없으면 기본 세션 파일 생성
     cat > "$SESSION_FILE" << 'EOF'
@@ -152,40 +170,45 @@ fi
 
 echo "[DEBUG] SESSION_FILE 생성 후 존재 여부: $([ -f "$SESSION_FILE" ] && echo 'YES' || echo 'NO')" >> "$DEBUG_LOG"
 
-# 임시 파일 사용 (Windows Git Bash 호환)
-TEMP_FILE="$SESSION_FILE.tmp"
-echo "[DEBUG] 변수 치환 시작 - TEMP_FILE: $TEMP_FILE" >> "$DEBUG_LOG"
+# 체크포인트 파일을 사용하지 않은 경우에만 변수 치환 수행
+if [ ! -f "$CHECKPOINT_FILE" ] || [ ! -s "$CHECKPOINT_FILE" ]; then
+    # 임시 파일 사용 (Windows Git Bash 호환)
+    TEMP_FILE="$SESSION_FILE.tmp"
+    echo "[DEBUG] 변수 치환 시작 - TEMP_FILE: $TEMP_FILE" >> "$DEBUG_LOG"
 
-# 변수 치환 (에러 무시)
-echo "[DEBUG] {DATE} -> $TODAY 치환 중..." >> "$DEBUG_LOG"
-sed "s/{DATE}/$TODAY/g" "$SESSION_FILE" > "$TEMP_FILE" 2>/dev/null && mv "$TEMP_FILE" "$SESSION_FILE" 2>/dev/null || true
+    # 변수 치환 (에러 무시)
+    echo "[DEBUG] {DATE} -> $TODAY 치환 중..." >> "$DEBUG_LOG"
+    sed "s/{DATE}/$TODAY/g" "$SESSION_FILE" > "$TEMP_FILE" 2>/dev/null && mv "$TEMP_FILE" "$SESSION_FILE" 2>/dev/null || true
 
-echo "[DEBUG] {TIME} -> $CURRENT_TIME 치환 중..." >> "$DEBUG_LOG"
-sed "s/{TIME}/$CURRENT_TIME/g" "$SESSION_FILE" > "$TEMP_FILE" 2>/dev/null && mv "$TEMP_FILE" "$SESSION_FILE" 2>/dev/null || true
+    echo "[DEBUG] {TIME} -> $CURRENT_TIME 치환 중..." >> "$DEBUG_LOG"
+    sed "s/{TIME}/$CURRENT_TIME/g" "$SESSION_FILE" > "$TEMP_FILE" 2>/dev/null && mv "$TEMP_FILE" "$SESSION_FILE" 2>/dev/null || true
 
-echo "[DEBUG] {X} -> $CURRENT_WEEK 치환 중..." >> "$DEBUG_LOG"
-sed "s/{X}/$CURRENT_WEEK/g" "$SESSION_FILE" > "$TEMP_FILE" 2>/dev/null && mv "$TEMP_FILE" "$SESSION_FILE" 2>/dev/null || true
+    echo "[DEBUG] {X} -> $CURRENT_WEEK 치환 중..." >> "$DEBUG_LOG"
+    sed "s/{X}/$CURRENT_WEEK/g" "$SESSION_FILE" > "$TEMP_FILE" 2>/dev/null && mv "$TEMP_FILE" "$SESSION_FILE" 2>/dev/null || true
 
-echo "[DEBUG] {Y} -> $CURRENT_DAY 치환 중..." >> "$DEBUG_LOG"
-sed "s/{Y}/$CURRENT_DAY/g" "$SESSION_FILE" > "$TEMP_FILE" 2>/dev/null && mv "$TEMP_FILE" "$SESSION_FILE" 2>/dev/null || true
+    echo "[DEBUG] {Y} -> $CURRENT_DAY 치환 중..." >> "$DEBUG_LOG"
+    sed "s/{Y}/$CURRENT_DAY/g" "$SESSION_FILE" > "$TEMP_FILE" 2>/dev/null && mv "$TEMP_FILE" "$SESSION_FILE" 2>/dev/null || true
 
-echo "[DEBUG] 변수 치환 완료" >> "$DEBUG_LOG"
+    echo "[DEBUG] 변수 치환 완료" >> "$DEBUG_LOG"
 
-# 목표 삽입 (placeholder를 실제 목표로 교체)
-echo "[DEBUG] 목표 삽입 시작" >> "$DEBUG_LOG"
+    # 목표 삽입 (placeholder를 실제 목표로 교체)
+    echo "[DEBUG] 목표 삽입 시작" >> "$DEBUG_LOG"
 
-# {목표1}, {목표2}, {목표3} 교체
-# sed에서 /가 포함된 경우를 대비해 | 구분자 사용
-echo "[DEBUG] {목표1} 교체 중..." >> "$DEBUG_LOG"
-sed "s|{목표1}|$GOAL1|g" "$SESSION_FILE" > "$TEMP_FILE" 2>/dev/null && mv "$TEMP_FILE" "$SESSION_FILE" 2>/dev/null || true
+    # {목표1}, {목표2}, {목표3} 교체
+    # sed에서 /가 포함된 경우를 대비해 | 구분자 사용
+    echo "[DEBUG] {목표1} 교체 중..." >> "$DEBUG_LOG"
+    sed "s|{목표1}|$GOAL1|g" "$SESSION_FILE" > "$TEMP_FILE" 2>/dev/null && mv "$TEMP_FILE" "$SESSION_FILE" 2>/dev/null || true
 
-echo "[DEBUG] {목표2} 교체 중..." >> "$DEBUG_LOG"
-sed "s|{목표2}|$GOAL2|g" "$SESSION_FILE" > "$TEMP_FILE" 2>/dev/null && mv "$TEMP_FILE" "$SESSION_FILE" 2>/dev/null || true
+    echo "[DEBUG] {목표2} 교체 중..." >> "$DEBUG_LOG"
+    sed "s|{목표2}|$GOAL2|g" "$SESSION_FILE" > "$TEMP_FILE" 2>/dev/null && mv "$TEMP_FILE" "$SESSION_FILE" 2>/dev/null || true
 
-echo "[DEBUG] {목표3} 교체 중..." >> "$DEBUG_LOG"
-sed "s|{목표3}|$GOAL3|g" "$SESSION_FILE" > "$TEMP_FILE" 2>/dev/null && mv "$TEMP_FILE" "$SESSION_FILE" 2>/dev/null || true
+    echo "[DEBUG] {목표3} 교체 중..." >> "$DEBUG_LOG"
+    sed "s|{목표3}|$GOAL3|g" "$SESSION_FILE" > "$TEMP_FILE" 2>/dev/null && mv "$TEMP_FILE" "$SESSION_FILE" 2>/dev/null || true
 
-echo "[DEBUG] 목표 삽입 완료" >> "$DEBUG_LOG"
+    echo "[DEBUG] 목표 삽입 완료" >> "$DEBUG_LOG"
+else
+    echo "[DEBUG] 체크포인트 파일 사용 - 변수 치환 및 목표 삽입 스킵" >> "$DEBUG_LOG"
+fi
 
 echo "[DEBUG] 최종 SESSION_FILE 내용 (첫 30줄):" >> "$DEBUG_LOG"
 head -30 "$SESSION_FILE" >> "$DEBUG_LOG" 2>/dev/null || true
@@ -214,7 +237,12 @@ echo "" >> "$DEBUG_LOG"
 echo '{"decision": "allow"}'
 
 # Claude에게 알림 메시지 (JSON 출력 후 stderr로)
-echo "✅ 세션 자동 시작: $TODAY | Week $CURRENT_WEEK Day $CURRENT_DAY | 목표: 3개" >&2
+if [ -f "$CHECKPOINT_FILE" ] && [ -s "$CHECKPOINT_FILE" ]; then
+    echo "✅ 세션 자동 시작 (체크포인트 복구): $TODAY | Week $CURRENT_WEEK Day $CURRENT_DAY" >&2
+    echo "📋 이전 세션 내용 로드됨" >&2
+else
+    echo "✅ 세션 자동 시작: $TODAY | Week $CURRENT_WEEK Day $CURRENT_DAY | 목표: 3개" >&2
+fi
 echo "🔍 디버그 로그: .claude/hooks/session-start-debug.log" >&2
 
 exit 0
