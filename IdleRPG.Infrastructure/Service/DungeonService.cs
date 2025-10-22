@@ -350,6 +350,23 @@ namespace IdleRPG.Infrastructure.Service
                             equipment.Slot, equipment.Rarity, equipment.BaseAttack);
                     }
                 }
+                else if (item.Type == RewardType.Skill)
+                {
+                    // 스킬 보상 처리
+                    if (!item.ItemTemplateId.HasValue)
+                    {
+                        _logger.LogWarning(
+                            "LootItem {ItemId}에 SkillTemplate ID가 없습니다",
+                            item.Id);
+                        continue;
+                    }
+
+                    await GrantSkillToCharacterAsync(character, item.ItemTemplateId.Value, quantity);
+
+                    _logger.LogInformation(
+                        "Skill 드랍: SkillTemplateId={SkillId}, Quantity={Quantity}",
+                        item.ItemTemplateId.Value, quantity);
+                }
                 else if (item.Type == RewardType.Gold)
                 {
                     // Gold는 캐릭터에 직접 지급
@@ -428,6 +445,59 @@ namespace IdleRPG.Infrastructure.Service
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow
             };
+        }
+
+        /// <summary>
+        /// 캐릭터에게 스킬 지급
+        ///
+        /// [중복 처리]
+        /// - 미보유 스킬: CharacterSkill 생성
+        /// - 이미 보유 중: 무시 (중복 지급 없음)
+        /// </summary>
+        private async Task GrantSkillToCharacterAsync(
+            Character character,
+            int skillTemplateId,
+            int quantity)
+        {
+            // SkillTemplate 존재 여부 확인
+            var skillTemplate = await _unitOfWork.SkillTemplates.GetByIdAsync(skillTemplateId);
+            if (skillTemplate == null)
+            {
+                _logger.LogWarning(
+                    "존재하지 않는 SkillTemplate: {SkillTemplateId}",
+                    skillTemplateId);
+                return;
+            }
+
+            // 캐릭터가 이미 보유한 스킬인지 확인
+            var hasSkill = await _unitOfWork.CharacterSkills
+                .HasSkillAsync(character.Id, skillTemplateId);
+
+            if (!hasSkill)
+            {
+                // 미보유 스킬 → 새로 지급
+                var newSkill = new CharacterSkill
+                {
+                    Id = Guid.NewGuid(),
+                    CharacterId = character.Id,
+                    SkillTemplateId = skillTemplateId,
+                    IsEquipped = false,
+                    AcquiredAt = DateTime.UtcNow
+                };
+
+                await _unitOfWork.CharacterSkills.AddAsync(newSkill);
+
+                _logger.LogInformation(
+                    "새 스킬 지급: Character={CharacterId}, Skill={SkillName}",
+                    character.Id, skillTemplate.Name);
+            }
+            else
+            {
+                // 중복 스킬 → 무시
+                _logger.LogDebug(
+                    "중복 스킬 획득 무시: Character={CharacterId}, Skill={SkillName}",
+                    character.Id, skillTemplate.Name);
+            }
         }
     }
 }

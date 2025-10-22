@@ -627,5 +627,22 @@ BEGIN
     END IF;
 END $EF$;
 
+-- Migration: 20251022072205_AddSkillRewardSupport
+-- Description: LootItem에 ItemTemplateId 컬럼 추가 (int PK 템플릿 참조용)
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20251022072205_AddSkillRewardSupport') THEN
+    ALTER TABLE "LootItems" ADD COLUMN "ItemTemplateId" INT NULL;
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20251022072205_AddSkillRewardSupport') THEN
+    INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
+    VALUES ('20251022072205_AddSkillRewardSupport', '9.0.9');
+    END IF;
+END $EF$;
+
 COMMIT;
 

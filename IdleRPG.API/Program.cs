@@ -136,6 +136,13 @@ using (var scope = app.Services.CreateScope())
 
         await skillSeeder.SeedAsync();
 
+        // LootTable Seed Data 생성 (던전 보상 테이블)
+        var lootTableSeeder = new IdleRPG.Infrastructure.Data.Seeders.LootTableSeeder(
+            context,
+            services.GetRequiredService<ILogger<IdleRPG.Infrastructure.Data.Seeders.LootTableSeeder>>());
+
+        await lootTableSeeder.SeedAsync();
+
         logger.LogInformation("Seed Data 초기화 완료");
     }
     catch (Exception ex)

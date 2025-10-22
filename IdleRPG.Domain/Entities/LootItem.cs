@@ -32,6 +32,12 @@ namespace IdleRPG.Domain.Entities
         public Guid? ItemId { get; set; }
 
         /// <summary>
+        /// 템플릿 ID (Type = Skill일 경우 SkillTemplate.Id)
+        /// int PK를 사용하는 템플릿 참조용
+        /// </summary>
+        public int? ItemTemplateId { get; set; }
+
+        /// <summary>
         /// 장비 슬롯 (Type = Equipment일 경우 필수)
         /// Weapon, Armor, Helmet, Boots, Accessory
         /// </summary>

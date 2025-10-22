@@ -32,6 +32,13 @@ namespace IdleRPG.Domain.Enums
         /// LootItem.ItemId는 null이며, 획득 시점에 Equipment 엔티티가 동적 생성됨
         /// 레벨, 옵션 등은 획득 시점의 난이도/컨텍스트에 따라 결정
         /// </summary>
-        Equipment
+        Equipment,
+
+        /// <summary>
+        /// SkillTemplate에 정의된 스킬
+        /// LootItem.ItemId는 SkillTemplate.Id를 참조
+        /// 중복 획득 시 스킬 레벨업 또는 다른 보상으로 변환
+        /// </summary>
+        Skill
     }
 }
