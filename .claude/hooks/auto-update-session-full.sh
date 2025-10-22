@@ -24,12 +24,19 @@ if [ ! -f "$SESSION_FILE" ]; then
     exit 0
 fi
 
-# Windows 경로를 WSL이 읽을 수 있는 형식으로 변환
-# WSL은 /mnt/c/, /mnt/d/ 형식으로 Windows 드라이브에 접근
+# Windows 경로를 Unix 형식으로 변환 (Git Bash vs WSL 자동 감지)
 # 1. 백슬래시를 슬래시로 변환
 # 2. 이중 슬래시 제거
-# 3. 드라이브 문자를 WSL 마운트 경로로 변환 (C: → /mnt/c)
-TRANSCRIPT_PATH_UNIX=$(echo "$TRANSCRIPT_PATH" | sed 's|\\|/|g' | sed 's|//|/|g' | sed -E 's|^([A-Za-z]):|/mnt/\L\1|')
+# 3. 드라이브 문자 변환: C: → /c/ (Git Bash) 또는 /mnt/c (WSL)
+if [ -d "/mnt/c" ]; then
+    # WSL 환경
+    TRANSCRIPT_PATH_UNIX=$(echo "$TRANSCRIPT_PATH" | sed 's|\\|/|g' | sed 's|//|/|g' | sed -E 's|^([A-Za-z]):|/mnt/\L\1|')
+    echo "  환경: WSL" >> ".claude/hooks/stop-hook-debug.log"
+else
+    # Git Bash 환경
+    TRANSCRIPT_PATH_UNIX=$(echo "$TRANSCRIPT_PATH" | sed 's|\\|/|g' | sed 's|//|/|g' | sed -E 's|^([A-Za-z]):|/\L\1|')
+    echo "  환경: Git Bash" >> ".claude/hooks/stop-hook-debug.log"
+fi
 echo "  Transcript 경로 변환: $TRANSCRIPT_PATH → $TRANSCRIPT_PATH_UNIX" >> ".claude/hooks/stop-hook-debug.log"
 
 # Hook 실행 환경 정보
@@ -45,15 +52,24 @@ echo "  ls 결과: $LS_RESULT" >> ".claude/hooks/stop-hook-debug.log"
 
 # Transcript에서 마지막 assistant 메시지 추출 (JSONL 형식)
 # type="assistant"인 entry 찾기 (message.role이 아닌 최상위 type 사용)
-echo "  Transcript 읽기 시도 (마지막 20개 줄에서 assistant 메시지 검색)..." >> ".claude/hooks/stop-hook-debug.log"
-LAST_ENTRY=$(tail -n 20 "$TRANSCRIPT_PATH_UNIX" 2>&1 | tac | grep -m 1 '"type"[[:space:]]*:[[:space:]]*"assistant"')
-TAIL_EXIT_CODE=$?
-echo "  tail+grep 종료 코드: $TAIL_EXIT_CODE" >> ".claude/hooks/stop-hook-debug.log"
-echo "  LAST_ENTRY length: ${#LAST_ENTRY}" >> ".claude/hooks/stop-hook-debug.log"
+echo "  Transcript 읽기 시도 (마지막 줄 확인)..." >> ".claude/hooks/stop-hook-debug.log"
 
-# tail 실패 시 에러 메시지 로깅
+# 마지막 줄 읽기
+LAST_ENTRY=$(tail -n 1 "$TRANSCRIPT_PATH_UNIX" 2>&1)
+TAIL_EXIT_CODE=$?
+
 if [ $TAIL_EXIT_CODE -ne 0 ]; then
-    echo "  tail 에러: $LAST_ENTRY" >> ".claude/hooks/stop-hook-debug.log"
+    echo "  tail 실패: $LAST_ENTRY" >> ".claude/hooks/stop-hook-debug.log"
+    echo '{"decision": "allow"}'
+    exit 0
+fi
+
+echo "  LAST_ENTRY length: ${#LAST_ENTRY}" >> ".claude/hooks/stop-hook-debug.log"
+echo "  LAST_ENTRY preview: ${LAST_ENTRY:0:200}..." >> ".claude/hooks/stop-hook-debug.log"
+
+# 빈 줄이면 종료
+if [ -z "$LAST_ENTRY" ]; then
+    echo "  조기 종료: transcript 마지막 줄이 비어있음" >> ".claude/hooks/stop-hook-debug.log"
     echo '{"decision": "allow"}'
     exit 0
 fi
@@ -98,23 +114,51 @@ if [ -n "$JQ_CMD" ]; then
     MESSAGE_TEXT=$(echo "$LAST_ENTRY" | "$JQ_CMD" -r '.message.content[] | select(.type == "text") | .text' 2>/dev/null)
     echo "  MESSAGE_TEXT length: ${#MESSAGE_TEXT}" >> ".claude/hooks/stop-hook-debug.log"
 else
-    # jq 없으면 간단한 grep/sed로 파싱
-    TYPE=$(echo "$LAST_ENTRY" | grep -o '"type"[[:space:]]*:[[:space:]]*"[^"]*"' | head -1 | sed 's/.*"\([^"]*\)".*/\1/')
-    echo "  TYPE (no jq): $TYPE" >> ".claude/hooks/stop-hook-debug.log"
-    if [ "$TYPE" != "assistant" ]; then
-        echo "  조기 종료: TYPE이 assistant가 아님 (no jq, $TYPE)" >> ".claude/hooks/stop-hook-debug.log"
+    # jq 없으면 Python으로 파싱 (python3 또는 python 시도)
+    PYTHON_CMD=""
+    if command -v python &> /dev/null; then
+        PYTHON_CMD="python"
+    elif command -v python3 &> /dev/null; then
+        PYTHON_CMD="python3"
+    fi
+
+    if [ -n "$PYTHON_CMD" ]; then
+        echo "  Python 명령: $PYTHON_CMD" >> ".claude/hooks/stop-hook-debug.log"
+        TYPE=$(echo "$LAST_ENTRY" | $PYTHON_CMD -c "import sys, json; data = json.loads(sys.stdin.read()); print(data.get('type', ''))" 2>&1)
+        PYTHON_EXIT=$?
+        echo "  Python exit code: $PYTHON_EXIT" >> ".claude/hooks/stop-hook-debug.log"
+        echo "  TYPE (python): $TYPE" >> ".claude/hooks/stop-hook-debug.log"
+
+        if [ $PYTHON_EXIT -ne 0 ]; then
+            echo "  Python 파싱 실패: $TYPE" >> ".claude/hooks/stop-hook-debug.log"
+            echo '{"decision": "allow"}'
+            exit 0
+        fi
+
+        if [ "$TYPE" != "assistant" ]; then
+            echo "  조기 종료: TYPE이 assistant가 아님 ($TYPE)" >> ".claude/hooks/stop-hook-debug.log"
+            echo '{"decision": "allow"}'
+            exit 0
+        fi
+
+        # Task tool 사용 여부 체크
+        HAS_TASK=$(echo "$LAST_ENTRY" | $PYTHON_CMD -c "import sys, json; data = json.loads(sys.stdin.read()); print(any(c.get('name') == 'Task' for c in data.get('message', {}).get('content', []) if c.get('type') == 'tool_use'))" 2>/dev/null || echo "False")
+        echo "  HAS_TASK: $HAS_TASK" >> ".claude/hooks/stop-hook-debug.log"
+
+        if [ "$HAS_TASK" = "True" ]; then
+            echo "  조기 종료: 서브에이전트 응답 (Task tool 사용)" >> ".claude/hooks/stop-hook-debug.log"
+            echo '{"decision": "allow"}'
+            exit 0
+        fi
+
+        # 텍스트 내용 추출
+        MESSAGE_TEXT=$(echo "$LAST_ENTRY" | $PYTHON_CMD -c "import sys, json; data = json.loads(sys.stdin.read()); print('\\n'.join([c.get('text', '') for c in data.get('message', {}).get('content', []) if c.get('type') == 'text']))" 2>/dev/null || echo "")
+    else
+        # Python도 없으면 포기하고 전체 허용
+        echo "  경고: jq와 python 모두 없음 - 파싱 불가" >> ".claude/hooks/stop-hook-debug.log"
         echo '{"decision": "allow"}'
         exit 0
     fi
-
-    # Task tool 사용 여부 (간단 체크)
-    if echo "$LAST_ENTRY" | grep -q '"name"[[:space:]]*:[[:space:]]*"Task"'; then
-        echo '{"decision": "allow"}'
-        exit 0
-    fi
-
-    # 텍스트 내용 추출 (간단한 방법 - Python 사용)
-    MESSAGE_TEXT=$(echo "$LAST_ENTRY" | python3 -c "import sys, json; data = json.loads(sys.stdin.read()); print('\\n'.join([c.get('text', '') for c in data.get('message', {}).get('content', []) if c.get('type') == 'text']))" 2>/dev/null || echo "")
 fi
 
 # 빈 메시지면 종료

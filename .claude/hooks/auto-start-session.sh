@@ -28,17 +28,23 @@ echo "[DEBUG] TODAY: $TODAY" >> "$DEBUG_LOG"
 echo "[DEBUG] SESSION_FILE: $SESSION_FILE" >> "$DEBUG_LOG"
 
 # 기존 세션 파일이 있는지 확인
-if [ -f "$SESSION_FILE" ]; then
+if [ -f "$SESSION_FILE" ] && [ -s "$SESSION_FILE" ]; then
     # Placeholder가 있으면 파일을 다시 생성해야 함
-    if grep -q "{목표" "$SESSION_FILE" 2>/dev/null; then
+    if grep -q "{목표\|{DATE\|{TIME" "$SESSION_FILE" 2>/dev/null; then
         # Placeholder 발견 - 파일을 삭제하고 새로 생성
+        echo "[DEBUG] Placeholder 발견 - 파일 재생성" >> "$DEBUG_LOG"
         rm -f "$SESSION_FILE" 2>/dev/null || true
     else
         # 정상 파일 - 재개
+        echo "[DEBUG] 정상 파일 발견 - 세션 재개" >> "$DEBUG_LOG"
         echo '{"decision": "allow"}'
         echo "✅ 기존 세션 재개: $TODAY" >&2
         exit 0
     fi
+else
+    # 파일이 없거나 비어있음 - 새로 생성
+    echo "[DEBUG] 파일 없음 또는 비어있음 - 새로 생성" >> "$DEBUG_LOG"
+    rm -f "$SESSION_FILE" 2>/dev/null || true
 fi
 
 # Week/Day 계산 (roadmap.md에서 추출)
@@ -183,6 +189,20 @@ echo "[DEBUG] 목표 삽입 완료" >> "$DEBUG_LOG"
 
 echo "[DEBUG] 최종 SESSION_FILE 내용 (첫 30줄):" >> "$DEBUG_LOG"
 head -30 "$SESSION_FILE" >> "$DEBUG_LOG" 2>/dev/null || true
+
+# 파일 동기화 보장 (Windows Git Bash 호환)
+if command -v sync >/dev/null 2>&1; then
+    sync 2>/dev/null || true
+fi
+
+# 파일 생성 확인 (최대 3초 대기)
+for i in {1..6}; do
+    if [ -f "$SESSION_FILE" ] && [ -s "$SESSION_FILE" ]; then
+        echo "[DEBUG] 파일 생성 확인 완료 (${i}번째 시도)" >> "$DEBUG_LOG"
+        break
+    fi
+    sleep 0.5
+done
 
 # 로그 기록 (에러 무시)
 echo "[$(date +"%Y-%m-%d %H:%M:%S")] 새 세션 시작: Week $CURRENT_WEEK Day $CURRENT_DAY" >> ".claude/hooks/session-start.log" 2>/dev/null || true
