@@ -1,5 +1,6 @@
 using IdleRPG.Application.DTOs.Characters;
 using IdleRPG.Application.DTOs.Rewards;
+using IdleRPG.Domain.Entities;
 
 namespace IdleRPG.Application.DTOs.Battle
 {
@@ -27,5 +28,12 @@ namespace IdleRPG.Application.DTOs.Battle
         /// 전투 후 업데이트된 캐릭터 정보 (레벨업 여부 확인용)
         /// </summary>
         public CharacterDto? UpdatedCharacter { get; set; }
+
+        /// <summary>
+        /// 전투 로그 엔티티 (DB 미저장)
+        /// DungeonService가 트랜잭션의 일부로 저장
+        /// 일반 전투 시에는 BattleService가 직접 저장하므로 null
+        /// </summary>
+        public BattleLog? BattleLog { get; set; }
     }
 }

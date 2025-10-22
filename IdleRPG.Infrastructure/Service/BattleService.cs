@@ -4,13 +4,15 @@ using IdleRPG.Application.DTOs.Characters;
 using IdleRPG.Application.DTOs.Rewards;
 using IdleRPG.Application.Interfaces;
 using IdleRPG.Domain.Entities;
+using IdleRPG.Domain.ValueObjects;
 using Microsoft.Extensions.Logging;
+using DungeonDifficultyEnum = IdleRPG.Domain.Enums.DungeonDifficulty;
 
 namespace IdleRPG.Infrastructure.Service
 {
     /// <summary>
     /// Priority Queue 기반 Event-driven 전투 시뮬레이션 서비스
-    /// 보상 지급 및 레벨업 로직 포함 (Option A: 통합 방식)
+    /// 책임: 전투 시뮬레이션만 수행, 보상 지급은 DungeonService에 위임
     /// </summary>
     public class BattleService : IBattleService
     {
@@ -29,7 +31,11 @@ namespace IdleRPG.Infrastructure.Service
             _logger = logger;
         }
 
-        public async Task<BattleResultResponse> SimulateBattleAsync(Guid characterId, Guid monsterId)
+        public async Task<BattleResultResponse> SimulateBattleAsync(
+            Guid characterId, 
+            Guid monsterId, 
+            int? dungeonStageId = null, 
+            DungeonDifficultyEnum? difficulty = null)
         {
             // 1. 엔티티 로드
             var character = await _unitOfWork.Characters.GetByIdAsync(characterId);
@@ -40,26 +46,24 @@ namespace IdleRPG.Infrastructure.Service
             if (monster == null)
                 throw new InvalidOperationException("몬스터를 찾을 수 없습니다");
 
-            // 2. 전투 시뮬레이션 실행
-            var result = SimulateCombat(character, monster);
+            // 2. 난이도 배율 적용 (던전 전투인 경우)
+            var combatMonster = difficulty.HasValue 
+                ? ApplyDifficultyMultiplier(monster, difficulty.Value) 
+                : monster;
 
-            // 3. 승리 시 보상 자동 지급 (경험치 + 골드 + 레벨업)
-            CharacterDto? updatedCharacter = null;
-            if (result.IsVictory && result.Reward != null)
-            {
-                updatedCharacter = await ApplyRewardAsync(character, result.Reward);
-                result.UpdatedCharacter = updatedCharacter;
-            }
+            // 3. 전투 시뮬레이션 실행
+            var result = SimulateCombat(character, combatMonster);
 
             _logger.LogInformation(
-                "전투 완료 - 캐릭터: {CharacterId}, 몬스터: {MonsterId}, 승리: {IsVictory}, 경험치: {Exp}, 골드: {Gold}",
-                characterId, monsterId, result.IsVictory, result.Reward?.Experience ?? 0, result.Reward?.Gold ?? 0);
+                "전투 완료 - 캐릭터: {CharacterId}, 몬스터: {MonsterId}, 난이도: {Difficulty}, 승리: {IsVictory}",
+                characterId, monsterId, difficulty?.ToString() ?? "Normal", result.IsVictory);
 
-            // 4. 전투 로그 저장
+            // 4. BattleLog 생성 (DB 미저장, DungeonService가 트랜잭션의 일부로 저장)
             var battleLog = new BattleLog
             {
                 CharacterId = characterId,
                 MonsterId = monsterId,
+                DungeonStageId = dungeonStageId,
                 IsVictory = result.IsVictory,
                 ExperienceGained = (int)(result.Reward?.Experience ?? 0),
                 GoldGained = (int)(result.Reward?.Gold ?? 0),
@@ -68,10 +72,50 @@ namespace IdleRPG.Infrastructure.Service
                 BattleDate = DateTime.UtcNow
             };
 
-            await _unitOfWork.BattleLogs.AddAsync(battleLog);
-            await _unitOfWork.SaveChangesAsync();
+            // 5. 던전 전투인 경우 BattleLog를 반환 (DungeonService가 저장)
+            // 일반 전투는 여기서 직접 저장
+            if (dungeonStageId.HasValue)
+            {
+                result.BattleLog = battleLog;
+            }
+            else
+            {
+                // 일반 전투: 보상 지급 + BattleLog 저장
+                CharacterDto? updatedCharacter = null;
+                if (result.IsVictory && result.Reward != null)
+                {
+                    updatedCharacter = await ApplyRewardAsync(character, result.Reward);
+                    result.UpdatedCharacter = updatedCharacter;
+                }
+                
+                await _unitOfWork.BattleLogs.AddAsync(battleLog);
+                await _unitOfWork.SaveChangesAsync();
+            }
 
             return result;
+        }
+
+        /// <summary>
+        /// 난이도 배율을 적용한 Monster 인스턴스 생성 (원본 보존)
+        /// </summary>
+        private Monster ApplyDifficultyMultiplier(Monster original, DungeonDifficultyEnum difficulty)
+        {
+            var multiplier = DifficultyMultiplier.Create(difficulty);
+
+            // 원본을 보존하기 위해 새로운 인스턴스 생성
+            return new Monster
+            {
+                Id = original.Id,
+                Name = original.Name,
+                Level = original.Level,
+                MaxHealth = (int)(original.MaxHealth * multiplier.MonsterStatMultiplier),
+                Attack = (int)(original.Attack * multiplier.MonsterStatMultiplier),
+                Defense = (int)(original.Defense * multiplier.MonsterStatMultiplier),
+                AttackSpeed = original.AttackSpeed,
+                CritRate = original.CritRate,
+                CritDamage = original.CritDamage,
+                Evasion = original.Evasion
+            };
         }
 
         /// <summary>

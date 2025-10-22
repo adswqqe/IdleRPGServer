@@ -1,4 +1,5 @@
 using IdleRPG.Application.DTOs.Battle;
+using IdleRPG.Domain.Enums;
 
 namespace IdleRPG.Application.Interfaces
 {
@@ -13,8 +14,14 @@ namespace IdleRPG.Application.Interfaces
         /// </summary>
         /// <param name="characterId">전투를 수행할 캐릭터 ID</param>
         /// <param name="monsterId">전투할 몬스터 ID</param>
+        /// <param name="dungeonStageId">던전 스테이지 ID (던전 전투인 경우)</param>
+        /// <param name="difficulty">던전 난이도 (난이도 배율 적용)</param>
         /// <returns>전투 결과 (승리 여부, 보상, 통계)</returns>
-        Task<BattleResultResponse> SimulateBattleAsync(Guid characterId, Guid monsterId);
+        Task<BattleResultResponse> SimulateBattleAsync(
+            Guid characterId, 
+            Guid monsterId, 
+            int? dungeonStageId = null, 
+            DungeonDifficulty? difficulty = null);
 
         /// <summary>
         /// 캐릭터의 전투 히스토리 조회 (페이징)

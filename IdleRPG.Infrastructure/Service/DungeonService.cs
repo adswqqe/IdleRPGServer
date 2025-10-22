@@ -31,6 +31,7 @@ namespace IdleRPG.Infrastructure.Service
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly ICharacterService _characterService;
+        private readonly IBattleService _battleService;
         private readonly LootCalculator _lootCalculator;
         private readonly ILogger<DungeonService> _logger;
 
@@ -40,11 +41,13 @@ namespace IdleRPG.Infrastructure.Service
         public DungeonService(
             IUnitOfWork unitOfWork,
             ICharacterService characterService,
+            IBattleService battleService,
             LootCalculator lootCalculator,
             ILogger<DungeonService> logger)
         {
             _unitOfWork = unitOfWork;
             _characterService = characterService;
+            _battleService = battleService;
             _lootCalculator = lootCalculator;
             _logger = logger;
         }
@@ -191,7 +194,40 @@ namespace IdleRPG.Infrastructure.Service
                     };
                 }
 
-                // 7. 진행도 업데이트
+                // 6-1. 난이도 검증 (서버 권위: 허용된 난이도인지 확인)
+                var allowedDifficulties = GetAllowedDifficulties(highestCleared, stage.Id);
+                if (!allowedDifficulties.Contains(request.Difficulty))
+                {
+                    return new DungeonClearResultDto
+                    {
+                        IsSuccess = false,
+                        ErrorMessage = "허용되지 않은 난이도입니다"
+                    };
+                }
+
+                // 7. 전투 시뮬레이션 실행 (난이도 배율 적용)
+                var battleResult = await _battleService.SimulateBattleAsync(
+                    characterId, 
+                    stage.MonsterId,
+                    dungeonStageId: request.StageId,
+                    difficulty: request.Difficulty);
+
+                // 7-1. 전투 패배 시 조기 반환 (보상 없음)
+                if (!battleResult.IsVictory)
+                {
+                    _logger.LogInformation(
+                        "던전 전투 패배 - 캐릭터: {CharacterId}, 스테이지: {StageId}, 난이도: {Difficulty}",
+                        characterId, request.StageId, request.Difficulty);
+
+                    return new DungeonClearResultDto
+                    {
+                        IsSuccess = false,
+                        ErrorMessage = "전투에서 패배했습니다",
+                        BattleStatistics = battleResult.Statistics
+                    };
+                }
+
+                // 8. 진행도 업데이트 (전투 승리 시만)
                 int newHighScore = Math.Max(highestCleared, request.StageId);
                 progress.SetHighestStageCleared(request.Difficulty, newHighScore);
 
@@ -213,14 +249,20 @@ namespace IdleRPG.Infrastructure.Service
                     droppedEquipments = await ProcessEquipmentDropAsync(stage, character, request.Difficulty);
                 }
 
-                // 12. 트랜잭션 커밋 (모든 변경사항 한 번에 저장)
+                // 12. BattleLog 저장 (DB Context에만 등록, 아직 커밋 안 함)
+                if (battleResult.BattleLog != null)
+                {
+                    await _unitOfWork.BattleLogs.AddAsync(battleResult.BattleLog);
+                }
+
+                // 13. 트랜잭션 커밋 (모든 변경사항 한 번에 저장 - 원자성 보장)
                 await _unitOfWork.SaveChangesAsync();
 
                 _logger.LogInformation(
                     "던전 클리어 - 캐릭터: {CharacterId}, 스테이지: {StageId}, 난이도: {Difficulty}, 레벨업: {IsLevelUp} ({LevelUps}회), 최종 레벨: {NewLevel}",
                     characterId, request.StageId, request.Difficulty, isLevelUp, levelUps, character.Level);
 
-                // 13. 성공 응답 반환
+                // 14. 성공 응답 반환 (전투 통계 포함)
                 return new DungeonClearResultDto
                 {
                     IsSuccess = true,
@@ -232,7 +274,8 @@ namespace IdleRPG.Infrastructure.Service
                     NewHighestStage = newHighScore,
                     CurrentLevel = character.Level,
                     IsLevelUp = isLevelUp,
-                    DroppedEquipments = droppedEquipments
+                    DroppedEquipments = droppedEquipments,
+                    BattleStatistics = battleResult.Statistics
                 };
             }
             catch (Exception ex)
@@ -498,6 +541,31 @@ namespace IdleRPG.Infrastructure.Service
                     "중복 스킬 획득 무시: Character={CharacterId}, Skill={SkillName}",
                     character.Id, skillTemplate.Name);
             }
+        }
+
+        /// <summary>
+        /// 현재 진행도에 따라 허용된 난이도 목록 반환
+        /// 서버 권위: 클라이언트가 보낸 난이도가 허용된 범위인지 검증
+        /// </summary>
+        private List<DungeonDifficultyEnum> GetAllowedDifficulties(int highestCleared, int currentStageId)
+        {
+            var allowed = new List<DungeonDifficultyEnum> { DungeonDifficultyEnum.Normal };
+
+            // 해당 스테이지를 Normal로 클리어했으면 Hard 허용
+            if (highestCleared >= currentStageId)
+            {
+                allowed.Add(DungeonDifficultyEnum.Hard);
+            }
+
+            // Hard도 클리어했으면 Nightmare 허용
+            // (현재 로직: Hard 클리어 = Normal 클리어와 동일하게 취급)
+            // TODO: Hard 진행도를 별도 추적하려면 CharacterDungeonProgress 확장 필요
+            if (highestCleared >= currentStageId)
+            {
+                allowed.Add(DungeonDifficultyEnum.Nightmare);
+            }
+
+            return allowed;
         }
     }
 }

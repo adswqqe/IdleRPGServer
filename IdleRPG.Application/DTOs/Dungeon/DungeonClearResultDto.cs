@@ -1,3 +1,4 @@
+using IdleRPG.Application.DTOs.Battle;
 using IdleRPG.Application.DTOs.Equipment;
 using IdleRPG.Application.DTOs.Rewards;
 
@@ -56,5 +57,11 @@ namespace IdleRPG.Application.DTOs.Dungeon
         /// LootTable 기반 확률 드랍
         /// </summary>
         public List<EquipmentDto>? DroppedEquipments { get; set; }
+
+        /// <summary>
+        /// 전투 통계 (턴 수, 데미지 등)
+        /// 전투 패배 시에도 포함됨
+        /// </summary>
+        public BattleStatisticsDto? BattleStatistics { get; set; }
     }
 }
