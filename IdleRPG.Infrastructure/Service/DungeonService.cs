@@ -1,12 +1,16 @@
 using IdleRPG.Application.Character.Services;
 using IdleRPG.Application.DTOs.Dungeon;
+using IdleRPG.Application.DTOs.Equipment;
 using IdleRPG.Application.DTOs.Rewards;
 using IdleRPG.Application.Interfaces;
 using IdleRPG.Domain.Entities;
+using IdleRPG.Domain.Enums;
+using IdleRPG.Domain.Services;
 using IdleRPG.Domain.ValueObjects;
 using Microsoft.Extensions.Logging;
 using System.Collections.Concurrent;
 using DungeonDifficultyEnum = IdleRPG.Domain.Enums.DungeonDifficulty;
+using RewardType = IdleRPG.Domain.Enums.RewardType;
 
 namespace IdleRPG.Infrastructure.Service
 {
@@ -27,6 +31,7 @@ namespace IdleRPG.Infrastructure.Service
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly ICharacterService _characterService;
+        private readonly LootCalculator _lootCalculator;
         private readonly ILogger<DungeonService> _logger;
 
         // 캐릭터별 동시성 제어 (중복 보상 지급 방지)
@@ -35,10 +40,12 @@ namespace IdleRPG.Infrastructure.Service
         public DungeonService(
             IUnitOfWork unitOfWork,
             ICharacterService characterService,
+            LootCalculator lootCalculator,
             ILogger<DungeonService> logger)
         {
             _unitOfWork = unitOfWork;
             _characterService = characterService;
+            _lootCalculator = lootCalculator;
             _logger = logger;
         }
 
@@ -199,14 +206,21 @@ namespace IdleRPG.Infrastructure.Service
                 // 10. 경험치 지급 및 레벨업 처리 (SaveChanges 없이)
                 var (isLevelUp, levelUps) = _characterService.ProcessExperienceGain(character, (int)finalExpReward);
 
-                // 11. 트랜잭션 커밋 (모든 변경사항 한 번에 저장)
+                // 11. 장비 드랍 처리 (LootTable이 있는 경우)
+                List<EquipmentDto>? droppedEquipments = null;
+                if (stage.LootTableId.HasValue)
+                {
+                    droppedEquipments = await ProcessEquipmentDropAsync(stage, character, request.Difficulty);
+                }
+
+                // 12. 트랜잭션 커밋 (모든 변경사항 한 번에 저장)
                 await _unitOfWork.SaveChangesAsync();
 
                 _logger.LogInformation(
                     "던전 클리어 - 캐릭터: {CharacterId}, 스테이지: {StageId}, 난이도: {Difficulty}, 레벨업: {IsLevelUp} ({LevelUps}회), 최종 레벨: {NewLevel}",
                     characterId, request.StageId, request.Difficulty, isLevelUp, levelUps, character.Level);
 
-                // 12. 성공 응답 반환
+                // 13. 성공 응답 반환
                 return new DungeonClearResultDto
                 {
                     IsSuccess = true,
@@ -217,7 +231,8 @@ namespace IdleRPG.Infrastructure.Service
                     },
                     NewHighestStage = newHighScore,
                     CurrentLevel = character.Level,
-                    IsLevelUp = isLevelUp
+                    IsLevelUp = isLevelUp,
+                    DroppedEquipments = droppedEquipments
                 };
             }
             catch (Exception ex)
@@ -251,6 +266,168 @@ namespace IdleRPG.Infrastructure.Service
             // 첫 번째 스테이지(Id=1)는 항상 도전 가능
             // 그 외 스테이지는 이전 스테이지(Id-1)를 클리어해야 함
             return stage.Id == 1 || highestCleared >= (stage.Id - 1);
+        }
+
+        /// <summary>
+        /// 던전 클리어 시 장비 드랍 처리
+        ///
+        /// [설계 원칙]
+        /// - LootCalculator로 확률 계산 (순수 로직)
+        /// - 던전 컨텍스트로 Equipment 생성 (스테이지 레벨 기반)
+        /// - Repository를 통해 DB 저장
+        /// </summary>
+        private async Task<List<EquipmentDto>> ProcessEquipmentDropAsync(
+            DungeonStage stage,
+            Character character,
+            DungeonDifficultyEnum difficulty)
+        {
+            var droppedEquipments = new List<EquipmentDto>();
+
+            // 1. LootTable 조회 (Include Items)
+            var lootTable = await _unitOfWork.LootTables.GetWithItemsAsync(stage.LootTableId!.Value);
+            if (lootTable == null || lootTable.Items == null || !lootTable.Items.Any())
+            {
+                _logger.LogWarning(
+                    "LootTable {LootTableId}를 찾을 수 없거나 아이템이 없습니다 - 스테이지: {StageId}",
+                    stage.LootTableId, stage.Id);
+                return droppedEquipments;
+            }
+
+            // 2. LootCalculator로 확률 계산
+            var random = new Random(); // TODO: Seed 관리 (재현성)
+            var rolledItems = _lootCalculator.RollLootItems(lootTable, random, allowDuplicates: false);
+
+            _logger.LogInformation(
+                "LootTable {LootTableId} 추첨 완료 - {Count}개 아이템 선택됨",
+                lootTable.Id, rolledItems.Count);
+
+            // 3. LootItem을 Equipment로 변환
+            foreach (var (item, quantity) in rolledItems)
+            {
+                // Equipment 타입만 처리 (Gold, Experience는 이미 지급됨)
+                if (item.Type == RewardType.Equipment)
+                {
+                    // LootItem에서 장비 속성 가져오기
+                    if (!item.EquipmentSlot.HasValue || !item.EquipmentRarity.HasValue)
+                    {
+                        _logger.LogWarning(
+                            "LootItem {ItemId}에 EquipmentSlot 또는 EquipmentRarity가 없습니다",
+                            item.Id);
+                        continue;
+                    }
+
+                    // 던전 컨텍스트로 장비 생성
+                    for (int i = 0; i < quantity; i++)
+                    {
+                        var equipment = CreateEquipmentFromLootItem(
+                            item,
+                            stage,
+                            character.PlayerId);
+
+                        await _unitOfWork.Equipments.AddAsync(equipment);
+
+                        droppedEquipments.Add(new EquipmentDto
+                        {
+                            Id = equipment.Id,
+                            Name = equipment.Name,
+                            Slot = equipment.Slot,
+                            Rarity = equipment.Rarity,
+                            OwnerId = equipment.OwnerId,
+                            CharacterId = equipment.CharacterId,
+                            EnhancementLevel = equipment.EnhancementLevel,
+                            BaseAttack = equipment.BaseAttack,
+                            BaseDefense = equipment.BaseDefense,
+                            BaseHp = equipment.BaseHp,
+                            TotalAttack = equipment.GetTotalAttack(),
+                            TotalDefense = equipment.GetTotalDefense(),
+                            TotalHp = equipment.GetTotalHp(),
+                            CreatedAt = equipment.CreatedAt,
+                            UpdatedAt = equipment.UpdatedAt
+                        });
+
+                        _logger.LogInformation(
+                            "Equipment 드랍: {Slot} {Rarity} (BaseAttack: {Attack})",
+                            equipment.Slot, equipment.Rarity, equipment.BaseAttack);
+                    }
+                }
+                else if (item.Type == RewardType.Gold)
+                {
+                    // Gold는 캐릭터에 직접 지급
+                    character.Gold += quantity;
+                    _logger.LogDebug("추가 Gold 드랍: {Quantity}", quantity);
+                }
+            }
+
+            return droppedEquipments;
+        }
+
+        /// <summary>
+        /// LootItem과 던전 컨텍스트로 Equipment 엔티티 생성
+        ///
+        /// [던전 고유 로직]
+        /// - BaseAttack: 스테이지 RequiredLevel * 10
+        /// - BaseDefense/BaseHp: Rarity에 따라 차등 적용
+        /// - Name: 슬롯 + 희귀도 조합
+        /// </summary>
+        private Equipment CreateEquipmentFromLootItem(
+            LootItem lootItem,
+            DungeonStage stage,
+            Guid ownerId)
+        {
+            // 스테이지 레벨 기반 기본 스탯 계산
+            int baseAttack = stage.RequiredLevel * 10;
+            int baseDefense = stage.RequiredLevel * 5;
+            int baseHp = stage.RequiredLevel * 20;
+
+            // 희귀도에 따른 스탯 배율
+            float rarityMultiplier = lootItem.EquipmentRarity!.Value switch
+            {
+                EquipmentRarity.Common => 1.0f,
+                EquipmentRarity.Rare => 1.3f,
+                EquipmentRarity.Epic => 1.6f,
+                EquipmentRarity.Legendary => 2.0f,
+                _ => 1.0f
+            };
+
+            baseAttack = (int)(baseAttack * rarityMultiplier);
+            baseDefense = (int)(baseDefense * rarityMultiplier);
+            baseHp = (int)(baseHp * rarityMultiplier);
+
+            // 장비 이름 생성
+            string rarityPrefix = lootItem.EquipmentRarity.Value switch
+            {
+                EquipmentRarity.Common => "일반",
+                EquipmentRarity.Rare => "희귀",
+                EquipmentRarity.Epic => "영웅",
+                EquipmentRarity.Legendary => "전설",
+                _ => "미지"
+            };
+
+            string slotName = lootItem.EquipmentSlot!.Value switch
+            {
+                EquipmentSlot.Weapon => "무기",
+                EquipmentSlot.Armor => "갑옷",
+                EquipmentSlot.Helmet => "투구",
+                EquipmentSlot.Boots => "신발",
+                EquipmentSlot.Gloves => "장갑",
+                _ => "장비"
+            };
+
+            return new Equipment
+            {
+                Id = Guid.NewGuid(),
+                Name = $"{rarityPrefix} {slotName} (Lv.{stage.RequiredLevel})",
+                Slot = lootItem.EquipmentSlot.Value,
+                Rarity = lootItem.EquipmentRarity.Value,
+                OwnerId = ownerId,
+                CharacterId = null,  // 인벤토리에 보관 (장착 안 됨)
+                EnhancementLevel = 0,
+                BaseAttack = baseAttack,
+                BaseDefense = baseDefense,
+                BaseHp = baseHp,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            };
         }
     }
 }

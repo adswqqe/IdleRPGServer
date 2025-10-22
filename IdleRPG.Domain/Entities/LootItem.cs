@@ -6,6 +6,10 @@ namespace IdleRPG.Domain.Entities
     /// <summary>
     /// LootTable에 포함되는 개별 보상 항목을 정의합니다.
     /// Loot Table Pattern의 상세한 설계 의도는 LootTable.cs를 참조하세요.
+    ///
+    /// [Equipment 드랍 설계]
+    /// - Type = Equipment일 경우, EquipmentSlot과 EquipmentRarity로 드랍될 장비 결정
+    /// - 실제 스탯(BaseAttack 등)은 던전 컨텍스트(스테이지 레벨)로 생성
     /// </summary>
     public class LootItem
     {
@@ -26,6 +30,18 @@ namespace IdleRPG.Domain.Entities
         /// Gold, Experience, Equipment 타입의 경우 null입니다.
         /// </summary>
         public Guid? ItemId { get; set; }
+
+        /// <summary>
+        /// 장비 슬롯 (Type = Equipment일 경우 필수)
+        /// Weapon, Armor, Helmet, Boots, Accessory
+        /// </summary>
+        public EquipmentSlot? EquipmentSlot { get; set; }
+
+        /// <summary>
+        /// 장비 희귀도 (Type = Equipment일 경우 필수)
+        /// Common, Rare, Epic, Legendary
+        /// </summary>
+        public EquipmentRarity? EquipmentRarity { get; set; }
 
         /// <summary>
         /// 100% 지급되는 보상인지 여부. true이면 Weight는 무시됩니다.

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using IdleRPG.Domain.Entities;
 using IdleRPG.Domain.Enums;
+using DungeonDifficulty = IdleRPG.Domain.Enums.DungeonDifficulty;
 
 namespace IdleRPG.Domain.Services
 {
@@ -55,6 +56,39 @@ namespace IdleRPG.Domain.Services
             // Common: 60% (40~99)
             else
                 return SkillRarity.Common;
+        }
+
+        public EquipmentRarity DetermineEquipRarity(DungeonDifficulty stage)
+        {
+            int rand = 0;
+
+            if (stage == DungeonDifficulty.Normal)
+                rand = _randomProvider.Next(100);
+            else if (stage == DungeonDifficulty.Hard)
+                rand = _randomProvider.Next(50);
+            else if (stage == DungeonDifficulty.Nightmare)
+                rand = _randomProvider.Next(30);
+
+            // Legendary: 1% (0)
+            if (rand < LEGENDARY_RATE)
+                return EquipmentRarity.Legendary;
+
+            // Epic: 9% (1~9)
+            else if (rand < LEGENDARY_RATE + EPIC_RATE)
+                return EquipmentRarity.Epic;
+
+            // Rare: 30% (10~39)
+            else if (rand < LEGENDARY_RATE + EPIC_RATE + RARE_RATE)
+                return EquipmentRarity.Rare;
+
+            // Common: 60% (40~99)
+            else
+                return EquipmentRarity.Common;
+        }
+
+        public EquipmentSlot DetermineEquipSlot()
+        {
+            return (EquipmentSlot)_randomProvider.Next(System.Enum.GetValues(typeof(EquipmentSlot)).Length) + 1;
         }
 
         /// <summary>

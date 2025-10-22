@@ -1,3 +1,4 @@
+using IdleRPG.Application.DTOs.Equipment;
 using IdleRPG.Application.DTOs.Rewards;
 
 namespace IdleRPG.Application.DTOs.Dungeon
@@ -9,6 +10,7 @@ namespace IdleRPG.Application.DTOs.Dungeon
     /// [서버 권한 설계]
     /// - IsSuccess: 서버 검증 결과 (레벨, 진행도, 동시성 체크 통과 여부)
     /// - Reward: 서버가 계산한 보상 (난이도 배수 적용 완료)
+    /// - DroppedEquipments: 서버가 랜덤 생성한 장비 드랍 목록
     /// - NewHighestStage: 서버가 업데이트한 진행도
     /// - ErrorMessage: 검증 실패 시 이유
     /// </summary>
@@ -48,5 +50,11 @@ namespace IdleRPG.Application.DTOs.Dungeon
         /// 레벨업 후 새로운 레벨 (레벨업 안 했으면 기존 레벨)
         /// </summary>
         public int CurrentLevel { get; set; }
+
+        /// <summary>
+        /// 던전 클리어 시 드랍된 장비 목록
+        /// LootTable 기반 확률 드랍
+        /// </summary>
+        public List<EquipmentDto>? DroppedEquipments { get; set; }
     }
 }
