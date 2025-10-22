@@ -189,17 +189,7 @@
         ]
       }
     ],
-    "SessionEnd": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "bash .claude/hooks/auto-end-session-llm.sh",
-            "timeout": 10
-          }
-        ]
-      }
-    ]
+    "SessionEnd": []
   },
   "outputStyle": "Learning"
 }
