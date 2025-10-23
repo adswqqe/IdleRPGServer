@@ -184,8 +184,9 @@ Spec includes:
 Next steps:
 1. Review .claude/memories/specs/character-rename/spec-lite.md
 2. Decide TODO(human) items (이름 변경 이력 저장 방식)
-3. Mark approval
-4. 구현 시작:
+3. **[필수] Run: /spec-review character-rename (목표: 70점 이상)**
+4. Mark approval
+5. 구현 시작:
    - Domain: Character.ChangeName() 메서드 추가
    - Infrastructure: EF Configuration 수정
    - Application: CharacterService.ChangeNameAsync()

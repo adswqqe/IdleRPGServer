@@ -159,6 +159,7 @@ Total: 25 tasks, ~16 hours
 Next steps:
 1. Review .claude/memories/specs/pet-system/tasks.md
 2. Verify task order and dependencies
-3. Mark approval
-4. Start execution: /spec-execute pet-system 1.1
+3. **[필수] Run: /spec-review pet-system (목표: 90점 이상 - 최종 검증)**
+4. Mark approval
+5. Start execution: /spec-execute pet-system 1.1
 ```

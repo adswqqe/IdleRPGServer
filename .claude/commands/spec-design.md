@@ -222,6 +222,7 @@ Next steps:
 1. Review design.md
 2. Decide TODO(human): 버프 계산 로직 위치 (Domain vs Application)
 3. 게임 밸런스 AI 제안값 확인
-4. Mark approval
-5. Run: /spec-tasks pet-system
+4. **[필수] Run: /spec-review pet-system (목표: 70점 이상)**
+5. Mark approval
+6. Run: /spec-tasks pet-system
 ```

@@ -148,14 +148,17 @@
 #### M (Medium):
 - [ ] spec-lite.md 작성 (단일 파일)
 - [ ] [조건부] Spike/ADR
+- [ ] **[필수] `/spec-review` 품질 검증 → 70점 이상 필요**
 - [ ] 사용자 승인
-- [ ] 구현 → Unity 문서 → Self-Review ([체크리스트](.claude/memories/kiro-system-templates/self-review-checklist.md))
+- [ ] 구현 → Unity 문서
 
 #### L (Large):
 - [ ] requirements.md 작성 및 승인
 - [ ] [조건부] Spike (최대 3개)
-- [ ] design.md 작성 (Decision Log + Self-Review ([체크리스트](.claude/memories/kiro-system-templates/self-review-checklist.md))) 및 승인
-- [ ] tasks.md 작성 (품질 검증 5개) 및 승인
+- [ ] design.md 작성 및 **[필수] `/spec-review` 품질 검증 (70점 이상)**
+- [ ] 사용자 승인
+- [ ] tasks.md 작성 및 **[필수] `/spec-review` 최종 검증 (90점 이상)**
+- [ ] 사용자 승인
 - [ ] Task 실행 (/spec-execute)
 
 ### 📚 Commands
