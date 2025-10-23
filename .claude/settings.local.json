@@ -159,7 +159,8 @@
       "Bash(dotnet --version:*)",
       "Read(//d/Proj/**)",
       "WebFetch(domain:raw.githubusercontent.com)",
-      "SlashCommand(/roadmap)"
+      "SlashCommand(/roadmap)",
+      "Bash(mkdir:*)"
     ]
   },
   "enableAllProjectMcpServers": true,
