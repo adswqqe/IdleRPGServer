@@ -117,6 +117,7 @@ Authorization: [Required Role]
 - [ ] [예: "에러 핸들링: try-catch vs Result<T> 패턴?"]
 
 > 💡 **학습 가이드**: 계산식은 AI가 제공합니다. **계층 분리**, **의존성 주입**, **트랜잭션 관리**에 집중하세요.
+> 상세 규칙: [CLAUDE.md - 학습 프로젝트 특화 규칙](../../../CLAUDE.md#학습-프로젝트-특화-규칙)
 
 ---
 
@@ -176,6 +177,8 @@ Authorization: [Required Role]
 ## 10. Decisions (선택적)
 
 > ⚠️ **사용 조건**: 아키텍처 영향이 있는 결정이 있을 때만 작성
+>
+> **ADR 필요 조건**: [CLAUDE.md - ADR (아키텍처 결정 기록)](../../../CLAUDE.md#spike--adr) 참조
 
 ### Decision 1: [간단한 제목]
 - **Context**: 왜 이 결정이 필요했는가? (1-2문장)

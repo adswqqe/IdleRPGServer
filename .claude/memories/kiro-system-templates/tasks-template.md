@@ -62,6 +62,7 @@
 **Design Reference**: [Business Logic - 알고리즘]
 
 > 💡 **학습 가이드**: 확률 계산식은 AI가 제공합니다. **계층 분리**와 **의존성 주입** 구현에 집중하세요.
+> 상세 규칙: [CLAUDE.md - 학습 프로젝트 특화 규칙](../../../CLAUDE.md#학습-프로젝트-특화-규칙)
 
 ---
 
@@ -119,6 +120,7 @@
 **Design Reference**: [Service Layer - ServiceName]
 
 > 💡 **학습 가이드**: Application Service는 **워크플로우 오케스트레이션**만 담당. Pure 비즈니스 로직은 Domain에!
+> 상세 규칙: [CLAUDE.md - 학습 프로젝트 특화 규칙](../../../CLAUDE.md#학습-프로젝트-특화-규칙)
 
 ---
 
@@ -193,6 +195,7 @@
 **참고**: `CLAUDE.md - Database Migration`
 
 > 💡 **학습 가이드**: SQL 문법은 AI가 작성합니다. **인덱싱 전략**, **정규화 vs 역정규화** 설계 결정을 경험하세요.
+> 상세 규칙: [CLAUDE.md - 학습 프로젝트 특화 규칙](../../../CLAUDE.md#학습-프로젝트-특화-규칙)
 
 ---
 
@@ -207,6 +210,7 @@
 **Design Reference**: [Data Seeding]
 
 > 💡 **학습 가이드**: Seeder 데이터는 AI가 제공합니다. **Seeding 패턴 구현**과 **데이터 중복 방지 로직**에 집중하세요.
+> 상세 규칙: [CLAUDE.md - 학습 프로젝트 특화 규칙](../../../CLAUDE.md#학습-프로젝트-특화-규칙)
 
 ---
 

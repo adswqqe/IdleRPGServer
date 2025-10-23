@@ -1,5 +1,7 @@
 # ADR-XXX: [Decision Title]
 
+> **ADR 작성 조건**: [CLAUDE.md - ADR (아키텍처 결정 기록)](../../../CLAUDE.md#spike--adr) 참조
+
 **Status**: Proposed | Accepted | Rejected | Deprecated | Superseded by [ADR-YYY]
 **Date**: YYYY-MM-DD
 **Decider(s)**: [Your Name]

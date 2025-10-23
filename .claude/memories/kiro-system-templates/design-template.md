@@ -125,7 +125,8 @@ Player (1) ──< (N) Character (1) ──< (N) Equipment
 - **TODO(human)**: [예: "Random 생성: IRandomProvider 인터페이스로 추상화? (테스트 용이성)"]
 - **TODO(human)**: [예: "확률 계산 결과 캐싱 필요? (성능 최적화)"]
 
-> 💡 **학습 가이드**: 계산식 자체보다 **어느 계층에 두어야 하는지**, **의존성 주입을 어떻게 할지**에 집중하세요.
+> 💡 **학습 가이드**: 계산식은 AI가 제안합니다. **계층 분리**와 **의존성 주입**에 집중하세요.
+> 상세 규칙: [CLAUDE.md - 학습 프로젝트 특화 규칙](../../../CLAUDE.md#학습-프로젝트-특화-규칙)
 
 ---
 
@@ -237,7 +238,8 @@ END $EF$;
 - **TODO(human)**: [예: "Cascade Delete: ON DELETE CASCADE vs Application에서 처리?"]
 - **TODO(human)**: [예: "JSONB 컬럼 사용 vs 정규화? (스킬 메타데이터 저장)"]
 
-> 💡 **학습 가이드**: SQL 문법보다 **인덱싱 전략**, **정규화 vs 역정규화** 같은 설계 결정을 경험하세요.
+> 💡 **학습 가이드**: SQL 문법은 AI가 작성합니다. **인덱싱 전략**, **정규화 vs 역정규화** 설계 결정에 집중하세요.
+> 상세 규칙: [CLAUDE.md - 학습 프로젝트 특화 규칙](../../../CLAUDE.md#학습-프로젝트-특화-규칙)
 
 ### Data Seeding
 - [초기 데이터 필요 여부]
@@ -248,6 +250,8 @@ END $EF$;
 ## 📝 Decision Log
 
 > ⚠️ **중요**: L 사이즈 기능은 이 섹션 **필수**. 중요한 아키텍처 결정을 ADR과 연결.
+>
+> **Spike/ADR 트리거 조건**: [CLAUDE.md - Spike & ADR](../../../CLAUDE.md#spike--adr) 참조
 
 | ID | Decision | ADR Link | Spike Link | Status |
 |----|----------|----------|------------|--------|

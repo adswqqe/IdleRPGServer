@@ -32,67 +32,17 @@
 ### 🗃️ Database Migration
 **마이그레이션 형식**: `IdleRPG.Infrastructure/migration.sql` (단일 파일, Idempotent 패턴)
 
-**프로세스**:
-1. `IdleRPG.Infrastructure/migration.sql` 파일에 새 마이그레이션 추가
-2. `DO $EF$ BEGIN IF NOT EXISTS` 패턴 사용 (재실행 안전)
-3. Migration ID: `YYYYMMDD000000_FeatureName` 형식
-4. **배포**: Jenkins CI/CD가 자동으로 적용 (수동 실행 금지)
-5. **로컬 테스트**: `IdleRPG.Infrastructure/Migrations/` 폴더에 별도 `.sql` 파일 생성하여 테스트 가능
-**상세**: `docs/jenkins/DEPLOYMENT_GUIDE.md`
-
-### 🔄 Unity Documentation
-**CRITICAL**: API/DTO 추가/수정 시 **반드시** Unity 문서 업데이트.
-
-**체크리스트**:
-1. `../IdleRPGClient/Docs/unity/{feature}/` 폴더 생성
-2. `API_SPEC.md` 작성 (Request/Response + Unity C# 예제)
-3. `DTOs.cs` 작성 (JsonProperty, Newtonsoft.Json)
-4. `unity/README.md` 메인 인덱스 업데이트
-
-**상세**: `docs/unity/UNITY_DOCUMENTATION_GUIDE.md`
-
-## Collaboration Rules
-
-### 🤖 Claude 자동 처리
-CRUD, Repository, DTO, Configuration, SQL Migration, Unity 문서, Swagger 주석, 단위 테스트
-
-### 👥 함께 협업
-데이터 설계, 비즈니스 로직, API 설계, 아키텍처, 성능 최적화
-
-**프로세스**: 설계 초안 → 피드백 → 구현(핵심 로직은 TODO(human)) → 검토
-
-### TODO(human) 규칙 (학습 프로젝트용)
-
-**AS-IS (상용 게임)**: 게임 밸런스, 확률, 보상량 결정
-**TO-BE (학습 프로젝트)**: **아키텍처 및 설계 학습 포인트**
-
-**사용 시점**:
-- **아키텍처 결정**: "이 로직은 Domain Service vs Application Service 중 어디에?"
-- **설계 패턴 선택**: "Repository 패턴 vs CQRS?"
-- **데이터 모델링**: "1:N vs M:N 관계?"
-- **보안/성능 설계**: "이 API는 인증 필요?"
-
-**사용하지 않는 경우**:
-- ❌ 게임 밸런스 수치 (가챠 확률, 재화 비용 등) → AI가 기본값 제안
-- ❌ 플레이어 경험 최적화 → 학습 목적에서 제외
-- ❌ 경제 시스템 밸런싱 → AI가 일반적인 Idle RPG 관례 적용
-
-**제거 시점**: 학습자가 아키텍처 결정 후 구현 완료 시
-
 ## Development Standards
-
-> **상세 문서**: `.claude/memories/_system/` 폴더 참조
-> - `architecture.md`: Clean Architecture 계층 구조
-> - `game-design.md`: 게임 시스템 우선순위, 경제 설계
-> - `tech-stack.md`: 사용 가능한 라이브러리 및 기술
-> - `api-standards.md`: 코딩 컨벤션, API 설계, 테스트 표준
 
 **핵심 원칙**:
 - **Feature Development Order**: Domain → Application → Infrastructure → API → Tests
 - **Naming**: PascalCase (클래스), camelCase (변수), _camelCase (private 필드)
-- **TODO(human)**: 비즈니스 로직 결정 필요 시 마킹
 
 ## Kiro Workflow (Spec-Driven Development)
+
+> ⚠️ **문서 규칙 기준 (Source of Truth)**:
+> 본 문서가 Kiro 워크플로우의 **유일한 진실 공급원(Single Source of Truth)**입니다.
+> 템플릿은 문서 구조와 간단한 리마인더만 제공하며, 상세 규칙은 이 문서를 참조하세요.
 
 **Kiro**는 코드 작성 전 요구사항-설계-작업을 체계적으로 문서화하는 방법론입니다.
 
@@ -199,12 +149,12 @@ CRUD, Repository, DTO, Configuration, SQL Migration, Unity 문서, Swagger 주�
 - [ ] spec-lite.md 작성 (단일 파일)
 - [ ] [조건부] Spike/ADR
 - [ ] 사용자 승인
-- [ ] 구현 → Unity 문서 → Self-Review (10개)
+- [ ] 구현 → Unity 문서 → Self-Review ([체크리스트](.claude/memories/kiro-system-templates/self-review-checklist.md))
 
 #### L (Large):
 - [ ] requirements.md 작성 및 승인
 - [ ] [조건부] Spike (최대 3개)
-- [ ] design.md 작성 (Decision Log + Self-Review 10개) 및 승인
+- [ ] design.md 작성 (Decision Log + Self-Review ([체크리스트](.claude/memories/kiro-system-templates/self-review-checklist.md))) 및 승인
 - [ ] tasks.md 작성 (품질 검증 5개) 및 승인
 - [ ] Task 실행 (/spec-execute)
 
