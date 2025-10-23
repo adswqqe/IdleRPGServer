@@ -53,42 +53,16 @@ CRUD, Repository, DTO, Configuration, SQL Migration, Unity 문서, Swagger 주�
 
 ## Development Standards
 
-### Code Conventions
-**Naming**:
-- PascalCase: 클래스, 메서드, 프로퍼티 (`PlayerService`, `GetCharacterAsync`)
-- camelCase: 로컬 변수, 파라미터 (`var characterId`, `string username`)
-- _camelCase: Private 필드 (`private readonly IPlayerRepository _repository`)
+> **상세 문서**: `.claude/memories/_system/` 폴더 참조
+> - `architecture.md`: Clean Architecture 계층 구조
+> - `game-design.md`: 게임 시스템 우선순위, 경제 설계
+> - `tech-stack.md`: 사용 가능한 라이브러리 및 기술
+> - `api-standards.md`: 코딩 컨벤션, API 설계, 테스트 표준
 
-**File Structure**:
-- `Domain/Entities/{Entity}.cs`
-- `Application/DTOs/{Feature}/{Feature}Dto.cs`
-- `Infrastructure/Repositories/{Entity}Repository.cs`
-- `API/Controllers/{Entity}Controller.cs`
-
-**Comments**:
-- XML 문서 주석: Public API 필수
-- TODO(human): 사용자와 결정 필요한 비즈니스 로직
-
-### Security Principles
-- **비밀번호**: BCrypt (WorkFactor 12)
-- **JWT**: Access 15분, Refresh 7일
-- **SQL Injection**: EF Core 파라미터화, Raw SQL 직접 조합 금지
-- **로깅**: 비밀번호, 토큰 등 민감 정보 로깅 금지
-
-### API Design
-- **RESTful**: `GET /api/characters`, `POST /api/characters`, `PUT /api/characters/{id}`, `DELETE /api/characters/{id}`
-- **동작 엔드포인트**: `POST /api/characters/{id}/experience`, `POST /api/equipment/enhance`
-- **HTTP 상태 코드**: 200(OK), 201(Created), 400(Bad Request), 401(Unauthorized), 404(Not Found), 500(Server Error)
-- **응답 형식**: JSON DTO, 에러는 `{ "message": "...", "statusCode": 404 }`
-
-### Testing Standards
-- **AAA 패턴**: Arrange → Act → Assert
-- **Moq**: `_mockRepository.Setup(r => r.GetAsync(id)).ReturnsAsync(entity)`
-- **FluentAssertions**: `result.Should().NotBeNull()`, `result.Id.Should().Be(expectedId)`
-- **네이밍**: `{MethodName}_{Scenario}_{ExpectedResult}`
-
-### Feature Development Order
-Domain Entity → Application (Interface/DTO) → Infrastructure (Repository) → API (Controller) → Tests
+**핵심 원칙**:
+- **Feature Development Order**: Domain → Application → Infrastructure → API → Tests
+- **Naming**: PascalCase (클래스), camelCase (변수), _camelCase (private 필드)
+- **TODO(human)**: 비즈니스 로직 결정 필요 시 마킹
 
 ## Kiro Workflow (Spec-Driven Development)
 
@@ -169,8 +143,19 @@ Domain Entity → Application (Interface/DTO) → Infrastructure (Repository) �
 - [ ] Task 실행 (Start task 버튼)
 
 ## Reference
+
+### 시스템 문서 (_system/)
+- **Architecture**: `.claude/memories/_system/architecture.md` - Clean Architecture 패턴
+- **Game Design**: `.claude/memories/_system/game-design.md` - 게임 시스템 우선순위
+- **Tech Stack**: `.claude/memories/_system/tech-stack.md` - 기술 스택
+- **API Standards**: `.claude/memories/_system/api-standards.md` - 개발 표준
+
+### Kiro 워크플로우
+- **Kiro Guide**: `.claude/memories/kiro-system-templates/how-kiro-works.md`
+- **Commands**: `.claude/commands/spec-*.md` (8개)
+
+### 기타
 - **Roadmap**: `docs/learning/PROJECT_ROADMAP.md`
 - **Deployment**: `docs/jenkins/DEPLOYMENT_GUIDE.md`
 - **Unity Docs**: `docs/unity/UNITY_DOCUMENTATION_GUIDE.md`
 - **PRD**: `docs/MUSHROOM_GAME_PRD.md`
-- **Kiro Guide**: `.claude/memories/kiro-system-templates/how-kiro-works.md`
