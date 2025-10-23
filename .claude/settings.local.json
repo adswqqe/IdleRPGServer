@@ -157,7 +157,10 @@
       "Bash(export TRANSCRIPT_PATH:*)",
       "Bash(python3:*)",
       "Bash(dotnet --version:*)",
-      "Read(//d/Proj/**)"
+      "Read(//d/Proj/**)",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "SlashCommand(/roadmap)",
+      "Bash(mkdir:*)"
     ]
   },
   "enableAllProjectMcpServers": true,
@@ -167,28 +170,8 @@
     "project-unity"
   ],
   "hooks": {
-    "SessionStart": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "bash .claude/hooks/auto-start-session.sh",
-            "timeout": 10
-          }
-        ]
-      }
-    ],
-    "Stop": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "bash .claude/hooks/auto-update-session-full.sh",
-            "timeout": 10
-          }
-        ]
-      }
-    ],
+    "SessionStart": [],
+    "Stop": [],
     "SessionEnd": []
   },
   "outputStyle": "Learning"
