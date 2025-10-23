@@ -159,11 +159,18 @@
 - [ ] Task 실행 (/spec-execute)
 
 ### 📚 Commands
+
+#### Spec 생성
 - `/spec-init {feature-name}` - Requirements 생성 (L 사이즈)
 - `/spec-init-lite {feature-name}` - spec-lite.md 생성 (M 사이즈)
 - `/spec-design {feature-name}` - Design 생성
 - `/spec-tasks {feature-name}` - Tasks 생성
+
+#### Spec 실행 & 관리
 - `/spec-execute {feature-name} {task-id}` - Task 실행
+- `/spec-review {feature-name} [--format summary|detailed]` - 품질 검증 및 상세 보고서
+- `/spec-status {feature-name}` - 기본 상태 조회
+- `/spec-list` - 전체 Spec 목록
 
 ## Reference
 
