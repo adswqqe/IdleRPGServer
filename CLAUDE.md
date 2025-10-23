@@ -1,5 +1,23 @@
 # CLAUDE.md
 
+## 🎓 Project Purpose
+
+**이 프로젝트는 학습 목적의 프로젝트입니다.**
+
+**학습 목표**:
+- Clean Architecture 패턴 이해 및 실습
+- ASP.NET Core 8.0 백엔드 개발
+- EF Core + PostgreSQL 데이터 액세스
+- Unity 클라이언트 연동 (서버-클라이언트 통합 학습)
+- JWT 인증, 테스트 코드 작성
+
+**핵심 원칙**:
+- ✅ **아키텍처와 코드 구조**에 집중
+- ✅ 게임 밸런스(확률, 재화 비용 등)는 **AI가 합리적인 기본값 제안** (학습자는 그대로 사용)
+- ✅ **TODO(human)**은 아키텍처 학습 포인트에만 사용
+
+---
+
 ## Language and Communication
 **모든 응답은 한국어로 제공**. 코드와 명령어는 원문 유지.
 
@@ -43,13 +61,23 @@ CRUD, Repository, DTO, Configuration, SQL Migration, Unity 문서, Swagger 주�
 
 **프로세스**: 설계 초안 → 피드백 → 구현(핵심 로직은 TODO(human)) → 검토
 
-### TODO(human) 규칙
+### TODO(human) 규칙 (학습 프로젝트용)
+
+**AS-IS (상용 게임)**: 게임 밸런스, 확률, 보상량 결정
+**TO-BE (학습 프로젝트)**: **아키텍처 및 설계 학습 포인트**
 
 **사용 시점**:
-- 비즈니스 로직이 불확실할 때 (확률, 보상 계산)
-- 사용자 선호도가 필요할 때 (강화 실패 시 처리)
-- 디자인 결정이 필요할 때 (매칭 알고리즘)
-**제거 시점**: 사용자가 결정 후 구현 완료 시
+- **아키텍처 결정**: "이 로직은 Domain Service vs Application Service 중 어디에?"
+- **설계 패턴 선택**: "Repository 패턴 vs CQRS?"
+- **데이터 모델링**: "1:N vs M:N 관계?"
+- **보안/성능 설계**: "이 API는 인증 필요?"
+
+**사용하지 않는 경우**:
+- ❌ 게임 밸런스 수치 (가챠 확률, 재화 비용 등) → AI가 기본값 제안
+- ❌ 플레이어 경험 최적화 → 학습 목적에서 제외
+- ❌ 경제 시스템 밸런싱 → AI가 일반적인 Idle RPG 관례 적용
+
+**제거 시점**: 학습자가 아키텍처 결정 후 구현 완료 시
 
 ## Development Standards
 
@@ -66,81 +94,126 @@ CRUD, Repository, DTO, Configuration, SQL Migration, Unity 문서, Swagger 주�
 
 ## Kiro Workflow (Spec-Driven Development)
 
-### 📋 Overview
-**Kiro**는 Amazon의 Spec-Driven Development 방법론으로, 코드 작성 전에 요구사항-설계-작업을 체계적으로 문서화합니다.
+**Kiro**는 코드 작성 전 요구사항-설계-작업을 체계적으로 문서화하는 방법론입니다.
 
-**3단계 프로세스**:
-1. **Requirements** (무엇을 만들 것인가) → `requirements.md`
-2. **Design** (어떻게 만들 것인가) → `design.md`
-3. **Tasks** (단계별 구현 작업) → `tasks.md`
+**핵심 철학**: "AI가 추측하지 않고, 과거 결정을 존중하며, 체계적으로 작업하도록"
 
-### 📁 Spec 위치
-`.claude/memories/specs/{feature-name}/`
-- `requirements.md` - 사용자 스토리, EARS 형식 수용 기준, 게임 디자인 결정
-- `design.md` - Clean Architecture 계층별 설계, API/DB 스키마, 비즈니스 로직
-- `tasks.md` - Milestone별 체크리스트 (Domain → Infrastructure → Application → API → DB → Tests)
+### 📏 Spec 사이즈 시스템 (S/M/L)
 
-**예시**: `.claude/memories/specs/skill-gacha/` (완료된 참고 예시)
+**AI가 자동으로 사이즈를 판단하고 추천하며, 사용자가 최종 결정합니다.**
 
-### 🔄 Workflow 순서
+| 사이즈 | 복잡도 | 워크플로우 | 소요 시간 | 예시 |
+|--------|--------|----------|----------|------|
+| **S (Small)** | 단순 CRUD, 단일 엔드포인트 | 인라인 구현 (문서 없음) | 30분~1시간 | GET /api/characters/{id}/stats |
+| **M (Medium)** | 2-3 엔드포인트, 중간 로직 | spec-lite.md (단일 파일) | 2~4시간 | 캐릭터 이름 변경 |
+| **L (Large)** | 복잡한 시스템, 새 기술 도입 | Full Spec (requirements + design + tasks) | 1~3일 | 펫 시스템, SignalR 채팅 |
 
-#### Phase 1: Requirements
-1. Claude가 `requirements-template.md` 기반으로 초안 작성
-2. 사용자 스토리 작성: "As a [역할], I want [기능], so that [목적]"
-3. EARS 형식 수용 기준: "WHEN [조건] THEN system SHALL [동작]"
-4. **게임 디자인 결정**: 확률, 보상, 밸런스 → TODO(human) 마커 표시
-5. **사용자 승인 필수** → "Approved" 상태로 변경
+**AI 판단 기준**:
+- **S**: 새 Entity 0개, 단일 엔드포인트, 비즈니스 로직 없음
+- **M**: 새 Entity 1개 이하, 2-3 엔드포인트, 간단한 비즈니스 로직
+- **L**: 새 Entity 2개 이상, 4개+ 엔드포인트, 복잡한 로직, 새 기술 도입
 
-#### Phase 2: Design
-1. Claude가 `design-template.md` 기반으로 초안 작성
-2. Clean Architecture 계층별 책임 정의 (API/Application/Domain/Infrastructure)
-3. 데이터 모델 (Entity, EF Core Configuration, 인덱스)
-4. API 설계 (Endpoint, Request/Response DTO)
-5. 비즈니스 로직 (알고리즘, 계산식) → 복잡한 부분은 TODO(human)
-6. **사용자 승인 필수**
+### 🔄 사이즈별 워크플로우
 
-#### Phase 3: Tasks
-1. Claude가 `tasks-template.md` 기반으로 초안 작성
-2. Milestone별 작업 분류:
-   - Milestone 1: Domain Layer (Entity, Enum, Domain Service)
-   - Milestone 2: Infrastructure (Repository, EF Config)
-   - Milestone 3: Application (DTO, Service)
-   - Milestone 4: API (Controller)
-   - Milestone 5: Database (Migration, Seeder)
-   - Milestone 6: Testing & Documentation (Unit Test, Unity Docs)
-3. 각 작업에 체크리스트, 예상 시간, Requirements 추적성 포함
-4. **사용자 승인 필수**
+#### S (Small): 인라인 구현
+```
+1. AI 사이즈 판단 → S 추천 → 사용자 승인
+2. 바로 코드 구현 (Domain → Infrastructure → Application → API)
+3. Unity 문서 업데이트 (기존 API_SPEC.md에 추가)
+```
 
-#### Phase 4: Implementation
-- `tasks.md` 열어서 각 작업 옆 **"Start task"** 버튼 클릭
-- Claude가 한 번에 1개 작업만 집중 수행
-- 완료 시 체크박스 ✅ 업데이트
+#### M (Medium): Spec Lite
+```
+1. AI 사이즈 판단 → M 추천 → 사용자 승인
+2. spec-lite.md 생성 (Intent, API, Data Model, Logic, Tests)
+3. [조건부] Spike (0-1개) 또는 ADR (간단한 경우 spec-lite.md 내 "Decisions" 섹션)
+4. 사용자 승인
+5. 구현 → Unity 문서 → Self-Review (10개 항목)
+```
 
-### 🎯 Kiro + IdleRPG 통합 규칙
+#### L (Large): Full Spec
+```
+1. AI 사이즈 판단 → L 추천 → 사용자 승인
+2. Requirements: requirements.md 생성 → 사용자 승인
+3. [조건부] Spike: 최대 3개 (1 Spike = 1 Question, 승인 필수)
+4. Design: design.md 생성 → Decision Log (Spike/ADR 링크) → Self-Review (10개) → 승인
+5. Tasks: tasks.md 생성 → 품질 검증 (5개) → 승인
+6. Implementation: Task 단위 실행 → Unity 문서
+```
 
-#### Requirements 단계에서
-- **게임 밸런스**: 확률, 보상량, 재화 비용 → TODO(human) 명시
-- **EARS 형식 필수**: "WHEN 플레이어가 가챠 요청 THEN system SHALL 크리스탈 차감"
+**Spec 위치** (L 사이즈):
+- `.claude/memories/specs/{feature-name}/requirements.md`
+- `.claude/memories/specs/{feature-name}/design.md`
+- `.claude/memories/specs/{feature-name}/tasks.md`
 
-#### Design 단계에서
-- **Clean Architecture 준수**: Domain은 다른 계층에 의존하지 않음
-- **Unity 연동 고려**: DTO는 `[JsonProperty]` 속성 (Newtonsoft.Json 호환)
-- **Migration Plan 포함**: Idempotent 패턴 SQL 작성
+### 🔬 Spike & ADR
 
-#### Tasks 단계에서
-- **의존성 순서**: Domain → Infrastructure → Application → API
-- **Unity 문서 필수**: Milestone 6에 "Create Unity Documentation" 작업 포함
-- **테스트 커버리지**: Domain Service 90%+, Application Service 80%+
+#### Spike (기술 검증) - 조건부 실행
+**트리거** (하나라도 충족 시):
+- ✅ 새 기술/라이브러리 첫 도입 (SignalR, Redis)
+- ✅ 성능 검증 필요 (측정 필요)
+- ✅ 2개 이상 기술 대안 비교 실험
+- ✅ 외부 서비스 연동 테스트
+- ❌ 문서 조사 (Spike 불필요)
 
-### 📚 상세 가이드
-`.claude/memories/kiro-system-templates/how-kiro-works.md` - Kiro 전체 워크플로우, 승인 프로세스, Best Practices
+**완화 방안**:
+- **Spike Question 승인 프로세스** (필수): AI가 바로 실행하지 않고 사용자 승인 필요
+- **1 Spike = 1 Question 원칙**: 여러 질문은 별도 Spike로 분리
+- **개수 제한**: S (0개), M (0-1개), L (최대 3개)
 
-### ✅ 새 기능 시작 시 체크리스트
-- [ ] `.claude/memories/specs/{feature-name}/` 폴더 생성
-- [ ] `requirements.md` 작성 및 승인
-- [ ] `design.md` 작성 및 승인
-- [ ] `tasks.md` 작성 및 승인
-- [ ] Task 실행 (Start task 버튼)
+**위치**: `docs/spikes/YYYY-MM/spike-xxx.md`
+
+#### ADR (아키텍처 결정 기록) - 조건부 작성
+**트리거** (하나라도 충족 시):
+1. 새 외부 서비스/SDK/라이브러리 도입
+2. 데이터 모델/스키마 마이그레이션 (비호환 변화)
+3. 배포/인프라 변경
+4. 보안/권한 모델 영향
+5. 성능 제약 또는 리소스 비용 영향
+6. 크로스컷팅 (캐싱, 로깅, 동시성) 도입
+
+**완화**: 500단어 제한, 템플릿 고정
+**위치**: `docs/adr/ADR-XXXX-topic.md`
+**통합**: M (spec-lite.md "Decisions" 섹션), L (design.md "Decision Log" 테이블)
+
+### 🎓 학습 프로젝트 특화 규칙
+
+**TODO(human) 재정의**:
+- ✅ **아키텍처 학습**: "이 로직은 Domain Service vs Application Service?"
+- ✅ **설계 패턴**: "Repository 패턴 vs CQRS?"
+- ✅ **데이터 모델링**: "1:N vs M:N 관계?"
+- ❌ **게임 밸런스**: AI가 기본값 제안 (Legendary 1%, 크리스탈 100개)
+
+**AI 제안 vs TODO(human)**:
+- **게임 밸런스** (확률, 보상, 비용) → AI 자동 제안
+- **아키텍처 결정** (계층 분리, 패턴 선택) → TODO(human)
+- **비즈니스 로직** (계산식, 알고리즘) → AI 제안, 로직 위치는 TODO(human)
+
+### ✅ 새 기능 시작 체크리스트
+
+#### S (Small):
+- [ ] 바로 구현 (Domain → Infrastructure → Application → API)
+- [ ] Unity 문서 업데이트
+
+#### M (Medium):
+- [ ] spec-lite.md 작성 (단일 파일)
+- [ ] [조건부] Spike/ADR
+- [ ] 사용자 승인
+- [ ] 구현 → Unity 문서 → Self-Review (10개)
+
+#### L (Large):
+- [ ] requirements.md 작성 및 승인
+- [ ] [조건부] Spike (최대 3개)
+- [ ] design.md 작성 (Decision Log + Self-Review 10개) 및 승인
+- [ ] tasks.md 작성 (품질 검증 5개) 및 승인
+- [ ] Task 실행 (/spec-execute)
+
+### 📚 Commands
+- `/spec-init {feature-name}` - Requirements 생성 (L 사이즈)
+- `/spec-init-lite {feature-name}` - spec-lite.md 생성 (M 사이즈)
+- `/spec-design {feature-name}` - Design 생성
+- `/spec-tasks {feature-name}` - Tasks 생성
+- `/spec-execute {feature-name} {task-id}` - Task 실행
 
 ## Reference
 
@@ -149,13 +222,14 @@ CRUD, Repository, DTO, Configuration, SQL Migration, Unity 문서, Swagger 주�
 - **Game Design**: `.claude/memories/_system/game-design.md` - 게임 시스템 우선순위
 - **Tech Stack**: `.claude/memories/_system/tech-stack.md` - 기술 스택
 - **API Standards**: `.claude/memories/_system/api-standards.md` - 개발 표준
+- **Roadmap**: `.claude/memories/_system/roadmap.md` - 프로젝트 진행 상황 (20개 시스템)
 
 ### Kiro 워크플로우
-- **Kiro Guide**: `.claude/memories/kiro-system-templates/how-kiro-works.md`
 - **Commands**: `.claude/commands/spec-*.md` (8개)
+- **Templates**: `.claude/memories/kiro-system-templates/` (requirements, design, tasks, spec-lite, ADR, spike)
 
 ### 기타
-- **Roadmap**: `docs/learning/PROJECT_ROADMAP.md`
+- **Learning Plan**: `docs/learning/PROJECT_ROADMAP.md` - 8주 학습 전략 (상세)
 - **Deployment**: `docs/jenkins/DEPLOYMENT_GUIDE.md`
 - **Unity Docs**: `docs/unity/UNITY_DOCUMENTATION_GUIDE.md`
 - **PRD**: `docs/MUSHROOM_GAME_PRD.md`

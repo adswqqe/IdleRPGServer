@@ -105,7 +105,6 @@ Player (1) ──< (N) Character (1) ──< (N) Equipment
 ### 핵심 알고리즘
 
 #### [알고리즘 이름]
-**TODO(human)**: [디자인 결정 필요 - 확률, 보상 계산식 등]
 
 **입력:**
 - [파라미터 목록]
@@ -113,12 +112,20 @@ Player (1) ──< (N) Character (1) ──< (N) Equipment
 **출력:**
 - [반환값]
 
-**프로세스:**
-1. [단계별 설명]
-2. ...
+**프로세스 (AI 제안)**:
+1. [단계별 설명 - 확률, 보상 계산식 포함]
+2. [예: "Random(0~100) < 1 → Legendary, < 10 → Epic, ..."]
+3. [예: "보상 Gold = BaseGold * (1 + Level * 0.1)"]
 
 **예외 처리:**
 - [예외 상황과 처리 방식]
+
+**🎓 학습 포인트 (아키텍처 결정)**:
+- **TODO(human)**: [예: "이 로직은 Domain Service vs Application Service?"]
+- **TODO(human)**: [예: "Random 생성: IRandomProvider 인터페이스로 추상화? (테스트 용이성)"]
+- **TODO(human)**: [예: "확률 계산 결과 캐싱 필요? (성능 최적화)"]
+
+> 💡 **학습 가이드**: 계산식 자체보다 **어느 계층에 두어야 하는지**, **의존성 주입을 어떻게 할지**에 집중하세요.
 
 ---
 
@@ -133,11 +140,18 @@ Player (1) ──< (N) Character (1) ──< (N) Equipment
 #### `MethodNameAsync(params)`
 ```csharp
 public async Task<ReturnType> MethodNameAsync(
-    ParamType param1, 
+    ParamType param1,
     CancellationToken cancellationToken = default)
 {
-    // TODO(human): 비즈니스 로직 디자인 결정
-    // [의사코드 또는 프로세스 설명]
+    // 1. Input validation
+    // 2. Business logic orchestration (AI가 구현)
+    // 3. Domain service 호출
+    // 4. Repository 저장
+    // 5. Return result
+
+    // 🎓 TODO(human):
+    // 트랜잭션 경계를 어디에? (여기? Repository?)
+    // 에러 핸들링: try-catch vs Result<T> 패턴?
 }
 ```
 
@@ -205,18 +219,46 @@ public async Task<ReturnType> MethodNameAsync(
 
 ### Database Migration
 ```sql
--- migration.sql에 추가할 내용
+-- migration.sql에 추가할 내용 (AI가 작성)
 DO $EF$ BEGIN
-    IF NOT EXISTS(SELECT 1 FROM information_schema.tables 
+    IF NOT EXISTS(SELECT 1 FROM information_schema.tables
                   WHERE table_name = 'TableName') THEN
-        -- CREATE TABLE ...
+        CREATE TABLE "TableName" (
+            "Id" uuid PRIMARY KEY,
+            ...
+        );
+        CREATE INDEX "IX_TableName_Column1" ON "TableName" ("Column1");
     END IF;
 END $EF$;
 ```
 
+**🎓 학습 포인트 (SQL 작성)**:
+- **TODO(human)**: [예: "인덱스 전략: 단일 컬럼 vs 복합 인덱스?"]
+- **TODO(human)**: [예: "Cascade Delete: ON DELETE CASCADE vs Application에서 처리?"]
+- **TODO(human)**: [예: "JSONB 컬럼 사용 vs 정규화? (스킬 메타데이터 저장)"]
+
+> 💡 **학습 가이드**: SQL 문법보다 **인덱싱 전략**, **정규화 vs 역정규화** 같은 설계 결정을 경험하세요.
+
 ### Data Seeding
 - [초기 데이터 필요 여부]
 - [Seeder 클래스 작성 계획]
+
+---
+
+## 📝 Decision Log
+
+> ⚠️ **중요**: L 사이즈 기능은 이 섹션 **필수**. 중요한 아키텍처 결정을 ADR과 연결.
+
+| ID | Decision | ADR Link | Spike Link | Status |
+|----|----------|----------|------------|--------|
+| D1 | [예: Pet-Character 관계는 1:N] | [ADR-0005](../../docs/adr/ADR-0005-pet-relationship.md) | - | Accepted |
+| D2 | [예: 가챠 확률 계산은 Domain Service] | [ADR-0006](../../docs/adr/ADR-0006-gacha-logic-layer.md) | [Spike-001](../../docs/spikes/2025-10/gacha-performance.md) | Accepted |
+| D3 | [예: EF Core Include 사용 (Select 대신)] | [ADR-0007](../../docs/adr/ADR-0007-ef-query-strategy.md) | [Spike-002](../../docs/spikes/2025-10/ef-performance.md) | Accepted |
+
+**가이드**:
+- **간단한 결정**: ADR 없이 테이블에 1줄로 기록 (예: "단일 컬럼 인덱스 사용")
+- **복잡한 결정**: ADR 작성 후 링크
+- **Spike 결과**: Spike 링크 포함
 
 ---
 
@@ -235,7 +277,8 @@ END $EF$;
 
 - [ ] Design 리뷰 완료
 - [ ] 모든 Requirements 항목 커버 확인
-- [ ] TODO(human) 비즈니스 로직 결정 완료
+- [ ] TODO(human) 아키텍처 학습 포인트 확인 완료
+- [ ] Self-Review Checklist 10개 항목 통과 (9/10 이상)
 - [ ] Tasks 단계로 진행 승인
 
 ---

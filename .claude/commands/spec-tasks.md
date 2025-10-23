@@ -69,7 +69,19 @@
 **예상 총 소요 시간**: ~XX시간
 ```
 
-### 5. 출력
+### 5. Tasks 품질 검증 (간소화된 Self-Review)
+
+**검증 항목**:
+1. ✅ **Design 커버리지**: design.md의 모든 컴포넌트가 Task로 변환되었는가?
+   - Entity, Enum, Service, Repository, Controller, Migration, Seeder, Tests, Unity Docs
+2. ✅ **의존성 순서**: Domain → Infrastructure → Application → API → Database → Tests 순서 준수?
+3. ✅ **Task 명확성**: 각 Task가 명확한 결과물을 정의하는가? (파일명, 메서드명)
+4. ✅ **시간 산정**: 각 Task가 15분~2시간 범위 내인가? (2시간 초과 시 분해)
+5. ✅ **Requirements 추적성**: 각 Task에 US-X 참조가 포함되었는가?
+
+**통과 기준**: 5/5 항목 모두 통과
+
+### 6. 출력
 ```
 ✅ {feature-name} tasks created
 
@@ -87,6 +99,15 @@ Tasks breakdown:
 
 Estimated total: ~16 hours
 
+📋 Tasks 품질 검증: 5/5 통과 ✅
+- #1 Design 커버리지: ✅ 모든 컴포넌트 포함
+- #2 의존성 순서: ✅ Domain → Infra → App → API 순서 준수
+- #3 Task 명확성: ✅ 모든 Task가 명확한 결과물 정의
+- #4 시간 산정: ✅ 모든 Task가 15분~2시간 범위 내
+- #5 Requirements 추적성: ✅ 모든 Task에 US-X 참조 포함
+
+✨ 사용자 승인 준비 완료!
+
 Next steps:
 1. Review tasks.md (check order, dependencies)
 2. Adjust estimates if needed
@@ -102,6 +123,7 @@ Next steps:
 - ⚠️ **Task는 순차 실행**: 1.1 → 1.2 → 2.1 (병렬 실행 금지)
 - ⚠️ **의존성 순서**: Domain → Infrastructure → Application → API
 - ⚠️ **Unity 문서 필수**: Milestone 6에 포함
+- ⚠️ **품질 검증 필수**: 5개 항목 모두 통과해야 승인 가능
 
 ---
 
@@ -130,6 +152,9 @@ Tasks breakdown:
 - Milestone 2-6: ... (20 tasks, ~13.5h)
 
 Total: 25 tasks, ~16 hours
+
+📋 Tasks 품질 검증: 5/5 통과 ✅
+- Design 커버리지, 의존성 순서, Task 명확성, 시간 산정, Requirements 추적성 모두 통과
 
 Next steps:
 1. Review .claude/memories/specs/pet-system/tasks.md

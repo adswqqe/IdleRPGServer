@@ -158,7 +158,8 @@
       "Bash(python3:*)",
       "Bash(dotnet --version:*)",
       "Read(//d/Proj/**)",
-      "WebFetch(domain:raw.githubusercontent.com)"
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "SlashCommand(/roadmap)"
     ]
   },
   "enableAllProjectMcpServers": true,

@@ -51,13 +51,17 @@
 
 ### 1.3 Create [DomainServiceName] Domain Service ⏱️ 1시간
 - [ ] Create `IdleRPG.Domain/Services/[DomainServiceName].cs`
-- [ ] Implement [MethodName](...) method
-  - **TODO(human)**: [비즈니스 로직 구현 - 확률, 계산식 등]
+- [ ] Implement [MethodName](...) method (AI가 비즈니스 로직 구현)
 - [ ] Add input validation
 - [ ] Add XML documentation
+- [ ] **🎓 TODO(human)**: 학습 포인트 구현
+  - [예: "IRandomProvider 인터페이스 추상화 (테스트 용이성)"]
+  - [예: "Domain Service vs Application Service 선택 근거 작성"]
 
-**Requirements**: [US-2]  
+**Requirements**: [US-2]
 **Design Reference**: [Business Logic - 알고리즘]
+
+> 💡 **학습 가이드**: 확률 계산식은 AI가 제공합니다. **계층 분리**와 **의존성 주입** 구현에 집중하세요.
 
 ---
 
@@ -102,15 +106,19 @@
 - [ ] Create `IdleRPG.Application/Services/I[ServiceName].cs` (interface)
 - [ ] Create `IdleRPG.Infrastructure/Services/[ServiceName].cs` (implementation)
 - [ ] Inject dependencies (repositories, domain services)
-- [ ] Implement [MainMethodAsync] method
+- [ ] Implement [MainMethodAsync] method (AI가 오케스트레이션 로직 구현)
   - Input validation
   - Business logic orchestration
-  - **TODO(human)**: [복잡한 비즈니스 로직 구현]
   - Error handling
 - [ ] Add logging
+- [ ] **🎓 TODO(human)**: 학습 포인트 구현
+  - [예: "트랜잭션 경계 설정 (TransactionScope? DbContext?)"]
+  - [예: "에러 핸들링 패턴: try-catch vs Result<T>?"]
 
-**Requirements**: [US-2]  
+**Requirements**: [US-2]
 **Design Reference**: [Service Layer - ServiceName]
+
+> 💡 **학습 가이드**: Application Service는 **워크플로우 오케스트레이션**만 담당. Pure 비즈니스 로직은 Domain에!
 
 ---
 
@@ -170,27 +178,35 @@
 ## 🗃️ Milestone 5: Database
 
 ### 5.1 Create Database Migration ⏱️ 45분
-- [ ] Add migration to `IdleRPG.Infrastructure/migration.sql`
+- [ ] Add migration to `IdleRPG.Infrastructure/migration.sql` (AI가 SQL 작성)
 - [ ] Use DO $EF$ BEGIN ... END $EF$ pattern (idempotent)
 - [ ] Add CREATE TABLE for new entities
 - [ ] Add ALTER TABLE for modified entities
 - [ ] Add CREATE INDEX for performance
+- [ ] **🎓 TODO(human)**: 학습 포인트 구현
+  - [예: "인덱스 전략: 단일 vs 복합 인덱스 선택 근거 작성"]
+  - [예: "Cascade Delete: ON DELETE CASCADE vs Application 코드에서 처리?"]
 - [ ] Test migration locally (create separate .sql file in Migrations/ folder)
 
-**Requirements**: [All]  
-**Design Reference**: [Migration Plan]  
+**Requirements**: [All]
+**Design Reference**: [Migration Plan]
 **참고**: `CLAUDE.md - Database Migration`
+
+> 💡 **학습 가이드**: SQL 문법은 AI가 작성합니다. **인덱싱 전략**, **정규화 vs 역정규화** 설계 결정을 경험하세요.
 
 ---
 
 ### 5.2 Create [EntityName] Seeder ⏱️ 30분
 - [ ] Create `IdleRPG.Infrastructure/Seeders/[EntityName]Seeder.cs`
-- [ ] Add sample/template data
+- [ ] Add sample/template data (AI가 밸런스 값 제안)
+  - [예: "스킬 템플릿 24개, Legendary 3개, Epic 6개, Rare 9개, Common 6개"]
+  - [예: "공격력: Legendary 100~150, Epic 70~100, ..."]
 - [ ] Register in Program.cs or DbContext seeding
-- [ ] **TODO(human)**: [시딩 데이터 디자인 - 템플릿, 밸런스 값]
 
-**Requirements**: [US-1]  
+**Requirements**: [US-1]
 **Design Reference**: [Data Seeding]
+
+> 💡 **학습 가이드**: Seeder 데이터는 AI가 제공합니다. **Seeding 패턴 구현**과 **데이터 중복 방지 로직**에 집중하세요.
 
 ---
 
