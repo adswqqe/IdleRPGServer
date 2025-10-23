@@ -101,12 +101,12 @@ Domain Entity → Application (Interface/DTO) → Infrastructure (Repository) �
 3. **Tasks** (단계별 구현 작업) → `tasks.md`
 
 ### 📁 Spec 위치
-`.kiro/specs/{feature-name}/`
+`.claude/memories/specs/{feature-name}/`
 - `requirements.md` - 사용자 스토리, EARS 형식 수용 기준, 게임 디자인 결정
 - `design.md` - Clean Architecture 계층별 설계, API/DB 스키마, 비즈니스 로직
 - `tasks.md` - Milestone별 체크리스트 (Domain → Infrastructure → Application → API → DB → Tests)
 
-**예시**: `.kiro/specs/skill-gacha/` (완료된 참고 예시)
+**예시**: `.claude/memories/specs/skill-gacha/` (완료된 참고 예시)
 
 ### 🔄 Workflow 순서
 
@@ -159,10 +159,10 @@ Domain Entity → Application (Interface/DTO) → Infrastructure (Repository) �
 - **테스트 커버리지**: Domain Service 90%+, Application Service 80%+
 
 ### 📚 상세 가이드
-`.kiro/kiro-system-templates/how-kiro-works.md` - Kiro 전체 워크플로우, 승인 프로세스, Best Practices
+`.claude/memories/kiro-system-templates/how-kiro-works.md` - Kiro 전체 워크플로우, 승인 프로세스, Best Practices
 
 ### ✅ 새 기능 시작 시 체크리스트
-- [ ] `.kiro/specs/{feature-name}/` 폴더 생성
+- [ ] `.claude/memories/specs/{feature-name}/` 폴더 생성
 - [ ] `requirements.md` 작성 및 승인
 - [ ] `design.md` 작성 및 승인
 - [ ] `tasks.md` 작성 및 승인
@@ -173,4 +173,4 @@ Domain Entity → Application (Interface/DTO) → Infrastructure (Repository) �
 - **Deployment**: `docs/jenkins/DEPLOYMENT_GUIDE.md`
 - **Unity Docs**: `docs/unity/UNITY_DOCUMENTATION_GUIDE.md`
 - **PRD**: `docs/MUSHROOM_GAME_PRD.md`
-- **Kiro Guide**: `.kiro/kiro-system-templates/how-kiro-works.md`
+- **Kiro Guide**: `.claude/memories/kiro-system-templates/how-kiro-works.md`

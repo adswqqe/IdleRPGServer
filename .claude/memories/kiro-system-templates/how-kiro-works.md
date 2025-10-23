@@ -19,10 +19,10 @@ Kiro는 다음 세 단계로 기능을 체계적으로 구축합니다:
 
 ## 📁 Spec Structure
 
-각 기능은 `.kiro/specs/{feature-name}/` 폴더에 3개의 문서를 가집니다:
+각 기능은 `.claude/memories/specs/{feature-name}/` 폴더에 3개의 문서를 가집니다:
 
 ```
-.kiro/
+.claude/memories/
 ├── kiro-system-templates/       # 템플릿 (재사용)
 │   ├── requirements-template.md
 │   ├── design-template.md
@@ -150,7 +150,7 @@ Kiro는 다음 세 단계로 기능을 체계적으로 구축합니다:
 ### Claude Code의 "Start task" 기능 사용
 
 **방법 1: tasks.md에서 직접 실행**
-1. `.kiro/specs/{feature}/tasks.md` 열기
+1. `.claude/memories/specs/{feature}/tasks.md` 열기
 2. 각 작업 옆 **"Start task"** 버튼 클릭
 3. Claude가 해당 작업만 집중 수행
 4. 완료 후 체크박스 체크 ✅
@@ -392,10 +392,10 @@ public SkillRarity DetermineRarity(int pityCount)
 kiro new skill-gacha
 
 # 템플릿에서 복사
-cp -r .kiro/kiro-system-templates .kiro/specs/skill-gacha
-mv .kiro/specs/skill-gacha/requirements-template.md .kiro/specs/skill-gacha/requirements.md
-mv .kiro/specs/skill-gacha/design-template.md .kiro/specs/skill-gacha/design.md
-mv .kiro/specs/skill-gacha/tasks-template.md .kiro/specs/skill-gacha/tasks.md
+cp -r .claude/memories/kiro-system-templates .claude/memories/specs/skill-gacha
+mv .claude/memories/specs/skill-gacha/requirements-template.md .claude/memories/specs/skill-gacha/requirements.md
+mv .claude/memories/specs/skill-gacha/design-template.md .claude/memories/specs/skill-gacha/design.md
+mv .claude/memories/specs/skill-gacha/tasks-template.md .claude/memories/specs/skill-gacha/tasks.md
 ```
 
 ### Claude에게 요청
@@ -405,7 +405,7 @@ requirements부터 작성해줄래?"
 ```
 
 Claude가 자동으로:
-1. `.kiro/specs/pet-system/` 폴더 생성
+1. `.claude/memories/specs/pet-system/` 폴더 생성
 2. `requirements-template.md` 복사하여 초안 작성
 3. 사용자 스토리, EARS 수용 기준 제안
 4. TODO(human) 마커로 결정 필요 부분 표시
@@ -421,9 +421,9 @@ Claude가 자동으로:
 - `docs/unity/UNITY_DOCUMENTATION_GUIDE.md`: Unity 문서 작성법
 
 ### Kiro 템플릿
-- `.kiro/kiro-system-templates/requirements-template.md`
-- `.kiro/kiro-system-templates/design-template.md`
-- `.kiro/kiro-system-templates/tasks-template.md`
+- `.claude/memories/kiro-system-templates/requirements-template.md`
+- `.claude/memories/kiro-system-templates/design-template.md`
+- `.claude/memories/kiro-system-templates/tasks-template.md`
 
 ---
 
@@ -431,7 +431,7 @@ Claude가 자동으로:
 
 ### 새 기능 시작 시
 - [ ] Feature 이름 결정 (kebab-case: `skill-gacha`)
-- [ ] `.kiro/specs/{feature}/` 폴더 생성
+- [ ] `.claude/memories/specs/{feature}/` 폴더 생성
 - [ ] `requirements.md` 작성 및 승인
 - [ ] `design.md` 작성 및 승인
 - [ ] `tasks.md` 작성 및 승인
