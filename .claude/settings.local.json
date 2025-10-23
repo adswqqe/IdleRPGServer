@@ -157,7 +157,8 @@
       "Bash(export TRANSCRIPT_PATH:*)",
       "Bash(python3:*)",
       "Bash(dotnet --version:*)",
-      "Read(//d/Proj/**)"
+      "Read(//d/Proj/**)",
+      "WebFetch(domain:raw.githubusercontent.com)"
     ]
   },
   "enableAllProjectMcpServers": true,

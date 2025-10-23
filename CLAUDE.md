@@ -90,8 +90,87 @@ CRUD, Repository, DTO, Configuration, SQL Migration, Unity 문서, Swagger 주�
 ### Feature Development Order
 Domain Entity → Application (Interface/DTO) → Infrastructure (Repository) → API (Controller) → Tests
 
+## Kiro Workflow (Spec-Driven Development)
+
+### 📋 Overview
+**Kiro**는 Amazon의 Spec-Driven Development 방법론으로, 코드 작성 전에 요구사항-설계-작업을 체계적으로 문서화합니다.
+
+**3단계 프로세스**:
+1. **Requirements** (무엇을 만들 것인가) → `requirements.md`
+2. **Design** (어떻게 만들 것인가) → `design.md`
+3. **Tasks** (단계별 구현 작업) → `tasks.md`
+
+### 📁 Spec 위치
+`.kiro/specs/{feature-name}/`
+- `requirements.md` - 사용자 스토리, EARS 형식 수용 기준, 게임 디자인 결정
+- `design.md` - Clean Architecture 계층별 설계, API/DB 스키마, 비즈니스 로직
+- `tasks.md` - Milestone별 체크리스트 (Domain → Infrastructure → Application → API → DB → Tests)
+
+**예시**: `.kiro/specs/skill-gacha/` (완료된 참고 예시)
+
+### 🔄 Workflow 순서
+
+#### Phase 1: Requirements
+1. Claude가 `requirements-template.md` 기반으로 초안 작성
+2. 사용자 스토리 작성: "As a [역할], I want [기능], so that [목적]"
+3. EARS 형식 수용 기준: "WHEN [조건] THEN system SHALL [동작]"
+4. **게임 디자인 결정**: 확률, 보상, 밸런스 → TODO(human) 마커 표시
+5. **사용자 승인 필수** → "Approved" 상태로 변경
+
+#### Phase 2: Design
+1. Claude가 `design-template.md` 기반으로 초안 작성
+2. Clean Architecture 계층별 책임 정의 (API/Application/Domain/Infrastructure)
+3. 데이터 모델 (Entity, EF Core Configuration, 인덱스)
+4. API 설계 (Endpoint, Request/Response DTO)
+5. 비즈니스 로직 (알고리즘, 계산식) → 복잡한 부분은 TODO(human)
+6. **사용자 승인 필수**
+
+#### Phase 3: Tasks
+1. Claude가 `tasks-template.md` 기반으로 초안 작성
+2. Milestone별 작업 분류:
+   - Milestone 1: Domain Layer (Entity, Enum, Domain Service)
+   - Milestone 2: Infrastructure (Repository, EF Config)
+   - Milestone 3: Application (DTO, Service)
+   - Milestone 4: API (Controller)
+   - Milestone 5: Database (Migration, Seeder)
+   - Milestone 6: Testing & Documentation (Unit Test, Unity Docs)
+3. 각 작업에 체크리스트, 예상 시간, Requirements 추적성 포함
+4. **사용자 승인 필수**
+
+#### Phase 4: Implementation
+- `tasks.md` 열어서 각 작업 옆 **"Start task"** 버튼 클릭
+- Claude가 한 번에 1개 작업만 집중 수행
+- 완료 시 체크박스 ✅ 업데이트
+
+### 🎯 Kiro + IdleRPG 통합 규칙
+
+#### Requirements 단계에서
+- **게임 밸런스**: 확률, 보상량, 재화 비용 → TODO(human) 명시
+- **EARS 형식 필수**: "WHEN 플레이어가 가챠 요청 THEN system SHALL 크리스탈 차감"
+
+#### Design 단계에서
+- **Clean Architecture 준수**: Domain은 다른 계층에 의존하지 않음
+- **Unity 연동 고려**: DTO는 `[JsonProperty]` 속성 (Newtonsoft.Json 호환)
+- **Migration Plan 포함**: Idempotent 패턴 SQL 작성
+
+#### Tasks 단계에서
+- **의존성 순서**: Domain → Infrastructure → Application → API
+- **Unity 문서 필수**: Milestone 6에 "Create Unity Documentation" 작업 포함
+- **테스트 커버리지**: Domain Service 90%+, Application Service 80%+
+
+### 📚 상세 가이드
+`.kiro/kiro-system-templates/how-kiro-works.md` - Kiro 전체 워크플로우, 승인 프로세스, Best Practices
+
+### ✅ 새 기능 시작 시 체크리스트
+- [ ] `.kiro/specs/{feature-name}/` 폴더 생성
+- [ ] `requirements.md` 작성 및 승인
+- [ ] `design.md` 작성 및 승인
+- [ ] `tasks.md` 작성 및 승인
+- [ ] Task 실행 (Start task 버튼)
+
 ## Reference
 - **Roadmap**: `docs/learning/PROJECT_ROADMAP.md`
 - **Deployment**: `docs/jenkins/DEPLOYMENT_GUIDE.md`
 - **Unity Docs**: `docs/unity/UNITY_DOCUMENTATION_GUIDE.md`
 - **PRD**: `docs/MUSHROOM_GAME_PRD.md`
+- **Kiro Guide**: `.kiro/kiro-system-templates/how-kiro-works.md`
