@@ -161,7 +161,10 @@
       "WebFetch(domain:raw.githubusercontent.com)",
       "SlashCommand(/roadmap)",
       "Bash(mkdir:*)",
-      "mcp__zen__thinkdeep"
+      "mcp__zen__thinkdeep",
+      "Bash(powershell -Command \"(Get-Content ''D:\\Proj\\IdleGameServer\\CLAUDE.md'' -Raw).Length\")",
+      "Bash(powershell -Command \"(Get-Content ''D:\\Proj\\IdleGameServer\\CLAUDE.md'' | Measure-Object -Line).Lines\")",
+      "mcp__zen__challenge"
     ]
   },
   "enableAllProjectMcpServers": true,
