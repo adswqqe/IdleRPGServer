@@ -38,33 +38,66 @@
 
 ## 🗄️ Data Model
 
-### Database Schema
+> ⚠️ **개념적 명세만 작성** - SQL DDL, C# 코드는 Implementation 단계에서 작성
+> 참고: [CLAUDE.md - Design vs Implementation 경계](../../../CLAUDE.md#design-vs-implementation-경계)
 
-#### 신규 테이블: `TableName`
-```sql
-CREATE TABLE "TableName" (
-    "Id" uuid PRIMARY KEY,
-    "Column1" varchar(100) NOT NULL,
-    "Column2" integer NOT NULL,
-    "CreatedAt" timestamp NOT NULL,
-    "UpdatedAt" timestamp NOT NULL
-);
+### 신규 테이블: `TableName`
 
-CREATE INDEX "IX_TableName_Column1" ON "TableName" ("Column1");
-```
+**목적**: [테이블의 역할과 저장할 데이터 설명]
 
-#### 수정 테이블: `ExistingTable`
-- 추가 컬럼: `NewColumn` (타입, 제약조건)
-- 인덱스: `IX_ExistingTable_NewColumn`
+**필드**:
+- `Id` (PK): 고유 식별자 (타입 결정은 구현 시)
+- `Column1`: [설명] (필수/선택, 제약조건)
+- `Column2`: [설명] (범위, 기본값)
+- `CreatedAt`, `UpdatedAt`: 감사 필드
+
+**제약사항**:
+- `Column1`: [예: 중복 불가, 2-50자 제한]
+- `Column2`: [예: 0 이상 정수]
+
+**인덱스 요구사항**:
+- `Column1`: [예: 이름 검색 쿼리 빈번, 단일 컬럼 인덱스]
+- 복합 인덱스: [필요 시]
+
+**관계**:
+- `ExistingEntity`와 1:N 관계 (FK: `ExistingEntityId`)
+
+---
+
+### 수정 테이블: `ExistingTable`
+
+**변경사항**:
+- 추가 필드: `NewColumn` ([설명], 필수/선택)
+- 제약조건: [새로운 제약]
+- 인덱스 추가: `NewColumn` (이유: [쿼리 패턴])
+
+---
 
 ### Entity Relationships
+
+**ERD 개요**:
 ```
 Player (1) ──< (N) Character (1) ──< (N) Equipment
+                ↓
+              (1:N)
+                ↓
+           TableName
 ```
 
-### EF Core Configuration
-- [Fluent API 설정 필요사항]
-- [관계 설정, Cascade 규칙]
+**관계 설명**:
+- `TableName` → `Character`: 1:N (한 캐릭터가 여러 TableName 소유)
+- Cascade 규칙: [예: 캐릭터 삭제 시 TableName도 삭제]
+
+---
+
+### EF Core Configuration 요구사항
+
+**Fluent API 필요 항목**:
+- `TableName`: [예: HasMany-WithOne 관계 설정, Cascade Delete]
+- 복합 키: [필요 시]
+- Value Object 매핑: [필요 시]
+
+> 💡 **구현 참고**: 구체적인 Fluent API 코드는 `IdleRPG.Infrastructure/Configurations/` 에서 작성
 
 ---
 
@@ -132,6 +165,8 @@ Player (1) ──< (N) Character (1) ──< (N) Equipment
 
 ## 🎯 Service Layer Design
 
+> ⚠️ **메서드 시그니처와 책임만 정의** - 구현 코드는 Implementation 단계에서 작성
+
 ### [ServiceName]
 
 **책임**: [서비스가 담당하는 역할]
@@ -139,22 +174,31 @@ Player (1) ──< (N) Character (1) ──< (N) Equipment
 **메서드:**
 
 #### `MethodNameAsync(params)`
-```csharp
-public async Task<ReturnType> MethodNameAsync(
-    ParamType param1,
-    CancellationToken cancellationToken = default)
-{
-    // 1. Input validation
-    // 2. Business logic orchestration (AI가 구현)
-    // 3. Domain service 호출
-    // 4. Repository 저장
-    // 5. Return result
 
-    // 🎓 TODO(human):
-    // 트랜잭션 경계를 어디에? (여기? Repository?)
-    // 에러 핸들링: try-catch vs Result<T> 패턴?
-}
-```
+**시그니처**:
+- 입력: `ParamType param1`, `CancellationToken cancellationToken`
+- 반환: `Task<ReturnType>` (성공 시 [설명])
+
+**프로세스 흐름**:
+1. Input validation (검증 규칙: [명시])
+2. Business logic orchestration (AI가 구현: [계산식/로직 설명])
+3. Domain service 호출 (어떤 도메인 로직?)
+4. Repository 저장 (트랜잭션 필요 여부)
+5. Return result
+
+**에러 조건**:
+- `ValidationException`: [조건]
+- `NotFoundException`: [조건]
+- `BusinessRuleException`: [조건]
+
+**🎓 학습 포인트 (아키텍처 결정)**:
+- **TODO(human)**: 트랜잭션 경계 설정 (Service vs Repository?)
+- **TODO(human)**: 에러 핸들링 전략 (try-catch vs Result<T> 패턴?)
+- **TODO(human)**: 비동기 패턴 선택 (Task vs ValueTask?)
+
+> 💡 **학습 가이드**: 메서드 구현은 AI가 작성합니다. **트랜잭션 관리**, **에러 핸들링 패턴**, **의존성 주입** 설계에 집중하세요.
+
+---
 
 **Dependencies:**
 - `IRepository`: [사용 목적]
@@ -218,32 +262,45 @@ public async Task<ReturnType> MethodNameAsync(
 
 ## 🔄 Migration Plan
 
-### Database Migration
-```sql
--- migration.sql에 추가할 내용 (AI가 작성)
-DO $EF$ BEGIN
-    IF NOT EXISTS(SELECT 1 FROM information_schema.tables
-                  WHERE table_name = 'TableName') THEN
-        CREATE TABLE "TableName" (
-            "Id" uuid PRIMARY KEY,
-            ...
-        );
-        CREATE INDEX "IX_TableName_Column1" ON "TableName" ("Column1");
-    END IF;
-END $EF$;
-```
+> ⚠️ **마이그레이션 요구사항만 명시** - 실제 SQL은 Implementation 단계에서 작성
+> 위치: `IdleRPG.Infrastructure/migration.sql` (Idempotent 패턴)
 
-**🎓 학습 포인트 (SQL 작성)**:
-- **TODO(human)**: [예: "인덱스 전략: 단일 컬럼 vs 복합 인덱스?"]
-- **TODO(human)**: [예: "Cascade Delete: ON DELETE CASCADE vs Application에서 처리?"]
-- **TODO(human)**: [예: "JSONB 컬럼 사용 vs 정규화? (스킬 메타데이터 저장)"]
+### Database Migration 요구사항
 
-> 💡 **학습 가이드**: SQL 문법은 AI가 작성합니다. **인덱싱 전략**, **정규화 vs 역정규화** 설계 결정에 집중하세요.
-> 상세 규칙: [CLAUDE.md - 학습 프로젝트 특화 규칙](../../../CLAUDE.md#학습-프로젝트-특화-규칙)
+**신규 테이블**:
+- `TableName`: [목적], [필드 수], [관계]
 
-### Data Seeding
-- [초기 데이터 필요 여부]
-- [Seeder 클래스 작성 계획]
+**수정 테이블**:
+- `ExistingTable`: [변경 내용]
+
+**인덱스 추가**:
+- `IX_TableName_Column1`: [이유]
+
+**데이터 마이그레이션**:
+- [기존 데이터 변환 필요 여부]
+- [백업 권장 여부]
+
+**🎓 학습 포인트 (데이터베이스 설계)**:
+- **TODO(human)**: 인덱스 전략 (단일 컬럼 vs 복합 인덱스?)
+- **TODO(human)**: Cascade Delete (ON DELETE CASCADE vs Application 처리?)
+- **TODO(human)**: 정규화 vs 역정규화 (JSONB vs 별도 테이블?)
+- **TODO(human)**: 타입 선택 (uuid vs serial, varchar vs text?)
+
+> 💡 **학습 가이드**: SQL 문법은 AI가 작성합니다. **인덱싱**, **정규화**, **타입 선택**, **Cascade 규칙** 같은 설계 결정에 집중하세요.
+
+---
+
+### Data Seeding 계획
+
+**Seeder 필요 여부**: [Yes/No]
+
+**초기 데이터**:
+- `TableName`: [예: 마스터 데이터 10개 (Common 5개, Rare 3개, Epic 2개)]
+- 데이터 출처: [하드코딩 vs JSON 파일 vs 외부 API]
+
+**Seeder 클래스**: `TableNameSeeder.cs` (Infrastructure Layer)
+
+> 💡 **구현 참고**: Seeder 코드는 Implementation 단계에서 작성
 
 ---
 

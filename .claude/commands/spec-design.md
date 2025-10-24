@@ -48,25 +48,32 @@ Expected: 20분
 ### 4. 템플릿 기반 초안 작성
 `.claude/memories/kiro-system-templates/design-template.md`를 기반으로 `design.md` 생성:
 
-**포함 내용**:
+> ⚠️ **중요**: Design은 **개념적 명세만** 작성 (SQL DDL, C# 코드 ❌)
+> 참고: [CLAUDE.md - Design vs Implementation 경계](../../../CLAUDE.md#design-vs-implementation-경계)
+
+**포함 내용** (개념적 명세):
 - **Architecture Overview**: API/Application/Domain/Infrastructure 계층별 책임
 - **Data Model**:
-  - Database Schema (CREATE TABLE, indexes)
-  - Entity Relationships (ERD)
-  - EF Core Configuration
+  - ✅ 필드 목록, 제약사항, 관계, 인덱스 요구사항
+  - ❌ SQL DDL (CREATE TABLE, ALTER TABLE 등)
+  - ❌ 구체적 타입 (varchar(100), serial 등)
 - **API Design**:
-  - Endpoints (RESTful)
-  - Request/Response DTO
-  - HTTP 상태 코드
+  - ✅ 엔드포인트, Request/Response 구조, 에러 조건
+  - ❌ JSON 샘플은 OK, 하지만 구체적 DTO 클래스 정의는 ❌
 - **Business Logic**:
-  - 핵심 알고리즘 (의사코드)
-  - **TODO(human)**: 복잡한 비즈니스 로직 디자인 결정
-- **Service Layer Design**: 메서드 시그니처, Dependencies
+  - ✅ 알고리즘 흐름, 계산식 (의사코드)
+  - ❌ 구체적 메서드 구현
+  - **TODO(human)**: 아키텍처 결정 (로직 위치, 패턴 선택)
+- **Service Layer Design**:
+  - ✅ 메서드 시그니처, 책임, 프로세스 흐름
+  - ❌ C# 코드 블록
 - **Testing Strategy**: Unit/Integration 테스트 계획
 - **Error Handling**: Exception Types, Error Response Format
 - **Security Considerations**: Authentication, Authorization
 - **Performance Considerations**: Indexes, Caching, N+1 Prevention
-- **Migration Plan**: Idempotent SQL, Data Seeding
+- **Migration Plan**:
+  - ✅ 마이그레이션 요구사항 (어떤 테이블, 어떤 변경)
+  - ❌ Idempotent SQL 코드
 - **Decision Log** ⭐ **L 사이즈 필수**: Spike/ADR 링크 테이블
 - **Unity Client Integration**: Unity 문서화 필요 항목
 

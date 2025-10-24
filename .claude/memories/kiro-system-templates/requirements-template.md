@@ -1,11 +1,21 @@
 # Requirements: [Feature Name]
 
 > 이 문서는 [Feature Name] 기능의 요구사항을 정의합니다.
-> 
-> **작성 가이드**: 
-> - 사용자 관점에서 "무엇을" 만들지 정의 (How는 Design에서)
-> - EARS 형식으로 검증 가능한 기준 작성
-> - 비즈니스 로직 결정이 필요한 부분은 명시
+>
+> **작성 가이드 (학습 프로젝트 특화)**:
+> - ✅ **백엔드 학습 중심**: 데이터 모델링, 아키텍처 계층, DB 설계를 **대화로** 결정
+> - ✅ **기술적 의사결정**: 1:N vs M:N, Domain vs Application Service, 인덱스 전략 등
+> - ❌ **게임 기획 최소화**: 재미, 밸런스는 AI 자동 제안
+> - 참고: [/spec-init 대화형 플로우](../../commands/spec-init.md#대화형-requirements-작성)
+
+**대화로 결정한 내용 (L 사이즈)**:
+```
+Phase 1: 데이터 모델링 (엔티티 관계, Cascade 규칙, 마스터 데이터)
+Phase 2: 아키텍처 계층 (로직 배치, Value Object, 트랜잭션)
+Phase 3: 데이터베이스 설계 (인덱스, N+1 방지, PK 타입)
+Phase 4: API 설계 (RESTful 경로, DTO 구조, 인증)
+Phase 5: 게임 밸런스 (AI 제안, 확인만)
+```
 
 ---
 
@@ -38,28 +48,66 @@
 
 ---
 
-## 🎮 Game Design Requirements
+## 🏗️ Technical Requirements (대화로 결정)
 
-<!-- IdleRPG 게임 특화: 밸런스, 보상, 경제 시스템 -->
-<!-- 학습 프로젝트이므로 AI가 합리적인 기본값을 제안합니다 -->
+> ⚠️ **백엔드 학습 초점**: 이 섹션은 `/spec-init` 대화 과정에서 결정됩니다
 
-### 게임 밸런스 (AI 제안)
-> 💡 **학습 프로젝트**: 게임 밸런스 수치는 AI가 제안하며, 학습자는 **아키텍처와 코드 구조**에 집중하세요.
->
-> 상세 규칙: [CLAUDE.md - 학습 프로젝트 특화 규칙](../../../CLAUDE.md#학습-프로젝트-특화-규칙)
+### 데이터 모델 (Data Model)
+**엔티티 관계** (대화로 결정):
+- [예: Pet (1:N) Character - 한 캐릭터가 여러 펫 소유]
+- [예: PetTemplates 별도 테이블 - 정규화, 확장성]
 
-**확률/수치 (AI 제안 예시)**:
+**Cascade 규칙**:
+- [예: Application 처리 - 명시적 삭제, 로깅 가능]
+
+**새 Entity**:
+- `Entity1`: [목적], [주요 필드]
+- `Entity2`: [목적], [주요 필드]
+
+---
+
+### 아키텍처 계층 (Architecture Layers)
+**로직 배치** (대화로 결정):
+- [예: 가챠 확률 계산 → Domain Service (순수 비즈니스 로직)]
+- [예: 천장 카운터 → Value Object (GachaCounter, 캡슐화)]
+
+**트랜잭션 경계**:
+- [예: Service Layer - 여러 Repository 호출 묶음]
+
+---
+
+### 데이터베이스 설계 (Database Design)
+**인덱스 요구사항** (대화로 결정):
+- [예: PetTemplates.Rarity - 희귀도별 필터링 빈번]
+- [예: 복합 인덱스 (Entity.Field1 + Field2) - 조합 쿼리]
+
+**N+1 문제 방지**:
+- [예: Eager Loading - Include(p => p.Template)]
+
+**PK 타입**:
+- [예: uuid - 분산 환경, 충돌 없음]
+
+---
+
+### API 설계 (API Design)
+**RESTful 엔드포인트** (대화로 결정):
+- [예: POST /api/pets/gacha - Resource 중심]
+
+**DTO 구조**:
+- [예: GachaResultDto - 펫 + 메타정보 (isDuplicate, pityCount)]
+
+**인증/권한**:
+- [예: JWT Bearer Token - 모든 API]
+
+---
+
+### 게임 밸런스 (AI 자동 제안)
+> 💡 **학습 프로젝트**: 게임 밸런스는 AI가 제안합니다. 학습자는 **아키텍처와 DB 설계**에 집중하세요.
+
+**확률/수치 (AI 제안)**:
 - [가챠 확률: Legendary 1%, Epic 9%, Rare 30%, Common 60%]
-- [재화 비용: 크리스탈 100개, Gold 1000개]
-- [보상량: 경험치 100~500, Gold 50~200]
-
-### 재화/보상
-- [어떤 재화를 사용/획득하는지]
-- [드랍률, 보상 테이블 (AI가 제안)]
-
-### 플레이어 경험
-- [이 기능이 플레이어에게 주는 경험]
-- [플레이 타임, 리텐션 목표]
+- [재화 비용: 크리스탈 100개]
+- [천장: 50회]
 
 ---
 

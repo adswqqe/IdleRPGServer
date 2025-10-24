@@ -29,22 +29,47 @@
 - `.claude/memories/_system/game-design.md` - 게임 시스템 우선순위
 - `.claude/memories/_system/api-standards.md` - 코딩 컨벤션
 
+### 3.5. 작성 모드 선택 (유연성 확보)
+```
+AI: "📝 spec-lite 작성 방식을 선택하세요."
+
+- [ ] **표준 모드** (권장: M 사이즈 기본)
+  - AI가 템플릿 기반으로 spec-lite.md 초안 작성
+  - 사용자는 TODO(human) 결정 및 검토
+  - 예상 시간: 10-15분
+
+- [ ] **Fast Track** (숙련자용)
+  - AI가 전체 spec-lite.md 자동 작성 (TODO(human) 최소화)
+  - 사용자는 최종 검토만
+  - 예상 시간: 5분
+
+사용자 선택 → 선택한 모드로 진행
+```
+
+> 💡 **Tip**: M 사이즈는 이미 간소화된 버전이므로 **표준 모드**로 충분합니다.
+
 ### 4. 템플릿 기반 초안 작성
 `.claude/memories/kiro-system-templates/spec-lite-template.md`를 기반으로 `spec-lite.md` 생성:
 
-**포함 내용**:
+> ⚠️ **중요**: spec-lite도 **개념적 명세만** 작성 (SQL DDL, C# 코드 ❌)
+> 참고: [CLAUDE.md - Design vs Implementation 경계](../../../CLAUDE.md#design-vs-implementation-경계)
+
+**포함 내용** (개념적 명세):
 1. **Intent & Scope**: 목적, 범위 (In/Out Scope)
 2. **User Stories & Acceptance Criteria**: EARS 형식
-3. **API Design**: 엔드포인트, Request/Response, 에러 처리
-4. **Data Model**: Entity, 관계, 인덱스, Migration 계획
+3. **API Design**: 엔드포인트, Request/Response 구조, 에러 조건
+4. **Data Model**:
+   - ✅ 필드 목록, 제약사항, 관계, 인덱스 요구사항
+   - ❌ SQL DDL 코드
 5. **Business Logic**:
-   - 핵심 로직 (AI가 계산식 제안)
-   - 학습 포인트 (TODO(human): 아키텍처 결정)
+   - ✅ 핵심 로직 흐름 (AI가 계산식 제안)
+   - ❌ 구체적 메서드 구현
+   - **TODO(human)**: 아키텍처 결정 (로직 위치, 패턴 선택)
 6. **Constraints & Risks**: 제약사항, 리스크 및 대응 방안
 7. **Test Strategy**: Unit/Integration 테스트 계획
 8. **Implementation Checklist**: 구현 단계 체크리스트
 9. **Unity Documentation Plan**: API_SPEC.md, DTOs.cs
-10. **Decisions** (선택적): 아키텍처 영향 결정 기록 또는 ADR 링크
+10. **Decisions** (선택적): 간단한 결정은 직접 기록, 복잡한 결정은 ADR 링크
 
 ### 5. [조건부] Spike 제안 (트리거 충족 시)
 AI가 Spike 필요성 감지 → **Spike Question 승인 요청** (M 사이즈는 최대 0-1개):

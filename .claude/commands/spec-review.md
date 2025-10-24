@@ -52,6 +52,28 @@
 - `docs/unity/{feature-name}/API_SPEC.md` 존재 여부
 - Design의 API와 Unity 문서의 엔드포인트 일치 여부
 
+#### 3.6 리스크 재평가 (구현 중 변화 추적)
+초기 리스크 점수와 현재 상태 비교:
+
+**초기 리스크 점수 추출**:
+- requirements.md에서 초기 리스크 점수 추출 (Blast Radius, Novelty, Unknowns)
+
+**현재 리스크 재평가**:
+- **Blast Radius**: design.md의 실제 영향 범위 분석
+  - API 개수, 참조하는 시스템 개수
+  - 기존 판단 vs 실제 설계 비교
+- **Novelty**: design.md/tasks.md의 실제 기술 스택
+  - 새 라이브러리/패턴 도입 여부
+  - ADR 개수로 새로움 측정
+- **Unknowns**: TODO(human) 개수와 Spike 결과
+  - 미해소 TODO가 많을수록 불확실성 증가
+  - Spike No-Go 결과는 불확실성 증가
+
+**변화 감지**:
+- 점수 증가 (+2점 이상): ⚠️ 리스크 증가 경고
+- 점수 감소 (-2점 이상): ✅ 리스크 완화 확인
+- 사이즈 재판단: 현재 리스크가 다른 사이즈 기준 초과 시 경고
+
 ### 4. 품질 점수 계산
 
 **점수 체계** (100점 만점):
@@ -197,6 +219,48 @@ Score: {점수}/5
 ⚠️ Inconsistencies:
 - API_SPEC.md shows GET /api/pets but design.md has GET /api/characters/{id}/pets
   → Action: Update Unity docs to match design.md
+
+═══════════════════════════════════════════════════
+        RISK RE-ASSESSMENT (참고 정보)
+═══════════════════════════════════════════════════
+
+**초기 리스크 점수** (requirements.md):
+- Blast Radius: 3점 (전투 시스템 영향)
+- Novelty: 2점 (기존 패턴 활용)
+- Unknowns: 4점 (가챠 밸런스 불확실)
+→ 합산: 9/15 (중위험, M 사이즈 기준)
+
+**현재 리스크 재평가** (구현 중):
+- Blast Radius: 4점 → +1점 ⚠️
+  → 이유: 실제로 인벤토리 시스템까지 영향 (design.md:156)
+  → 추가 영향: Item 드랍 시스템과 통합 필요
+
+- Novelty: 3점 → +1점 ⚠️
+  → 이유: ADR-0015에서 별도 Pet 스토리지 도입 (새 패턴)
+  → 추가 복잡도: PetRepository 캐싱 전략 추가
+
+- Unknowns: 5점 → +1점 ⚠️
+  → 이유: 3개 미해소 TODO(human) (design.md:145, 234, 267)
+  → 추가 불확실성: Spike-003 결과 "추가 검증 필요"
+
+→ **재평가 합산: 12/15 (고위험)** ⚠️
+
+**리스크 변화 분석**:
+📈 Risk Escalation: 9점 → 12점 (+3점, +33% 증가)
+
+⚠️ **경고**:
+- 초기 판단: M 사이즈 리스크 (6-9점)
+- 현재 상태: L 사이즈 리스크 (10-15점)
+- 실제 사이즈: L (복잡도 기준으로 이미 L)
+
+**권장사항**:
+1. 인벤토리 시스템 통합 영향 재검토 (Blast Radius 완화)
+2. TODO(human) 3개 조기 해소 (Unknowns 완화)
+3. Spike-003 후속 검증 실행 고려
+
+**긍정적 측면**:
+✅ 복잡도 기준으로 이미 L 사이즈였으므로 워크플로우는 적절
+✅ Full Spec 프로세스로 리스크 조기 발견 가능했음
 
 ═══════════════════════════════════════════════════
               RECOMMENDATIONS

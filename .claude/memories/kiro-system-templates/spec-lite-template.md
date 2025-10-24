@@ -67,21 +67,42 @@ Authorization: [Required Role]
 
 ## 4. Data Model
 
+> ⚠️ **개념적 명세만 작성** - SQL DDL은 Implementation 단계에서 작성
+> 참고: [CLAUDE.md - Design vs Implementation 경계](../../../CLAUDE.md#design-vs-implementation-경계)
+
 ### Entities
-**[EntityName]**
-- `Field1` (Type, constraints): 설명
-- `Field2` (Type, constraints): 설명
 
-**Relationships**:
-- [Entity1] 1:N [Entity2]
+**[EntityName]** (신규/수정)
 
-**Indexes**:
-- `IX_EntityName_Field1` (for query performance)
+**목적**: [이 엔티티가 무엇을 저장하는지]
 
-### Migration
-- [ ] Add new column/table
-- [ ] Update existing data (if needed)
-- [ ] Idempotent migration pattern
+**필드**:
+- `Field1` (PK/FK): [설명] (필수/선택, 제약조건)
+- `Field2`: [설명] (타입 범위, 기본값)
+- 감사 필드: `CreatedAt`, `UpdatedAt`
+
+**제약사항**:
+- `Field1`: [예: 중복 불가, 길이 제한]
+- `Field2`: [예: 양수만 허용]
+
+**관계**:
+- `ExistingEntity`와 1:N (FK: `ExistingEntityId`)
+
+**인덱스 요구사항**:
+- `Field1`: [이유, 예: 검색 쿼리 빈번]
+
+---
+
+### Migration 요구사항
+
+**변경 내용**:
+- [ ] 신규 테이블 `EntityName` 추가
+- [ ] 기존 테이블 `ExistingEntity` 컬럼 추가
+- [ ] 인덱스 생성: `IX_EntityName_Field1`
+
+**데이터 마이그레이션**: [기존 데이터 변환 필요 여부]
+
+> 💡 **구현 참고**: Idempotent 패턴 SQL은 `IdleRPG.Infrastructure/migration.sql`에 작성
 
 ---
 

@@ -21,11 +21,26 @@
 ### 4. 파일 목록 수집
 `tasks.md`에서 생성/수정된 파일 목록 추출
 
-### 5. 출력 형식
+### 5. 리스크 점수 추출 (참고 정보)
+requirements.md 또는 spec-lite.md에서 초기 리스크 점수 추출:
+- **리스크 점수 섹션** 검색 (Blast Radius, Novelty, Unknowns)
+- 합산 점수 및 각 차원별 점수 추출
+- 자동 승격 트리거 여부 확인
+- 없으면 "초기 리스크 분석 없음" 표시
+
+### 6. 출력 형식
 ```
 📊 {Feature Name} - Status
 
 **Phase**: {1-4 or Completed}
+
+**Size & Risk** (초기 판단):
+- Size: {S/M/L}
+- Risk Score: {점수}/15 ({저위험/중위험/고위험})
+  - 📊 Blast Radius: {점수}점 ({영향 범위 설명})
+  - 📊 Novelty: {점수}점 ({새로움 설명})
+  - 📊 Unknowns: {점수}점 ({불확실성 설명})
+- Auto Escalation: {Yes/No} ({트리거 설명})
 
 **Requirements**:
 - Status: ✅ Approved / 📋 Draft
@@ -78,6 +93,14 @@
 📊 Pet System - Status
 
 **Phase**: 4 (Execution)
+
+**Size & Risk** (초기 판단):
+- Size: L (Large)
+- Risk Score: 9/15 (중위험)
+  - 📊 Blast Radius: 3점 (전투 시스템 영향)
+  - 📊 Novelty: 2점 (기존 패턴 활용)
+  - 📊 Unknowns: 4점 (가챠 밸런스 불확실)
+- Auto Escalation: No (복잡도 기준 충족)
 
 **Requirements**:
 - Status: ✅ Approved
