@@ -43,6 +43,7 @@ namespace IdleRPG.API.Controllers
         /// 읽기 전용 API - Public (리더보드, 랭킹 시스템에서 다른 플레이어 장비 조회 가능)
         /// </remarks>
         [HttpGet("equipped/{characterId}")]
+        [AllowAnonymous]
         public async Task<IActionResult> GetEquippedItems([FromRoute] Guid characterId)
         {
             try
@@ -64,6 +65,7 @@ namespace IdleRPG.API.Controllers
         /// 읽기 전용 API - Public (다른 플레이어 인벤토리 조회 가능)
         /// </remarks>
         [HttpGet("inventory/{ownerId}")]
+        [AllowAnonymous]
         public async Task<IActionResult> GetInventory([FromRoute] Guid ownerId)
         {
             try

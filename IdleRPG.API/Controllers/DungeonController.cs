@@ -43,6 +43,7 @@ namespace IdleRPG.API.Controllers
         /// <response code="200">스테이지 목록 조회 성공</response>
         /// <response code="404">존재하지 않는 캐릭터</response>
         [HttpGet("stages")]
+        [AllowAnonymous]
         [ProducesResponseType(typeof(List<DungeonStageDto>), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> GetAvailableStages(
@@ -79,6 +80,7 @@ namespace IdleRPG.API.Controllers
         /// <response code="200">진행도 조회 성공</response>
         /// <response code="404">존재하지 않는 캐릭터</response>
         [HttpGet("progress")]
+        [AllowAnonymous]
         [ProducesResponseType(typeof(CharacterDungeonProgressDto), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> GetProgress([FromQuery] Guid characterId)

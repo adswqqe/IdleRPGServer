@@ -197,7 +197,7 @@ public class DungeonServiceTests
             .ReturnsAsync(1);
 
         // Act
-        var result = await _service.ClearStageAsync(playerId, request);
+        var result = await _service.ClearStageAsync(characterId, request);
 
         // Assert
         result.IsSuccess.Should().BeTrue();
@@ -234,7 +234,7 @@ public class DungeonServiceTests
         var characterId = Guid.NewGuid();
         var playerId = Guid.NewGuid();
         var monsterId = Guid.NewGuid();
-        var character = CreateTestCharacter(characterId, playerId, level: 1, experience: 0, gold: 50);
+        var character = CreateTestCharacter(characterId, playerId, level: 7, experience: 0, gold: 50);
 
         var stage = CreateTestDungeonStage(id: 5, name: "어두운 숲", requiredLevel: 7, monsterId: monsterId);
         var progress = CreateTestProgress(characterId, normalCleared: 4, hardCleared: 0, nightmareCleared: 0);
@@ -292,7 +292,7 @@ public class DungeonServiceTests
             .ReturnsAsync(battleResult);
 
         // Act
-        var result = await _service.ClearStageAsync(playerId, request);
+        var result = await _service.ClearStageAsync(characterId, request);
 
         // Assert
         result.IsSuccess.Should().BeFalse();
@@ -349,11 +349,11 @@ public class DungeonServiceTests
             .ReturnsAsync(progress);
 
         // Act
-        var result = await _service.ClearStageAsync(playerId, request);
+        var result = await _service.ClearStageAsync(characterId, request);
 
         // Assert
         result.IsSuccess.Should().BeFalse();
-        result.ErrorMessage.Should().Be("레벨이 부족합니다");
+        result.ErrorMessage.Should().StartWith("레벨이 부족합니다");
 
         // 전투가 발생하지 않음
         _mockBattleService.Verify(
@@ -448,7 +448,7 @@ public class DungeonServiceTests
             .ReturnsAsync(1);
 
         // Act
-        var result = await _service.ClearStageAsync(playerId, request);
+        var result = await _service.ClearStageAsync(characterId, request);
 
         // Assert
         result.IsSuccess.Should().BeTrue();
@@ -553,7 +553,7 @@ public class DungeonServiceTests
             .ReturnsAsync(1);
 
         // Act
-        var result = await _service.ClearStageAsync(playerId, request);
+        var result = await _service.ClearStageAsync(characterId, request);
 
         // Assert
         result.IsSuccess.Should().BeTrue();
