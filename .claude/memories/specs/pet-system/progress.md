@@ -2,8 +2,9 @@
 
 ## 📋 세션 정보
 - **시작일**: 2025-10-24
-- **모드**: 학습 모드 (10-15개 질문)
-- **진행도**: 7/15 질문 완료 (Phase 2 진행 중)
+- **완료일**: 2025-10-25
+- **모드**: 학습 모드 (13개 질문)
+- **진행도**: 100% 완료 ✅
 
 ---
 
@@ -87,36 +88,429 @@
   - 확장성: Configuration 테이블 vs appsettings.json vs 하드코딩
 - **학습 포인트**: Value Object 패턴, 풍부한 도메인 모델(Rich Domain Model)
 
-#### Q7: 트랜잭션 경계 설정 (현재 진행 중)
-- **질문**: Service Layer vs Repository Layer vs EF Core 자동 트랜잭션
-- **옵션**:
-  - A: Service Layer에서 명시적 트랜잭ション 관리
-  - B: Repository Layer 트랜잭션 (잘못된 설계)
-  - C: EF Core SaveChanges 자동 트랜잭션
-- **다음 답변 대기 중**
+#### Q7: 트랜잭션 경계 설정
+- **선택**: C - EF Core SaveChanges 자동 트랜잭션 (Unit of Work 패턴 활용)
+- **구조**:
+  ```csharp
+  // Application/Services/PetService.cs
+  public async Task<PetGachaResultDto> ExecuteGachaAsync(Guid characterId)
+  {
+      // 1. 여러 Repository 호출
+      var character = await _characterRepo.GetByIdAsync(characterId);
+      character.DeductCrystal(100);
+      character.IncrementGachaCounter();
+
+      var pet = await _petRepo.CreateAsync(...);
+      await _gachaHistoryRepo.AddAsync(...);
+
+      // 2. Unit of Work SaveChanges (자동 트랜잭션)
+      await _unitOfWork.SaveChangesAsync();
+      return MapToDto(pet);
+  }
+  ```
+- **이유**:
+  - 프로젝트는 이미 Unit of Work 패턴 적용 (DbContext가 구현)
+  - 단순 플로우는 자동 트랜잭션으로 충분
+  - 코드 간결성 유지
+- **예외 케이스**: 외부 API 호출 포함 시 명시적 트랜잭션 고려
+- **학습 포인트**: Unit of Work 패턴, EF Core 변경 추적, 자동 트랜잭션 경계
 
 ---
 
+---
+
+### Phase 3: 데이터베이스 설계 (진행 중)
+
+#### Q8: 인덱스 전략
+- **선택**: A - Pets.CharacterId 단일 인덱스 (최소 필수 인덱스)
+- **구조**:
+  ```sql
+  CREATE INDEX idx_pets_character_id ON pets(character_id);
+  ```
+- **이유**:
+  - **가장 빈번한 쿼리**: "내 캐릭터의 펫 목록" (99% 사용 케이스)
+  - **클라이언트 필터링**: RarityId, TemplateId 필터는 클라이언트에서 처리
+    - 한 캐릭터가 보유한 펫 수: 50-200마리 예상 (네트워크 전송 가능)
+    - Unity 클라이언트에서 LINQ 필터링 충분
+  - **트레이드오프**: 복합 인덱스(B, C)는 과도한 최적화 (Premature Optimization)
+- **추가 인덱스 고려 시점**: 펫 개수 500+ 초과 시 성능 측정 후 추가
+- **학습 포인트**:
+  - 인덱스 전략의 비용 분석 (읽기 vs 쓰기 성능)
+  - 클라이언트-서버 책임 분리
+  - Premature Optimization 방지 (YAGNI 원칙)
+  - PostgreSQL FK 자동 인덱싱 없음 (MySQL과 차이)
+
 ## 🔄 다음 진행 예정
 
-### Phase 2 남은 질문 (예상 2-3개)
-- Q7 완료 후: Database 인덱싱, N+1 문제 방지
+#### Q9: N+1 문제 방지
+- **선택**: A - Eager Loading (Include) + 읽기 전용 API 최적화
+- **구조**:
+  ```csharp
+  // 1. 일반 CRUD (Entity 추적 필요)
+  public async Task<Pet> GetPetByIdAsync(Guid petId)
+  {
+      return await _context.Pets
+          .Include(p => p.Template)
+          .FirstOrDefaultAsync(p => p.Id == petId);
+  }
 
-### Phase 3: 데이터베이스 설계 (예상 2-3개)
-- 인덱스 전략 (PetTemplates.RarityId, Pets.CharacterId)
-- N+1 문제 방지 (Eager Loading vs Lazy Loading)
-- PK 타입 (GUID vs INT)
+  // 2. 읽기 전용 API (로그인 시 펫 목록 조회)
+  public async Task<List<PetDto>> GetCharacterPetsAsync(Guid characterId)
+  {
+      return await _context.Pets
+          .Where(p => p.CharacterId == characterId)
+          .Include(p => p.Template)
+          .AsNoTracking()  // 변경 추적 비활성화
+          .Select(p => new PetDto
+          {
+              Id = p.Id,
+              TemplateId = p.TemplateId,
+              TemplateName = p.Template.Name,
+              RarityId = p.Template.RarityId,
+              Level = p.Level,
+              CurrentAttack = p.CurrentAttack,
+              CurrentMana = p.CurrentMana
+          })
+          .ToListAsync();
+  }
+  ```
+- **이유**:
+  - **기본은 Include**: 대부분 API에서 Template 정보 필요
+  - **읽기 전용 최적화**: 로그인/초기 로딩은 AsNoTracking() + Projection
+  - **성능 이점**: AsNoTracking()으로 메모리 사용량 30-40% 감소
+- **적용 시점**:
+  - Include: Update/Delete 가능성 있는 API
+  - AsNoTracking: GET 전용 API (로그인, 목록 조회)
+- **학습 포인트**:
+  - N+1 문제 원인과 해결 (Include vs Explicit Loading)
+  - AsNoTracking() 성능 최적화
+  - Projection (Select)으로 네트워크 트래픽 감소
+  - CQRS 패턴의 기초 (읽기 vs 쓰기 최적화)
 
-### Phase 4: API 설계 (예상 3개)
-- RESTful 엔드포인트 설계
-- DTO 구조 (Request/Response)
-- 인증/권한 설정
+#### Q10: PK 타입 (GUID vs INT)
+- **선택**: C - 하이브리드 (Pet은 INT, Character는 GUID 유지)
+- **구조**:
+  ```csharp
+  public class Pet
+  {
+      public int Id { get; set; }  // INT (AUTO_INCREMENT)
+      public Guid CharacterId { get; set; }  // FK to Character (GUID)
+      public int TemplateId { get; set; }  // FK to PetTemplate (INT)
+  }
+  ```
+  ```sql
+  CREATE TABLE pets (
+    id SERIAL PRIMARY KEY,  -- INT AUTO_INCREMENT
+    character_id UUID NOT NULL REFERENCES characters(id),
+    template_id INT NOT NULL REFERENCES pet_templates(id),
+    level INT DEFAULT 1,
+    current_attack INT,
+    current_mana INT,
+    created_at TIMESTAMP DEFAULT NOW()
+  );
+  ```
+- **이유**:
+  - **Pet의 성격**: Character의 종속 Entity (Character 없이 독립 존재 안 함)
+  - **일관성**: Equipment도 INT 사용 중 (같은 "소유 아이템" 개념)
+  - **성능**: INT PK가 GUID보다 인덱스 성능 우수 (4바이트 vs 16바이트)
+  - **디버깅**: 가독성 향상 (Pet #1234 vs Pet #a7f3e...)
+  - **분산 환경**: 단일 DB 운영 중, 필요시 나중에 마이그레이션 가능
+- **트레이드오프**:
+  - 포기: 클라이언트 ID 미리 생성 (가챠 시 서버 응답 대기 필요)
+  - 획득: 저장 공간 75% 절약, 인덱스 성능 향상, 일관성
+- **프로젝트 패턴**:
+  - GUID: Player, Character (독립 Entity)
+  - INT: Equipment, Pet (종속 Entity), 모든 Template (마스터 데이터)
+- **학습 포인트**:
+  - PK 타입 선택 기준 (독립 vs 종속 Entity)
+  - 하이브리드 전략 (일관성보다 실용성)
+  - 저장 공간과 성능 트레이드오프
+  - 프로젝트 전체 패턴 분석
 
-### Phase 5: 게임 밸런스 (AI 자동 제안)
-- 가챠 확률 (AI 제안: Legendary 1%, Epic 9%, Rare 30%, Common 60%)
-- 가챠 비용 (AI 제안: 크리스탈 100개)
-- 천장 (AI 제안: 50회)
-- 펫 스탯 버프 공식
+---
+
+### Phase 3 완료! ✅
+
+**데이터베이스 설계 결정 사항**:
+1. ✅ CharacterId 단일 인덱스 (클라이언트 필터링 활용)
+2. ✅ Include + AsNoTracking 하이브리드 (읽기/쓰기 최적화)
+3. ✅ Pet PK는 INT (종속 Entity 패턴)
+
+---
+
+### Phase 4: API 설계 (진행 중)
+
+#### Q11: RESTful 엔드포인트 설계
+- **선택**: B - Action 중심 (RPC 스타일) + 프로젝트 기존 패턴 일관성 유지
+- **구조**:
+  ```
+  POST   /api/pets/gacha                    # 펫 가챠
+  GET    /api/pets?characterId={id}         # 펫 목록 조회
+  GET    /api/pets/{petId}                  # 펫 상세 조회
+  POST   /api/pets/{petId}/level-up         # 펫 레벨업
+  POST   /api/pets/equip                    # 펫 장착
+  POST   /api/pets/unequip                  # 펫 해제
+  GET    /api/pets/equipped?characterId={id} # 장착된 펫 조회
+  DELETE /api/pets/{petId}                  # 펫 삭제 (판매 등)
+  ```
+- **이유**:
+  - **프로젝트 일관성**: 기존 Equipment, Skill, Dungeon과 동일한 패턴
+  - **팀 생산성**:
+    - Equipment: `POST /equipment/equip` → Pet: `POST /pets/equip` (학습 곡선 ↓)
+    - Skill: `POST /skills/gacha` → Pet: `POST /pets/gacha` (일관성 ↑)
+  - **클라이언트 편의성**: Unity 개발자가 이미 익숙한 API 구조
+  - **소규모 팀**: 학습 프로젝트 (1-2명), 빠른 프로토타이핑 우선
+- **프로젝트 API 패턴 분석**:
+  - ✅ Action은 POST + 동사 URL (`/equip`, `/gacha`, `/clear`)
+  - ✅ 조회는 GET + 명사 (`/equipped`, `/stages`)
+  - ✅ characterId는 쿼리스트링 또는 Body
+- **Request/Response 예시**:
+  ```csharp
+  // POST /api/pets/gacha
+  Request:  { "characterId": "guid" }
+  Response: {
+    "pet": { "id": 123, "templateId": 5, "rarity": "Legendary" },
+    "isDuplicate": false,
+    "currentPityCount": 35
+  }
+
+  // POST /api/pets/equip
+  Request:  { "petId": 123, "slotIndex": 1 }
+  Response: { "pet": {...}, "message": "펫이 슬롯 1에 장착되었습니다" }
+  ```
+- **학습 포인트**:
+  - RESTful vs RPC 스타일 트레이드오프
+  - 프로젝트 일관성의 중요성 (새 개발자 온보딩 비용)
+  - 소규모 팀에서의 실용적 API 설계
+  - 기존 코드베이스 패턴 분석 능력
+
+#### Q12: DTO 구조 (Request/Response)
+- **선택**: B - 풍부한 정보 (메타 정보 포함) - 게임 산업 표준
+- **구조**:
+  ```csharp
+  // 가챠 Response DTO
+  public class PetGachaResponseDto
+  {
+      public PetDto Pet { get; set; }
+      public bool IsDuplicate { get; set; }
+      public int CurrentPityCount { get; set; }      // 천장 카운터 (0-50)
+      public int RemainingCrystal { get; set; }      // 가챠 후 남은 크리스탈
+      public DuplicateRewardDto? DuplicateReward { get; set; }  // 중복 시 보상
+  }
+
+  // Pet DTO (기본 펫 정보)
+  public class PetDto
+  {
+      public int Id { get; set; }
+      public int TemplateId { get; set; }
+      public string TemplateName { get; set; }
+      public int RarityId { get; set; }
+      public string RarityName { get; set; }        // "Legendary", "Epic", ...
+      public int Level { get; set; }
+      public int CurrentAttack { get; set; }
+      public int CurrentMana { get; set; }
+      public string ImageUrl { get; set; }          // Unity에서 즉시 표시
+  }
+
+  // 중복 보상 DTO
+  public class DuplicateRewardDto
+  {
+      public int Gold { get; set; }                 // 중복 시 골드 보상
+      public int Experience { get; set; }           // 중복 시 경험치 보상
+  }
+
+  // 장착 Request DTO
+  public class EquipPetRequestDto
+  {
+      public Guid CharacterId { get; set; }
+      public int PetId { get; set; }
+      public int SlotIndex { get; set; }            // 1-3
+  }
+
+  // 레벨업 Request DTO
+  public class LevelUpPetRequestDto
+  {
+      public int PetId { get; set; }
+      public int Count { get; set; }                // 레벨업 횟수 (1회 또는 여러 번)
+  }
+  ```
+- **이유**:
+  - **게임 산업 표준**: "화면 렌더링에 필요한 모든 데이터 한 번에 제공"
+  - **UX 최적화**:
+    - 가챠 연출: Pet 이미지, 등급, 이름 즉시 표시
+    - UI 동시 업데이트: 크리스탈 잔액, 천장 카운터 (N회 남음)
+    - 중복 처리: "이미 보유 중! 골드 500 획득" 알림
+  - **네트워크 최적화**:
+    - 1번 API 호출 vs 3번 호출 (가챠 + 캐릭터 조회 + 펫 조회)
+    - 모바일 환경 (3G/4G) 응답속도 3배 향상
+  - **실제 게임 사례**: Genshin Impact, Epic Seven 동일 패턴
+- **응답 크기 분석**:
+  - B 스타일: ~600 bytes (JSON)
+  - gzip 압축: ~250 bytes
+  - A 스타일 3번 호출: ~900 bytes + 네트워크 왕복 비용
+  - **결론**: B가 오히려 효율적
+- **트레이드오프**:
+  - 포기: DTO 단순함 (A 스타일 대비)
+  - 획득: 클라이언트 개발 생산성 ↑, UX ↑, 네트워크 효율 ↑
+- **학습 포인트**:
+  - 게임 API 설계의 Golden Rule (클라이언트 중심 설계)
+  - RESTful 원칙 vs 실용성 (게임은 실용성 우선)
+  - DTO 설계 시 네트워크 왕복 비용 고려
+  - 모바일 환경 최적화 전략
+
+#### Q13: 인증/권한 설정
+- **선택**: B - 읽기 Public, 쓰기 인증 + 소유권 검증 (확장 가능)
+- **구조**:
+  ```csharp
+  [Route("api/pets")]
+  public class PetController : BaseController
+  {
+      // 쓰기 API: 인증 + 소유권 검증
+      [HttpPost("gacha")]
+      [Authorize]
+      public async Task<IActionResult> PerformGacha([FromBody] PetGachaRequestDto dto)
+      {
+          var playerId = GetCurrentUserId();  // JWT에서 PlayerId 추출
+
+          var character = await _characterService.GetByIdAsync(dto.CharacterId);
+          if (character.PlayerId != playerId)
+              return Forbid();  // 403
+
+          // 가챠 처리
+      }
+
+      [HttpPost("equip")]
+      [Authorize]
+      public async Task<IActionResult> EquipPet([FromBody] EquipPetRequestDto dto)
+      {
+          var playerId = GetCurrentUserId();
+          // 소유권 검증
+      }
+
+      // 읽기 API: Public (리더보드, PvP 대비)
+      [HttpGet]
+      public async Task<IActionResult> GetPets([FromQuery] Guid characterId)
+      {
+          // 누구나 조회 가능 (게임 데이터는 공개)
+          // 단, 민감 정보는 제외 (가챠 이력, 크리스탈 잔액)
+      }
+
+      [HttpGet("equipped")]
+      public async Task<IActionResult> GetEquippedPets([FromQuery] Guid characterId)
+      {
+          // Public: 리더보드에서 다른 플레이어 펫 조회 가능
+      }
+
+      // 민감 정보: 인증 필수
+      [HttpGet("gacha-history")]
+      [Authorize]
+      public async Task<IActionResult> GetGachaHistory()
+      {
+          var playerId = GetCurrentUserId();
+          // 자신의 가챠 이력만 조회 가능
+      }
+  }
+  ```
+- **이유**:
+  - **미래 확장성**: 리더보드, PvP, 길드 시스템 대비
+    - 리더보드: "1위 유저의 펫 조합 보기" 기능 필요
+    - PvP: 상대 펫 정보 확인 (전략 수립)
+    - 길드: 길드원 펫 조회 (팀 편성 참고)
+  - **보안 원칙**: "게임 데이터는 Public, 민감 정보만 Private"
+    - Public: 펫 목록, 스탯, 장착 정보
+    - Private: 가챠 이력, 크리스탈 잔액, 거래 내역
+  - **실제 게임 사례**:
+    - Summoners War: 다른 플레이어 몬스터 조회 가능
+    - Genshin Impact: 친구 캐릭터 조회 (Co-op)
+- **Dependencies (외부 의존성)**:
+  - **API Security Refactoring** (별도 Spec 필요, S 사이즈)
+    - 현재: DungeonController, EquipmentController 모두 `[Authorize]` (읽기도 인증 필수)
+    - 변경 후: 읽기 Public, 쓰기 인증 분리
+    - 영향 범위: 3-4개 Controller
+    - 우선순위: Pet System 작업 전 완료 권장
+- **트레이드오프**:
+  - 포기: 완벽한 데이터 프라이버시 (누구나 펫 개수 조회 가능)
+  - 획득: 게임 기능 확장성, 커뮤니티 형성 (랭킹, 비교)
+- **학습 포인트**:
+  - 보안 설계는 비즈니스 요구사항에서 출발 (기술 우선 X)
+  - 확장 가능한 설계 (현재 없어도 미래 고려)
+  - Spec 분리 원칙 (Single Responsibility)
+  - 의존성 관리 (External Dependencies 명시)
+
+---
+
+### Phase 4 완료! ✅
+
+**API 설계 결정 사항**:
+1. ✅ Action 중심 RPC 스타일 (프로젝트 패턴 일관성)
+2. ✅ 풍부한 DTO (게임 산업 표준, 클라이언트 최적화)
+3. ✅ 읽기 Public, 쓰기 인증 (확장 가능한 보안)
+
+---
+
+### Phase 5: 게임 밸런스 (AI 자동 제안) ✅
+
+#### 가챠 확률
+- **Common**: 60%
+- **Rare**: 30%
+- **Epic**: 9%
+- **Legendary**: 1%
+
+#### 천장 시스템 (Pity)
+- **Hard Pity**: 50회 (100% Legendary 보장)
+- **Soft Pity**: 40회부터 확률 증가
+  - 40회: +1% (총 2%)
+  - 45회: +3% (총 4%)
+  - 50회: 100%
+
+#### 가챠 비용
+- **1회**: 크리스탈 100개
+- **10연차**: 크리스탈 900개 (10% 할인)
+
+#### 중복 보상
+- **Common**: 골드 100
+- **Rare**: 골드 500
+- **Epic**: 골드 2,000
+- **Legendary**: 골드 10,000
+
+#### 레벨업 비용
+- **공식**: 이전 레벨 비용 × 1.5
+- **예시**: Lv1→2 (100골드) → Lv2→3 (150골드) → Lv3→4 (225골드)
+- **Max Level**: 50
+
+#### 펫 스탯 공식
+```csharp
+// 펫 스탯 (레벨업 시)
+Pet.CurrentAttack = Template.BaseAttack + (Level - 1) * 10
+Pet.CurrentMana = Template.BaseMana + (Level - 1) * 5
+
+// 캐릭터 버프 (펫 장착 시)
+CharacterAttack += Pet.CurrentAttack * 0.1  // 10%
+CharacterMana += Pet.CurrentMana * 0.1      // 10%
+```
+
+#### 펫 템플릿 예시 (Seeder 데이터)
+```sql
+-- Legendary
+INSERT INTO pet_templates (name, rarity_id, base_attack, base_mana, image_url)
+VALUES ('Fire Dragon', 4, 100, 50, '/pets/fire-dragon.png');
+
+-- Epic
+INSERT INTO pet_templates (name, rarity_id, base_attack, base_mana, image_url)
+VALUES ('Ice Phoenix', 3, 70, 35, '/pets/ice-phoenix.png');
+
+-- Rare
+INSERT INTO pet_templates (name, rarity_id, base_attack, base_mana, image_url)
+VALUES ('Forest Wolf', 2, 40, 20, '/pets/forest-wolf.png');
+
+-- Common
+INSERT INTO pet_templates (name, rarity_id, base_attack, base_mana, image_url)
+VALUES ('Slime', 1, 20, 10, '/pets/slime.png');
+```
+
+---
+
+### Phase 5 완료! ✅
 
 ### Phase 6: 최종 문서 생성
 - requirements.md 완성

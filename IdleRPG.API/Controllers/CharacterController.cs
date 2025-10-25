@@ -42,8 +42,10 @@ namespace IdleRPG.API.Controllers
         /// <summary>
         /// 캐릭터 조회
         /// </summary>
+        /// <remarks>
+        /// 읽기 전용 API - Public (리더보드, 랭킹에서 다른 플레이어 캐릭터 조회 가능)
+        /// </remarks>
         [HttpGet("{characterId}")]
-        [Authorize]
         public async Task<IActionResult> GetById([FromRoute]Guid characterId)
         {
             try

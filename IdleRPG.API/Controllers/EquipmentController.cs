@@ -39,6 +39,9 @@ namespace IdleRPG.API.Controllers
         /// <summary>
         /// 캐릭터의 장착 중인 장비 조회 (5개 슬롯)
         /// </summary>
+        /// <remarks>
+        /// 읽기 전용 API - Public (리더보드, 랭킹 시스템에서 다른 플레이어 장비 조회 가능)
+        /// </remarks>
         [HttpGet("equipped/{characterId}")]
         public async Task<IActionResult> GetEquippedItems([FromRoute] Guid characterId)
         {
@@ -57,6 +60,9 @@ namespace IdleRPG.API.Controllers
         /// <summary>
         /// 캐릭터의 인벤토리 조회 (미장착 장비)
         /// </summary>
+        /// <remarks>
+        /// 읽기 전용 API - Public (다른 플레이어 인벤토리 조회 가능)
+        /// </remarks>
         [HttpGet("inventory/{ownerId}")]
         public async Task<IActionResult> GetInventory([FromRoute] Guid ownerId)
         {

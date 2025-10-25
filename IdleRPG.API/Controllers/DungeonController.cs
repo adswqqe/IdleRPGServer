@@ -41,13 +41,9 @@ namespace IdleRPG.API.Controllers
         /// <param name="difficulty">필터링할 난이도 (선택, null이면 모든 난이도)</param>
         /// <returns>도전 가능한 스테이지 목록 (난이도 배수 적용된 보상 포함)</returns>
         /// <response code="200">스테이지 목록 조회 성공</response>
-        /// <response code="401">인증되지 않은 사용자</response>
-        /// <response code="403">다른 플레이어의 캐릭터 조회 시도</response>
         /// <response code="404">존재하지 않는 캐릭터</response>
         [HttpGet("stages")]
         [ProducesResponseType(typeof(List<DungeonStageDto>), StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> GetAvailableStages(
             [FromQuery] Guid characterId,
@@ -55,18 +51,11 @@ namespace IdleRPG.API.Controllers
         {
             try
             {
-                // 1. PlayerId 추출 (JWT)
-                var playerId = GetCurrentUserId();
-
-                // 2. 소유권 검증
+                // 읽기 전용 API - Public (리더보드, 랭킹 대비)
                 var character = await _characterService.GetCharacterByIdAsync(characterId);
                 if (character == null)
                     return NotFound("캐릭터를 찾을 수 없습니다");
 
-                if (character.PlayerId != playerId)
-                    return Forbid(); // 다른 플레이어의 캐릭터
-
-                // 3. 스테이지 목록 조회
                 var stages = await _dungeonService.GetAvailableStagesAsync(characterId, difficulty);
                 return Ok(stages);
             }
@@ -88,30 +77,19 @@ namespace IdleRPG.API.Controllers
         /// <param name="characterId">조회할 캐릭터 ID</param>
         /// <returns>난이도별 최고 클리어 스테이지</returns>
         /// <response code="200">진행도 조회 성공</response>
-        /// <response code="401">인증되지 않은 사용자</response>
-        /// <response code="403">다른 플레이어의 캐릭터 조회 시도</response>
         /// <response code="404">존재하지 않는 캐릭터</response>
         [HttpGet("progress")]
         [ProducesResponseType(typeof(CharacterDungeonProgressDto), StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> GetProgress([FromQuery] Guid characterId)
         {
             try
             {
-                // 1. PlayerId 추출 (JWT)
-                var playerId = GetCurrentUserId();
-
-                // 2. 소유권 검증
+                // 읽기 전용 API - Public (다른 플레이어 진행도 조회 가능)
                 var character = await _characterService.GetCharacterByIdAsync(characterId);
                 if (character == null)
                     return NotFound("캐릭터를 찾을 수 없습니다");
 
-                if (character.PlayerId != playerId)
-                    return Forbid(); // 다른 플레이어의 캐릭터
-
-                // 3. 진행도 조회
                 var progress = await _dungeonService.GetProgressAsync(characterId);
                 return Ok(progress);
             }
