@@ -21,7 +21,16 @@ namespace IdleRPG.Domain.Entities
         public long Gold { get; set; } = 0;
 
         public long Crystal { get; set; } = 0;
+
+        /// <summary>
+        /// 스킬 가챠 천장 카운터 (100회)
+        /// </summary>
         public int GachaPityCount { get; set; } = 0;
+
+        /// <summary>
+        /// 펫 가챠 천장 카운터 (50회)
+        /// </summary>
+        public int PetGachaCount { get; set; } = 0;
 
         /// <summary>
         /// 마지막 로그인 시간 (오프라인 보상 계산 기준)

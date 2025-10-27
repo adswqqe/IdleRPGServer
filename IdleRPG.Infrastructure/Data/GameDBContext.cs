@@ -38,6 +38,11 @@ public class GameDBContext : DbContext
     public DbSet<SkillTemplate> SkillTemplates { get; set; }
     public DbSet<GachaHistory> GachaHistories { get; set; }
 
+    // Pet System
+    public DbSet<Pet> Pets { get; set; }
+    public DbSet<PetTemplate> PetTemplates { get; set; }
+    public DbSet<EquippedPets> EquippedPets { get; set; }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);

@@ -11,12 +11,12 @@
 
 ## 📊 Progress Overview
 
-**전체 진행률**: 1/28 (4%)
+**전체 진행률**: 12/28 (43%)
 
 | Milestone | 작업 수 | 완료 | 진행률 |
 |-----------|---------|------|--------|
-| Domain Layer | 6 | 1 | 17% |
-| Infrastructure Layer | 6 | 0 | 0% |
+| Domain Layer | 6 | 6 | 100% |
+| Infrastructure Layer | 6 | 6 | 100% |
 | Application Layer | 4 | 0 | 0% |
 | API Layer | 3 | 0 | 0% |
 | Database | 3 | 0 | 0% |
@@ -39,46 +39,50 @@
 
 ---
 
-### 1.2 Create PetTemplate Entity ⏱️ 30분
-- [ ] Create `IdleRPG.Domain/Entities/PetTemplate.cs`
-- [ ] Add properties: Id (int), Name (string), Rarity (PetRarity enum), BaseAttack (int), BaseMana (int), ImageUrl (string), Description (string)
-- [ ] Add navigation property: ICollection<Pet>
+### 1.2 Create PetTemplate Entity ⏱️ 30분 ✅
+- [x] Create `IdleRPG.Domain/Entities/PetTemplate.cs`
+- [x] Add properties: Id (int), Name (string), Rarity (공용 enum), BaseAttack (int), BaseMana (int)
+- [x] ~~ImageUrl, Description 제거~~ (서버-클라이언트 관심사 분리)
+- [x] Add navigation property: ICollection<Pet>
 
 **Requirements**: [US-1]
 **Design Reference**: Data Model - pet_templates 테이블
+**🎓 아키텍처 개선**: ImageUrl, Description 제거 (클라이언트가 Id/Name 기반 리소스 매핑)
 
 ---
 
-### 1.3 Create EquippedPets Entity ⏱️ 30분
-- [ ] Create `IdleRPG.Domain/Entities/EquippedPets.cs`
-- [ ] Add properties: CharacterId (Guid, PK), SlotIndex (int, PK), PetId (int, FK), EquippedAt (DateTime)
-- [ ] Add navigation properties: Character, Pet
-- [ ] **Note**: Composite PK (CharacterId, SlotIndex)
+### 1.3 Create EquippedPets Entity ⏱️ 30분 ✅
+- [x] Create `IdleRPG.Domain/Entities/EquippedPets.cs`
+- [x] Add properties: CharacterId (Guid, PK), SlotIndex (int, PK), PetId (int, FK), EquippedAt (DateTime)
+- [x] Add navigation properties: Character, Pet
+- [x] **Note**: Composite PK (CharacterId, SlotIndex)
 
 **Requirements**: [US-3]
 **Design Reference**: Data Model - equipped_pets 테이블
 
 ---
 
-### 1.4 Create PetRarity Enum ⏱️ 15분
-- [ ] Create `IdleRPG.Domain/Enums/PetRarity.cs`
-- [ ] Define enum values: Common = 0, Rare = 1, Epic = 2, Legendary = 3
-- [ ] Add XML documentation comments (Legendary 1%, Epic 9%, Rare 30%, Common 60%)
+### 1.4 Create Rarity Enum (공용) ⏱️ 15분 ✅
+- [x] Create `IdleRPG.Domain/Enums/Rarity.cs` (PetRarity → 공용 Rarity로 변경)
+- [x] Define enum values: Common = 0, Rare = 1, Epic = 2, Legendary = 3
+- [x] Add XML documentation comments (Legendary 1%, Epic 9%, Rare 30%, Common 60%)
 
 **Requirements**: [US-1]
 **Design Reference**: Domain Layer - Enums
+**🎓 아키텍처 결정**: PetRarity 대신 공용 Rarity enum 사용 (Skill, Equipment, Pet 공통)
 
 ---
 
-### 1.5 Create PetGachaService Domain Service ⏱️ 1.5시간
-- [ ] Create `IdleRPG.Domain/Services/PetGachaService.cs`
-- [ ] Implement `DrawPet(int pityCount, IRandomProvider randomProvider)` method:
+### 1.5 Create PetGachaService Domain Service ⏱️ 1.5시간 ✅
+- [x] Create `IdleRPG.Domain/Services/PetGachaService.cs`
+- [x] Implement `DrawPet(int pityCount, IRandomProvider randomProvider)` method:
   - Hard Pity: pityCount >= 50 → return Legendary
   - Soft Pity: pityCount >= 40 → adjustedRate = 1 + (pityCount - 39)
   - Random 값 생성 (0-100)
   - 확률 구간 판정: [0, adjustedRate): Legendary, [adjustedRate, adjustedRate+9): Epic, ...
-- [ ] Add input validation (pityCount 0-50 범위)
-- [ ] Add XML documentation
+- [x] Add input validation (pityCount 0-50 범위)
+- [x] Add XML documentation
+- [x] Implement `GetPityCountAfterDraw()` helper method
 
 **Requirements**: [US-1]
 **Design Reference**: Business Logic - 펫 가챠 확률 계산
@@ -87,9 +91,10 @@
 
 ---
 
-### 1.6 Update Character Entity ⏱️ 15분
-- [ ] Open `IdleRPG.Domain/Entities/Character.cs`
-- [ ] Add property: `public int PetGachaCount { get; set; } = 0` (천장 카운터)
+### 1.6 Update Character Entity ⏱️ 15분 ✅
+- [x] Open `IdleRPG.Domain/Entities/Character.cs`
+- [x] Add property: `public int PetGachaCount { get; set; } = 0` (천장 카운터)
+- [x] Add XML documentation (구분: 스킬 가챠 100회, 펫 가챠 50회)
 
 **Requirements**: [US-1]
 **Design Reference**: Data Model - characters 테이블 수정
@@ -98,43 +103,45 @@
 
 ## 🔧 Milestone 2: Infrastructure Layer
 
-### 2.1 Create PetRepository ⏱️ 45분
-- [ ] Create `IdleRPG.Domain/Repositories/IPetRepository.cs` (interface)
+### 2.1 Create PetRepository ⏱️ 45분 ✅
+- [x] Create `IdleRPG.Domain/Repositories/IPetRepository.cs` (interface)
   - `Task<Pet?> GetByIdAsync(int petId, CancellationToken cancellationToken = default)`
   - `Task<List<Pet>> GetByCharacterIdAsync(Guid characterId, CancellationToken cancellationToken = default)`
   - `Task<Pet?> GetDuplicateAsync(Guid characterId, int templateId, CancellationToken cancellationToken = default)`
   - `Task AddAsync(Pet pet, CancellationToken cancellationToken = default)`
   - `Task UpdateAsync(Pet pet, CancellationToken cancellationToken = default)`
   - `Task DeleteAsync(Pet pet, CancellationToken cancellationToken = default)`
-- [ ] Create `IdleRPG.Infrastructure/Repositories/PetRepository.cs` (implementation)
-- [ ] Implement all methods using EF Core
+- [x] Create `IdleRPG.Infrastructure/Repositories/PetRepository.cs` (implementation)
+- [x] Implement all methods using EF Core (Include PetTemplate, Character)
 
 **Requirements**: [US-1, US-2]
 **Design Reference**: Infrastructure Layer - Repositories
 
 ---
 
-### 2.2 Create PetTemplateRepository ⏱️ 30분
-- [ ] Create `IdleRPG.Domain/Repositories/IPetTemplateRepository.cs`
-  - `Task<List<PetTemplate>> GetByRarityAsync(PetRarity rarity, CancellationToken cancellationToken = default)`
+### 2.2 Create PetTemplateRepository ⏱️ 30분 ✅
+- [x] Create `IdleRPG.Domain/Repositories/IPetTemplateRepository.cs`
+  - `Task<List<PetTemplate>> GetByRarityAsync(Rarity rarity, CancellationToken cancellationToken = default)` (공용 Rarity)
   - `Task<PetTemplate?> GetByIdAsync(int templateId, CancellationToken cancellationToken = default)`
-- [ ] Create `IdleRPG.Infrastructure/Repositories/PetTemplateRepository.cs`
+  - `Task<List<PetTemplate>> GetAllAsync(CancellationToken cancellationToken = default)` (추가)
+- [x] Create `IdleRPG.Infrastructure/Repositories/PetTemplateRepository.cs`
 
 **Requirements**: [US-1]
 **Design Reference**: Infrastructure Layer - Repositories
 
 ---
 
-### 2.3 Create Pet EF Core Configuration ⏱️ 45분
-- [ ] Create `IdleRPG.Infrastructure/Configurations/PetConfiguration.cs`
-- [ ] Implement IEntityTypeConfiguration<Pet>
-- [ ] Configure:
+### 2.3 Create Pet EF Core Configuration ⏱️ 45분 ✅
+- [x] Create `IdleRPG.Infrastructure/Configurations/PetConfiguration.cs`
+- [x] Implement IEntityTypeConfiguration<Pet>
+- [x] Configure:
   - Table name: "pets"
   - Primary key: Id (int, AUTO_INCREMENT)
   - FK: CharacterId (ON DELETE CASCADE)
   - FK: TemplateId (ON DELETE RESTRICT)
   - Index: `idx_pets_character_id` on CharacterId
   - Property constraints: Level (1-50), CurrentAttack/Mana (Min 0)
+  - Check constraints (PostgreSQL)
 
 **Requirements**: [US-1, US-2]
 **Design Reference**: Data Model - EF Core Configuration (PetConfiguration.cs)
@@ -143,43 +150,46 @@
 
 ---
 
-### 2.4 Create PetTemplate EF Core Configuration ⏱️ 30분
-- [ ] Create `IdleRPG.Infrastructure/Configurations/PetTemplateConfiguration.cs`
-- [ ] Implement IEntityTypeConfiguration<PetTemplate>
-- [ ] Configure:
+### 2.4 Create PetTemplate EF Core Configuration ⏱️ 30분 ✅
+- [x] Create `IdleRPG.Infrastructure/Configurations/PetTemplateConfiguration.cs`
+- [x] Implement IEntityTypeConfiguration<PetTemplate>
+- [x] Configure:
   - Table name: "pet_templates"
   - Primary key: Id (int, SEQUENCE)
-  - UNIQUE: Name
+  - UNIQUE: Name (uk_pet_templates_name)
   - Index: `idx_pet_templates_rarity` on Rarity
   - Property constraints: Name (MaxLength 50), Rarity (Range 0-3)
+  - Enum conversion: Rarity (HasConversion<int>)
+  - Check constraints (PostgreSQL)
 
 **Requirements**: [US-1]
 **Design Reference**: Data Model - EF Core Configuration (PetTemplateConfiguration.cs)
 
 ---
 
-### 2.5 Create EquippedPets EF Core Configuration ⏱️ 45분
-- [ ] Create `IdleRPG.Infrastructure/Configurations/EquippedPetsConfiguration.cs`
-- [ ] Implement IEntityTypeConfiguration<EquippedPets>
-- [ ] Configure:
+### 2.5 Create EquippedPets EF Core Configuration ⏱️ 45분 ✅
+- [x] Create `IdleRPG.Infrastructure/Configurations/EquippedPetsConfiguration.cs`
+- [x] Implement IEntityTypeConfiguration<EquippedPets>
+- [x] Configure:
   - Table name: "equipped_pets"
-  - **Composite PK**: (CharacterId, SlotIndex)
-  - UNIQUE: PetId (한 펫은 하나의 슬롯에만)
+  - **Composite PK**: (CharacterId, SlotIndex) - Fluent API 필수
+  - UNIQUE: PetId (uk_equipped_pets_pet_id) - 중복 장착 방지
   - FK: CharacterId (ON DELETE CASCADE)
   - FK: PetId (ON DELETE CASCADE)
   - Property constraint: SlotIndex (Range 1-3)
+  - Check constraint (PostgreSQL)
 
 **Requirements**: [US-3]
 **Design Reference**: Data Model - EF Core Configuration (EquippedPetsConfiguration.cs)
 
 ---
 
-### 2.6 Register EF Core Configurations in GameDBContext ⏱️ 15분
-- [ ] Open `IdleRPG.Infrastructure/Data/GameDBContext.cs`
-- [ ] Add DbSet<Pet>, DbSet<PetTemplate>, DbSet<EquippedPets>
-- [ ] Add `modelBuilder.ApplyConfiguration(new PetConfiguration())`
-- [ ] Add `modelBuilder.ApplyConfiguration(new PetTemplateConfiguration())`
-- [ ] Add `modelBuilder.ApplyConfiguration(new EquippedPetsConfiguration())`
+### 2.6 Register EF Core Configurations in GameDBContext ⏱️ 15분 ✅
+- [x] Open `IdleRPG.Infrastructure/Data/GameDBContext.cs`
+- [x] Add DbSet<Pet>, DbSet<PetTemplate>, DbSet<EquippedPets>
+- [x] Add `modelBuilder.ApplyConfiguration(new PetConfiguration())`
+- [x] Add `modelBuilder.ApplyConfiguration(new PetTemplateConfiguration())`
+- [x] Add `modelBuilder.ApplyConfiguration(new EquippedPetsConfiguration())`
 
 **Requirements**: [All]
 **Design Reference**: Infrastructure Layer
