@@ -979,9 +979,9 @@
 - [x] 6.5 Create Unity Documentation
 
 ### Files Changed
-- `../IdleRPGClient/Docs/unity/pet-system/API_SPEC.md` (new file, 830 lines)
-- `../IdleRPGClient/Docs/unity/pet-system/DTOs.cs` (new file, 333 lines)
-- `../IdleRPGClient/Docs/unity/pet-system/INTEGRATION_GUIDE.md` (new file, 780 lines)
+- `../IdleGameClient/Docs/unity/pet-system/API_SPEC.md` (new file, 886 lines)
+- `../IdleGameClient/Docs/unity/pet-system/DTOs.cs` (new file, 367 lines)
+- `../IdleGameClient/Docs/unity/pet-system/INTEGRATION_GUIDE.md` (new file, 1,081 lines)
 
 ### Key Decisions
 - **Unity 문서 구조**:
@@ -1028,9 +1028,10 @@
 
 ### Notes
 - **문서 분량**:
-  - API_SPEC.md: 830 lines (8개 엔드포인트, Unity 코드 예제 포함)
-  - DTOs.cs: 333 lines (Request/Response DTOs + Enum)
-  - INTEGRATION_GUIDE.md: 780 lines (프로젝트 구조, UI 구현, 버프 시스템, 트러블슈팅)
+  - API_SPEC.md: 886 lines (8개 엔드포인트, Unity 코드 예제 포함)
+  - DTOs.cs: 367 lines (Request/Response DTOs + Enum)
+  - INTEGRATION_GUIDE.md: 1,081 lines (프로젝트 구조, UI 구현, 버프 시스템, 트러블슈팅)
+- **문서 경로**: `D:\Proj\IdleGameClient\Docs\unity\pet-system\` (IdleGameClient 프로젝트)
 - **Skill Gacha 문서 참조**: 기존 패턴 재사용으로 일관성 유지
 - **Public API 활용 가이드**: 읽기 API는 Public (리더보드, 랭킹 가능)
 - **체크리스트 제공**: 통합 완료 체크리스트, 테스트 시나리오, 트러블슈팅
