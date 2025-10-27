@@ -65,9 +65,11 @@ builder.Services.AddScoped<IdleRPG.Application.Interfaces.IOfflineRewardService,
 builder.Services.AddScoped<IdleRPG.Application.Interfaces.IEquipmentService, IdleRPG.Infrastructure.Service.EquipmentService>();
 builder.Services.AddScoped<IdleRPG.Application.Interfaces.IDungeonService, IdleRPG.Infrastructure.Service.DungeonService>();
 builder.Services.AddScoped<IdleRPG.Application.Services.ISkillService, IdleRPG.Infrastructure.Services.SkillService>();
+builder.Services.AddScoped<IdleRPG.Application.Services.IPetService, IdleRPG.Infrastructure.Services.PetService>();
 
 // Domain Services (순수 비즈니스 로직)
 builder.Services.AddScoped<IdleRPG.Domain.Services.GachaLogicService>();
+builder.Services.AddScoped<IdleRPG.Domain.Services.PetGachaService>();
 builder.Services.AddScoped<IdleRPG.Domain.Services.LootCalculator>();
 builder.Services.AddSingleton<IdleRPG.Domain.Services.IRandomProvider, IdleRPG.Infrastructure.Services.SystemRandomProvider>();
 
@@ -142,6 +144,13 @@ using (var scope = app.Services.CreateScope())
             services.GetRequiredService<ILogger<IdleRPG.Infrastructure.Data.Seeders.LootTableSeeder>>());
 
         await lootTableSeeder.SeedAsync();
+
+        // 펫 템플릿 Seed Data 생성
+        var petTemplateSeeder = new IdleRPG.Infrastructure.Data.Seeders.PetTemplateSeeder(
+            context,
+            services.GetRequiredService<ILogger<IdleRPG.Infrastructure.Data.Seeders.PetTemplateSeeder>>());
+
+        await petTemplateSeeder.SeedAsync();
 
         logger.LogInformation("Seed Data 초기화 완료");
     }
