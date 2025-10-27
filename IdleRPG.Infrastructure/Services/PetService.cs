@@ -51,11 +51,11 @@ namespace IdleRPG.Infrastructure.Services
             }
 
             // 2. 캐릭터 조회
-            var character = await _unitOfWork.Characters.GetByIdAsync(characterId, cancellationToken);
+            var character = await _unitOfWork.Characters.GetByIdAsync(characterId);
             if (character == null)
             {
                 _logger.LogWarning("펫 가챠 실패: 캐릭터를 찾을 수 없습니다. CharacterId={CharacterId}", characterId);
-                throw new InvalidOperationException($"캐릭터를 찾을 수 없습니다. (ID: {characterId})");
+                throw new KeyNotFoundException($"캐릭터를 찾을 수 없습니다. (ID: {characterId})");
             }
 
             // 3. 가챠 비용 계산
@@ -92,7 +92,7 @@ namespace IdleRPG.Infrastructure.Services
                 }
 
                 // 6-3. 랜덤 템플릿 선택
-                int randomIndex = _randomProvider.Next(0, templates.Count);
+                int randomIndex = _randomProvider.Next(templates.Count);
                 var selectedTemplate = templates[randomIndex];
 
                 _logger.LogInformation("펫 가챠 결과: {PetName} ({Rarity})", selectedTemplate.Name, selectedTemplate.Rarity);
@@ -168,7 +168,7 @@ namespace IdleRPG.Infrastructure.Services
             }
 
             // 7. Character 업데이트
-            await _unitOfWork.Characters.UpdateAsync(character, cancellationToken);
+            await _unitOfWork.Characters.UpdateAsync(character);
 
             // 8. 변경사항 저장 (Unit of Work 패턴)
             await _unitOfWork.SaveChangesAsync(cancellationToken);
@@ -203,8 +203,8 @@ namespace IdleRPG.Infrastructure.Services
             return new PetDto
             {
                 Id = pet.Id,
-                TemplateName = pet.Template.Name,
-                RarityName = pet.Template.Rarity.ToString(),
+                TemplateName = pet.PetTemplate.Name,
+                RarityName = pet.PetTemplate.Rarity.ToString(),
                 Level = pet.Level,
                 CurrentAttack = pet.CurrentAttack,
                 CurrentMana = pet.CurrentMana,
@@ -224,8 +224,8 @@ namespace IdleRPG.Infrastructure.Services
             return pets.Select(pet => new PetDto
             {
                 Id = pet.Id,
-                TemplateName = pet.Template.Name,
-                RarityName = pet.Template.Rarity.ToString(),
+                TemplateName = pet.PetTemplate.Name,
+                RarityName = pet.PetTemplate.Rarity.ToString(),
                 Level = pet.Level,
                 CurrentAttack = pet.CurrentAttack,
                 CurrentMana = pet.CurrentMana,
@@ -268,11 +268,11 @@ namespace IdleRPG.Infrastructure.Services
             }
 
             // 4. 캐릭터 조회 (골드 차감용)
-            var character = await _unitOfWork.Characters.GetByIdAsync(characterId, cancellationToken);
+            var character = await _unitOfWork.Characters.GetByIdAsync(characterId);
             if (character == null)
             {
                 _logger.LogWarning("펫 레벨업 실패: 캐릭터를 찾을 수 없습니다. CharacterId={CharacterId}", characterId);
-                throw new InvalidOperationException($"캐릭터를 찾을 수 없습니다. (ID: {characterId})");
+                throw new KeyNotFoundException($"캐릭터를 찾을 수 없습니다. (ID: {characterId})");
             }
 
             // 5. 비용 계산: 100 * (1.5 ^ (Level - 1))
@@ -292,13 +292,13 @@ namespace IdleRPG.Infrastructure.Services
             pet.Level += 1;
 
             // 9. 스탯 재계산
-            pet.CurrentAttack = pet.Template.BaseAttack + (pet.Level - 1) * 10;
-            pet.CurrentMana = pet.Template.BaseMana + (pet.Level - 1) * 5;
+            pet.CurrentAttack = pet.PetTemplate.BaseAttack + (pet.Level - 1) * 10;
+            pet.CurrentMana = pet.PetTemplate.BaseMana + (pet.Level - 1) * 5;
             pet.UpdatedAt = DateTime.UtcNow;
 
             // 10. 업데이트
             await _unitOfWork.Pets.UpdateAsync(pet, cancellationToken);
-            await _unitOfWork.Characters.UpdateAsync(character, cancellationToken);
+            await _unitOfWork.Characters.UpdateAsync(character);
 
             // 11. 변경사항 저장
             await _unitOfWork.SaveChangesAsync(cancellationToken);
@@ -445,7 +445,7 @@ namespace IdleRPG.Infrastructure.Services
             {
                 SlotIndex = ep.SlotIndex,
                 PetId = ep.PetId,
-                PetName = ep.Pet.Template.Name,
+                PetName = ep.Pet.PetTemplate.Name,
                 Level = ep.Pet.Level,
                 BuffAttack = (int)(ep.Pet.CurrentAttack * 0.1), // 10% 버프
                 BuffMana = (int)(ep.Pet.CurrentMana * 0.1)

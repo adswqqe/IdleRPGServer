@@ -624,3 +624,97 @@
   - EquipPetAsync: design.md Line 653-685
 
 ---
+
+## 2025-10-27 19:00
+
+### Task Completed
+- [x] 4.1 Create PetsController
+- [x] 4.2 Add Pet Equip/Unequip Endpoints
+- [x] 4.3 Add Pet Detail & Delete Endpoints
+
+### Files Changed
+- `IdleRPG.API/Controllers/PetsController.cs` (new file, 405 lines)
+- `IdleRPG.Infrastructure/Services/PetService.cs` (modified, 오류 수정)
+- `IdleRPG.Infrastructure/Repositories/EquippedPetsRepository.cs` (modified, 오류 수정)
+
+### Key Decisions
+- **8개 엔드포인트 구현 완료**:
+  1. **POST /api/pets/gacha** (`[Authorize]`): 펫 가챠 (1회 또는 10연차)
+  2. **GET /api/pets?characterId={id}** (`[AllowAnonymous]`): 펫 목록 조회 (Public)
+  3. **POST /api/pets/{petId}/level-up** (`[Authorize]`): 펫 레벨업
+  4. **POST /api/pets/equip** (`[Authorize]`): 펫 장착 (슬롯 1-3)
+  5. **POST /api/pets/unequip** (`[Authorize]`): 펫 해제
+  6. **GET /api/pets/equipped?characterId={id}** (`[AllowAnonymous]`): 장착된 펫 조회 (Public)
+  7. **GET /api/pets/{petId}** (`[AllowAnonymous]`): 펫 상세 조회 (Public)
+  8. **DELETE /api/pets/{petId}?characterId={id}** (`[Authorize]`): 펫 삭제
+
+- **Public vs Authorize 전략**:
+  - **읽기 API는 Public** (`[AllowAnonymous]`): 리더보드, 랭킹, 다른 플레이어 정보 조회 허용
+  - **쓰기 API는 인증 필수** (`[Authorize]`): JWT 토큰 검증 필요
+  - EquipmentController, DungeonController 패턴 참조
+
+- **예외 처리 전략**:
+  - `InvalidOperationException` → 400 Bad Request (비즈니스 규칙 위반)
+  - `KeyNotFoundException` → 404 Not Found (리소스 없음)
+  - `UnauthorizedAccessException` → 403 Forbidden (소유권 검증 실패)
+  - `Exception` → 500 Internal Server Error (예상치 못한 오류)
+
+- **Validation 계층 분리**:
+  - Controller: 입력 형식 검증 (count: 1 or 10, slotIndex: 1-3)
+  - Service: 비즈니스 규칙 검증 (골드 부족, 최대 레벨, 장착 중 삭제)
+
+- **Swagger 문서화**:
+  - `<summary>`, `<param>`, `<returns>`, `<response>` XML 주석 추가
+  - ProducesResponseType 특성으로 응답 타입 명시
+  - 각 엔드포인트의 HTTP 상태 코드 문서화 (200, 201, 204, 400, 401, 403, 404, 500)
+
+- **Logging 전략**:
+  - 성공: `LogInformation` (가챠 결과, 레벨업, 장착)
+  - 실패: `LogWarning` (Validation 실패, 리소스 없음)
+  - 오류: `LogError` (예상치 못한 예외)
+
+### Notes
+- **UnequipPetRequestDto 추가**: Controller 내부 클래스로 정의 (Application Layer에 정의되지 않았으므로)
+- **컴파일 오류 해결**:
+  1. `GetByIdAsync(characterId, cancellationToken)` → `GetByIdAsync(characterId)` (ICharacterRepository는 CancellationToken 미지원)
+  2. `_randomProvider.Next(0, templates.Count)` → `_randomProvider.Next(templates.Count)` (0-based 랜덤)
+  3. `pet.Template` → `pet.PetTemplate` (Navigation Property 이름)
+  4. `pet.PetTemplateId` → `pet.TemplateId` (Entity 속성 이름)
+  5. `UpdateAsync(character, cancellationToken)` → `UpdateAsync(character)` (IRepository<T>는 CancellationToken 미지원)
+- **빌드 성공**: 경고 0개, 오류 0개
+- **tasks.md 업데이트**: Milestone 4 (API Layer) 완료, 진행률 19/28 (68%)
+
+### Architecture Alignment
+- **design.md API Design 섹션과 100% 일치**:
+  - POST /api/pets/gacha: design.md Line 165-189
+  - GET /api/pets: design.md Line 193-209
+  - POST /api/pets/{id}/level-up: design.md Line 283-299
+  - POST /api/pets/equip: design.md Line 331-347
+  - POST /api/pets/unequip: design.md Line 365-376
+  - GET /api/pets/equipped: design.md Line 380-392
+  - GET /api/pets/{id}: design.md Line 396-409
+  - DELETE /api/pets/{id}: design.md Line 413-431
+
+---
+
+## 🎉 Milestone 4 Complete: API Layer (3/3 tasks, 100%)
+
+### 완료된 작업:
+1. ✅ Create PetsController (8개 엔드포인트)
+2. ✅ Add Pet Equip/Unequip Endpoints (장착/해제)
+3. ✅ Add Pet Detail & Delete Endpoints (상세/삭제)
+
+### 주요 아키텍처 결정:
+- ✅ Public/Authorize 전략: 읽기 Public, 쓰기 인증
+- ✅ RESTful 설계: POST /gacha (201), GET /pets (200), DELETE (204)
+- ✅ 예외 처리 계층화: InvalidOperationException (400), KeyNotFoundException (404), UnauthorizedAccessException (403)
+- ✅ Swagger 문서화: XML 주석 + ProducesResponseType
+- ✅ Logging: 성공/실패/오류 레벨 분리
+- ✅ Controller 책임 분리: Validation (입력 형식), Service (비즈니스 규칙)
+
+### Next Milestone: **Database** (3 tasks)
+- Migration 작성 (pets, pet_templates, equipped_pets, character.pet_gacha_count)
+- PetTemplate Seeder (11개 펫)
+- DI Container 등록
+
+---

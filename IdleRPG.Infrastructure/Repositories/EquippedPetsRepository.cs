@@ -24,7 +24,7 @@ namespace IdleRPG.Infrastructure.Repositories
         {
             return await _context.Set<EquippedPets>()
                 .Include(ep => ep.Pet)
-                    .ThenInclude(p => p.Template)
+                    .ThenInclude(p => p.PetTemplate)
                 .FirstOrDefaultAsync(ep => ep.CharacterId == characterId && ep.SlotIndex == slotIndex, cancellationToken);
         }
 
@@ -44,7 +44,7 @@ namespace IdleRPG.Infrastructure.Repositories
         {
             return await _context.Set<EquippedPets>()
                 .Include(ep => ep.Pet)
-                    .ThenInclude(p => p.Template)
+                    .ThenInclude(p => p.PetTemplate)
                 .Where(ep => ep.CharacterId == characterId)
                 .OrderBy(ep => ep.SlotIndex)
                 .ToListAsync(cancellationToken);

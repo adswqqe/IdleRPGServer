@@ -11,14 +11,14 @@
 
 ## 📊 Progress Overview
 
-**전체 진행률**: 16/28 (57%)
+**전체 진행률**: 19/28 (68%)
 
 | Milestone | 작업 수 | 완료 | 진행률 |
 |-----------|---------|------|--------|
 | Domain Layer | 6 | 6 | 100% |
 | Infrastructure Layer | 6 | 6 | 100% |
 | Application Layer | 4 | 4 | 100% |
-| API Layer | 3 | 0 | 0% |
+| API Layer | 3 | 3 | 100% |
 | Database | 3 | 0 | 0% |
 | Testing & Documentation | 6 | 0 | 0% |
 
@@ -296,10 +296,10 @@
 
 ## 🌐 Milestone 4: API Layer
 
-### 4.1 Create PetsController ⏱️ 2시간
-- [ ] Create `IdleRPG.API/Controllers/PetsController.cs`
-- [ ] Inject IPetService dependency
-- [ ] Implement `POST /api/pets/gacha`:
+### 4.1 Create PetsController ⏱️ 2시간 ✅
+- [x] Create `IdleRPG.API/Controllers/PetsController.cs`
+- [x] Inject IPetService dependency
+- [x] Implement `POST /api/pets/gacha`:
   - `[Authorize]` attribute
   - Extract PlayerId from JWT
   - Validate request DTO
@@ -307,12 +307,12 @@
   - Return 201 Created
   - Handle exceptions: 400 (Validation), 401 (Unauthorized), 404 (Not Found)
   - Swagger documentation
-- [ ] Implement `GET /api/pets?characterId={id}`:
+- [x] Implement `GET /api/pets?characterId={id}`:
   - **Public** (no [Authorize])
   - Query parameter: characterId (required), rarity (optional), sortBy (optional)
   - Call PetService.GetPetsByCharacterIdAsync
   - Return 200 OK
-- [ ] Implement `POST /api/pets/{petId}/level-up`:
+- [x] Implement `POST /api/pets/{petId}/level-up`:
   - `[Authorize]`
   - Validate request DTO
   - Call PetService.LevelUpPetAsync
@@ -324,18 +324,18 @@
 
 ---
 
-### 4.2 Add Pet Equip/Unequip Endpoints ⏱️ 45분
-- [ ] Implement `POST /api/pets/equip`:
+### 4.2 Add Pet Equip/Unequip Endpoints ⏱️ 45분 ✅
+- [x] Implement `POST /api/pets/equip`:
   - `[Authorize]`
   - Call PetService.EquipPetAsync
   - Return 200 OK
   - Handle exceptions: 400 (Invalid slot), 403, 404
-- [ ] Implement `POST /api/pets/unequip`:
+- [x] Implement `POST /api/pets/unequip`:
   - `[Authorize]`
   - Call PetService.UnequipPetAsync
   - Return 204 No Content
   - Handle exceptions: 404 (No pet in slot)
-- [ ] Implement `GET /api/pets/equipped?characterId={id}`:
+- [x] Implement `GET /api/pets/equipped?characterId={id}`:
   - **Public**
   - Call PetService.GetEquippedPetsAsync
   - Return 200 OK
@@ -345,12 +345,12 @@
 
 ---
 
-### 4.3 Add Pet Detail & Delete Endpoints ⏱️ 30분
-- [ ] Implement `GET /api/pets/{petId}`:
+### 4.3 Add Pet Detail & Delete Endpoints ⏱️ 30분 ✅
+- [x] Implement `GET /api/pets/{petId}`:
   - **Public**
   - Call PetService.GetPetByIdAsync
   - Return 200 OK, 404 if not found
-- [ ] Implement `DELETE /api/pets/{petId}`:
+- [x] Implement `DELETE /api/pets/{petId}`:
   - `[Authorize]`
   - Validation: 장착된 펫은 삭제 불가 (400)
   - Call PetService.DeletePetAsync
