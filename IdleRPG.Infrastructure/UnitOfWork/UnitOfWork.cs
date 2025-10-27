@@ -30,6 +30,9 @@ namespace IdleRPG.Infrastructure.UnitOfWork
         private ICharacterDungeonProgressRepository? _characterDungeonProgresses;
         private ISkillTemplateRepository? _skillTemplates;
         private ICharacterSkillRepository? _characterSkills;
+        private IPetRepository? _pets;
+        private IPetTemplateRepository? _petTemplates;
+        private IEquippedPetsRepository? _equippedPets;
 
         public UnitOfWork(GameDBContext context)
         {
@@ -288,6 +291,51 @@ namespace IdleRPG.Infrastructure.UnitOfWork
                     _characterSkills = new CharacterSkillRepository(_context);
                 }
                 return _characterSkills;
+            }
+        }
+
+        /// <summary>
+        /// 펫 Repository (Lazy 초기화) - Pet System
+        /// </summary>
+        public IPetRepository Pets
+        {
+            get
+            {
+                if (_pets == null)
+                {
+                    _pets = new PetRepository(_context);
+                }
+                return _pets;
+            }
+        }
+
+        /// <summary>
+        /// 펫 템플릿 Repository (Lazy 초기화) - Pet System
+        /// </summary>
+        public IPetTemplateRepository PetTemplates
+        {
+            get
+            {
+                if (_petTemplates == null)
+                {
+                    _petTemplates = new PetTemplateRepository(_context);
+                }
+                return _petTemplates;
+            }
+        }
+
+        /// <summary>
+        /// 장착된 펫 Repository (Lazy 초기화) - Pet System
+        /// </summary>
+        public IEquippedPetsRepository EquippedPets
+        {
+            get
+            {
+                if (_equippedPets == null)
+                {
+                    _equippedPets = new EquippedPetsRepository(_context);
+                }
+                return _equippedPets;
             }
         }
 

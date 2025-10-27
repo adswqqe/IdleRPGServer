@@ -11,13 +11,13 @@
 
 ## 📊 Progress Overview
 
-**전체 진행률**: 12/28 (43%)
+**전체 진행률**: 16/28 (57%)
 
 | Milestone | 작업 수 | 완료 | 진행률 |
 |-----------|---------|------|--------|
 | Domain Layer | 6 | 6 | 100% |
 | Infrastructure Layer | 6 | 6 | 100% |
-| Application Layer | 4 | 0 | 0% |
+| Application Layer | 4 | 4 | 100% |
 | API Layer | 3 | 0 | 0% |
 | Database | 3 | 0 | 0% |
 | Testing & Documentation | 6 | 0 | 0% |
@@ -198,40 +198,42 @@
 
 ## 📦 Milestone 3: Application Layer
 
-### 3.1 Create Pet Request DTOs ⏱️ 45분
-- [ ] Create `IdleRPG.Application/DTOs/Pet/PetGachaRequestDto.cs`
+### 3.1 Create Pet Request DTOs ⏱️ 45분 ✅
+- [x] Create `IdleRPG.Application/DTOs/Pet/PetGachaRequestDto.cs`
   - Properties: CharacterId (Guid), Count (int, 1 or 10)
-- [ ] Create `IdleRPG.Application/DTOs/Pet/PetLevelUpRequestDto.cs`
+- [x] Create `IdleRPG.Application/DTOs/Pet/PetLevelUpRequestDto.cs`
   - Properties: CharacterId (Guid)
-- [ ] Create `IdleRPG.Application/DTOs/Pet/PetEquipRequestDto.cs`
+- [x] Create `IdleRPG.Application/DTOs/Pet/PetEquipRequestDto.cs`
   - Properties: CharacterId (Guid), PetId (int), SlotIndex (int)
-- [ ] Add XML documentation
+- [x] Add XML documentation
 
 **Requirements**: [US-1, US-2, US-3]
 **Design Reference**: API Design - Request
 
 ---
 
-### 3.2 Create Pet Response DTOs ⏱️ 45분
-- [ ] Create `IdleRPG.Application/DTOs/Pet/PetDto.cs`
+### 3.2 Create Pet Response DTOs ⏱️ 45분 ✅
+- [x] Create `IdleRPG.Application/DTOs/Pet/PetDto.cs`
   - Properties: Id, TemplateName, RarityName, Level, CurrentAttack, CurrentMana, ImageUrl
-- [ ] Create `IdleRPG.Application/DTOs/Pet/PetGachaResponseDto.cs`
+- [x] Create `IdleRPG.Application/DTOs/Pet/PetGachaResponseDto.cs`
   - Properties: List<PetDto> Pets, List<DuplicateRewardDto> DuplicateRewards, CurrentPityCount, RemainingCrystal, TotalGoldFromDuplicates
-- [ ] Create `IdleRPG.Application/DTOs/Pet/DuplicateRewardDto.cs`
+- [x] Create `IdleRPG.Application/DTOs/Pet/DuplicateRewardDto.cs`
   - Properties: PetTemplateName, GoldReward
-- [ ] Create `IdleRPG.Application/DTOs/Pet/PetLevelUpResponseDto.cs`
+- [x] Create `IdleRPG.Application/DTOs/Pet/PetLevelUpResponseDto.cs`
   - Properties: PetId, NewLevel, NewAttack, NewMana, CostGold, RemainingGold
-- [ ] Create `IdleRPG.Application/DTOs/Pet/PetEquipResponseDto.cs`
+- [x] Create `IdleRPG.Application/DTOs/Pet/PetEquipResponseDto.cs`
   - Properties: CharacterId, List<EquippedPetDto> EquippedPets, TotalBuffAttack, TotalBuffMana
+- [x] Create `IdleRPG.Application/DTOs/Pet/EquippedPetDto.cs` (helper DTO)
+  - Properties: SlotIndex, PetId, PetName, Level, BuffAttack, BuffMana
 
 **Requirements**: [US-1, US-2, US-3]
 **Design Reference**: API Design - Response
 
 ---
 
-### 3.3 Create PetService Interface ⏱️ 30분
-- [ ] Create `IdleRPG.Application/Services/IPetService.cs`
-- [ ] Define method signatures:
+### 3.3 Create PetService Interface ⏱️ 30분 ✅
+- [x] Create `IdleRPG.Application/Services/IPetService.cs`
+- [x] Define method signatures:
   - `Task<PetGachaResponseDto> DrawPetsAsync(Guid characterId, int count, CancellationToken cancellationToken)`
   - `Task<PetDto> GetPetByIdAsync(int petId, CancellationToken cancellationToken)`
   - `Task<List<PetDto>> GetPetsByCharacterIdAsync(Guid characterId, CancellationToken cancellationToken)`
@@ -246,10 +248,10 @@
 
 ---
 
-### 3.4 Create PetService Implementation ⏱️ 3시간
-- [ ] Create `IdleRPG.Infrastructure/Services/PetService.cs`
-- [ ] Inject dependencies: IPetRepository, IPetTemplateRepository, ICharacterRepository, PetGachaService, IRandomProvider, IUnitOfWork
-- [ ] Implement `DrawPetsAsync`:
+### 3.4 Create PetService Implementation ⏱️ 3시간 ✅
+- [x] Create `IdleRPG.Infrastructure/Services/PetService.cs`
+- [x] Inject dependencies: IPetRepository, IPetTemplateRepository, ICharacterRepository, PetGachaService, IRandomProvider, IUnitOfWork
+- [x] Implement `DrawPetsAsync`:
   - Validation: count == 1 or 10, character.Crystal >= cost (100 per draw, 900 for 10)
   - Transaction: Crystal 차감 → Loop (count 횟수):
     - Call PetGachaService.DrawPet(character.PetGachaCount, randomProvider) → Rarity
@@ -260,7 +262,7 @@
     - character.PetGachaCount += 1 (Legendary 획득 시 0 초기화)
   - SaveChangesAsync
   - Return PetGachaResponseDto
-- [ ] Implement `LevelUpPetAsync`:
+- [x] Implement `LevelUpPetAsync`:
   - Validation: pet.CharacterId == characterId, pet.Level < 50
   - 비용 계산: `(int)(100 * Math.Pow(1.5, pet.Level - 1))`
   - Character 골드 차감
@@ -268,7 +270,7 @@
   - pet.Level += 1
   - SaveChangesAsync
   - Return PetLevelUpResponseDto
-- [ ] Implement `EquipPetAsync`:
+- [x] Implement `EquipPetAsync`:
   - Validation: slotIndex (1-3), pet.CharacterId == characterId
   - 기존 장착 상태 확인 (EquippedPets WHERE PetId) → 있으면 삭제
   - 슬롯 점유 확인 (EquippedPets WHERE CharacterId, SlotIndex) → 있으면 삭제
@@ -276,8 +278,8 @@
   - SaveChangesAsync
   - 버프 계산: GetEquippedPetsAsync (Include Pet, Template) → Sum(Pet.CurrentAttack * 0.1)
   - Return PetEquipResponseDto
-- [ ] Implement other methods (CRUD)
-- [ ] Add logging (가챠 결과, 레벨업, 장착)
+- [x] Implement other methods (CRUD)
+- [x] Add logging (가챠 결과, 레벨업, 장착)
 
 **Requirements**: [US-1, US-2, US-3]
 **Design Reference**: Service Layer Design - PetService
@@ -285,6 +287,10 @@
 **🎓 결정 완료**:
 - 트랜잭션 경계: Service Layer (Unit of Work)
 - 버프 계산 시점: 실시간 계산 (데이터 일관성 우선)
+
+**🎓 추가 구현**:
+- EquippedPets Repository 추가 (누락 보완)
+- IUnitOfWork에 EquippedPets 등록
 
 ---
 

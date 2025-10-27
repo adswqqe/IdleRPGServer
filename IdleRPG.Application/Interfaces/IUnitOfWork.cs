@@ -93,6 +93,21 @@ namespace IdleRPG.Application.Interfaces
         ICharacterSkillRepository CharacterSkills { get; }
 
         /// <summary>
+        /// 펫 Repository (Pet System)
+        /// </summary>
+        IPetRepository Pets { get; }
+
+        /// <summary>
+        /// 펫 템플릿 Repository (Pet System)
+        /// </summary>
+        IPetTemplateRepository PetTemplates { get; }
+
+        /// <summary>
+        /// 장착된 펫 Repository (Pet System)
+        /// </summary>
+        IEquippedPetsRepository EquippedPets { get; }
+
+        /// <summary>
         /// 변경사항을 데이터베이스에 저장 (트랜잭션 커밋)
         /// </summary>
         /// <returns>영향받은 행 수</returns>

@@ -407,3 +407,220 @@
 - PetService Interface & Implementation
 
 ---
+
+## 2025-10-27 18:15
+
+### Task Completed
+- [x] 3.4 Create PetService Implementation
+
+### Files Changed
+- `IdleRPG.Infrastructure/Services/PetService.cs` (modified, +318 lines)
+- `IdleRPG.Domain/Repositories/IEquippedPetsRepository.cs` (new file, 35 lines)
+- `IdleRPG.Infrastructure/Repositories/EquippedPetsRepository.cs` (new file, 70 lines)
+- `IdleRPG.Application/Interfaces/IUnitOfWork.cs` (modified, +5 lines)
+- `IdleRPG.Infrastructure/UnitOfWork/UnitOfWork.cs` (modified, +19 lines)
+
+### Key Decisions
+- **PetService 구현 완료**:
+  1. **DrawPetsAsync**: 가챠 루프 (count 횟수), 중복 체크 → 골드 보상, 천장 시스템 (Legendary 획득 시 0 초기화)
+  2. **LevelUpPetAsync**: 비용 계산 `100 * (1.5 ^ (Level - 1))`, 스탯 재계산 `BaseAttack + (Level-1) * 10`
+  3. **EquipPetAsync**: 중복 장착 방지, 슬롯 교체 로직, 버프 실시간 계산 (`CurrentAttack * 0.1`)
+  4. **UnequipPetAsync**: 슬롯 해제, 슬롯 범위 검증 (1-3)
+  5. **GetEquippedPetsAsync**: 장착된 펫 조회, 버프 계산 (10%)
+  6. **DeletePetAsync**: 장착 중 삭제 불가 검증
+
+- **EquippedPets Repository 추가** (누락 보완):
+  - Interface: `IEquippedPetsRepository` (5개 메서드)
+  - Implementation: `EquippedPetsRepository` (EF Core)
+  - `GetBySlotAsync`: Composite PK 조회 (CharacterId + SlotIndex)
+  - `GetByPetIdAsync`: 중복 장착 체크용
+  - `GetByCharacterIdAsync`: Include Pet, PetTemplate (버프 계산)
+  - `AddAsync`, `DeleteAsync`: 장착/해제
+
+- **IUnitOfWork 등록**:
+  - `IEquippedPetsRepository EquippedPets { get; }` 추가
+  - Lazy 초기화 패턴 유지
+
+### Notes
+- **트랜잭션 경계**: Service Layer에서 Unit of Work 사용 (DrawPetsAsync, LevelUpPetAsync, EquipPetAsync 모두 트랜잭션 원자성 보장)
+- **버프 계산 시점**: 실시간 계산 (데이터 일관성 우선, 성능은 향후 Redis 캐싱 고려)
+- **로깅 전략**: 각 주요 작업(가챠, 레벨업, 장착)에 LogInformation 추가, 실패 시 LogWarning
+- **소유권 검증**: 모든 쓰기 작업에서 `pet.CharacterId == characterId` 확인 (보안)
+
+### Architecture Alignment
+- **design.md Service Layer Design 섹션과 100% 일치**:
+  - DrawPetsAsync: design.md Line 568-596
+  - LevelUpPetAsync: design.md Line 613-642
+  - EquipPetAsync: design.md Line 653-685
+
+---
+
+## 🎉 Milestone 3 Complete: Application Layer (4/4 tasks, 100%)
+
+### 완료된 작업:
+1. ✅ Pet Request DTOs (3개: PetGachaRequestDto, PetLevelUpRequestDto, PetEquipRequestDto)
+2. ✅ Pet Response DTOs (6개: PetDto, DuplicateRewardDto, PetGachaResponseDto, PetLevelUpResponseDto, EquippedPetDto, PetEquipResponseDto)
+3. ✅ PetService Interface (8개 메서드 시그니처)
+4. ✅ PetService Implementation (8개 메서드 구현 + EquippedPets Repository 추가)
+
+### 주요 아키텍처 결정:
+- ✅ Service Layer에서 Unit of Work 패턴 (트랜잭션 경계)
+- ✅ 가챠 중복 처리: 골드 보상 (Common 100 ~ Legendary 10,000)
+- ✅ 천장 시스템: Legendary 획득 시 `PetGachaCount` 0 초기화
+- ✅ 레벨업 비용: 지수적 증가 `100 * (1.5 ^ (Level-1))`
+- ✅ 버프 계산: 실시간 계산 (Attack * 0.1, Mana * 0.1)
+- ✅ 장착 로직: 중복 장착 방지 + 슬롯 교체
+- ✅ EquippedPets Repository 추가 (Composite PK 지원)
+
+### Next Milestone: **API Layer** (3 tasks)
+- PetsController 생성 (8개 엔드포인트)
+- Swagger 문서화
+- Exception Handling (400, 401, 403, 404)
+
+---
+
+## 2025-10-27 17:30
+
+### Task Completed
+- [x] 3.1 Create Pet Request DTOs
+
+### Files Changed
+- `IdleRPG.Application/DTOs/Pet/PetGachaRequestDto.cs` (new file, 22 lines)
+- `IdleRPG.Application/DTOs/Pet/PetLevelUpRequestDto.cs` (new file, 14 lines)
+- `IdleRPG.Application/DTOs/Pet/PetEquipRequestDto.cs` (new file, 25 lines)
+
+### Key Decisions
+- **DataAnnotations Validation 패턴 사용**:
+  - `[Required]`: 필수 필드 검증 (CharacterId, Count, PetId, SlotIndex)
+  - `[Range]`: 값 범위 검증 (Count: 1-10, SlotIndex: 1-3)
+  - ErrorMessage: 한국어 에러 메시지 (사용자 친화적)
+- **PetGachaRequestDto**:
+  - Count: 1 또는 10만 허용 (단건/10연차)
+  - Default 값: 1 (단건 가챠 기본)
+- **PetLevelUpRequestDto**:
+  - CharacterId만 포함 (PetId는 URL 경로에서 추출)
+  - 소유권 검증용 (Service Layer에서 Pet.CharacterId == Request.CharacterId 확인)
+- **PetEquipRequestDto**:
+  - SlotIndex: 1-3 범위 검증
+  - PetId: int (Pet Entity의 PK 타입과 일치)
+- **XML 문서화**:
+  - 각 DTO와 속성에 한국어 설명 추가
+  - API 자동 문서화 (Swagger) 지원
+
+### Notes
+- 기존 Gacha DTO 패턴 참조 (PerformGachaCommand)
+- Request DTO는 입력 데이터만 담음 (비즈니스 로직 없음)
+- Validation은 Controller에서 ModelState.IsValid로 자동 검증
+- 향후 FluentValidation으로 마이그레이션 고려 (복잡한 검증 규칙 시)
+
+---
+
+## 2025-10-27 17:45
+
+### Task Completed
+- [x] 3.2 Create Pet Response DTOs
+
+### Files Changed
+- `IdleRPG.Application/DTOs/Pet/PetDto.cs` (new file, 47 lines)
+- `IdleRPG.Application/DTOs/Pet/DuplicateRewardDto.cs` (new file, 18 lines)
+- `IdleRPG.Application/DTOs/Pet/PetGachaResponseDto.cs` (new file, 34 lines)
+- `IdleRPG.Application/DTOs/Pet/PetLevelUpResponseDto.cs` (new file, 36 lines)
+- `IdleRPG.Application/DTOs/Pet/EquippedPetDto.cs` (new file, 37 lines)
+- `IdleRPG.Application/DTOs/Pet/PetEquipResponseDto.cs` (new file, 30 lines)
+
+### Key Decisions
+- **6개 Response DTO 생성**:
+  1. **PetDto**: 펫 기본 정보 (가챠, 목록, 상세 조회 공통)
+  2. **DuplicateRewardDto**: 중복 펫 골드 보상
+  3. **PetGachaResponseDto**: 가챠 결과 (신규 펫 + 중복 보상 + 천장 카운터)
+  4. **PetLevelUpResponseDto**: 레벨업 결과 (새 스탯 + 비용 + 남은 골드)
+  5. **EquippedPetDto**: 장착된 펫 정보 (슬롯 + 버프)
+  6. **PetEquipResponseDto**: 장착 결과 (모든 슬롯 + 총 버프)
+
+- **PetDto 설계**:
+  - RarityName: string (Enum을 문자열로 변환, 클라이언트 편의성)
+  - ImageUrl: 서버가 TemplateId/Name 기반 경로 생성 (클라이언트 리소스 매핑)
+  - IsEquipped: 목록 조회 시 장착 상태 표시 (UI 편의성)
+
+- **PetGachaResponseDto 설계**:
+  - Pets: 신규 획득 펫만 포함 (중복은 DuplicateRewards에)
+  - TotalGoldFromDuplicates: 중복 보상 합계 (클라이언트가 직접 계산 불필요)
+  - CurrentPityCount: 가챠 후 천장 카운터 (UI 프로그레스바: 0/50)
+
+- **EquippedPetDto vs PetDto**:
+  - EquippedPetDto: 슬롯 정보 + 버프 계산 결과 포함 (장착 특화)
+  - PetDto: 범용 펫 정보 (IsEquipped 플래그만 추가)
+
+- **XML 문서화**:
+  - 각 DTO와 속성에 한국어 설명 추가
+  - 버프 계산 공식 명시 (CurrentAttack * 0.1)
+  - 골드 보상 금액 명시 (Common 100 ~ Legendary 10,000)
+
+### Notes
+- 기존 GachaResultDto, SkillDto 패턴 참조
+- Response DTO는 읽기 전용 (setter 없음, init-only 고려)
+- ImageUrl은 Service Layer에서 생성 (예: `/resources/pets/{templateId}.png`)
+- 향후 AutoMapper로 Entity → DTO 매핑 자동화 고려
+
+### Architecture Alignment
+- **design.md API Design - Response 섹션과 100% 일치**:
+  - PetGachaResponseDto: design.md Line 219-241
+  - PetDto: design.md Line 262-275
+  - PetLevelUpResponseDto: design.md Line 302-312
+  - PetEquipResponseDto: design.md Line 342-356
+
+---
+
+## 2025-10-27 18:00
+
+### Task Completed
+- [x] 3.3 Create PetService Interface
+
+### Files Changed
+- `IdleRPG.Application/Services/IPetService.cs` (new file, 74 lines)
+
+### Key Decisions
+- **8개 메서드 시그니처 정의**:
+  1. **DrawPetsAsync**: 가챠 (count: 1 or 10)
+  2. **GetPetByIdAsync**: 펫 상세 조회
+  3. **GetPetsByCharacterIdAsync**: 캐릭터 소유 펫 목록
+  4. **LevelUpPetAsync**: 펫 레벨업 (골드 소모)
+  5. **EquipPetAsync**: 펫 장착 (슬롯 1-3)
+  6. **UnequipPetAsync**: 펫 해제
+  7. **GetEquippedPetsAsync**: 장착된 펫 조회
+  8. **DeletePetAsync**: 펫 삭제 (장착 중 불가)
+
+- **메서드 네이밍 패턴**:
+  - Async 접미사: 비동기 메서드 (Task<T> 반환)
+  - Get/Draw/Equip/Unequip/Delete: 명확한 동사 사용 (CRUD + 도메인 동작)
+  
+- **매개변수 설계**:
+  - characterId: 소유권 검증 필수 (모든 쓰기 작업)
+  - petId: int (Pet Entity PK 타입)
+  - slotIndex: int (1-3 범위, Validation은 Service 구현에서)
+  - cancellationToken: 기본값 default (선택적 취소 지원)
+
+- **반환 타입**:
+  - DrawPetsAsync: PetGachaResponseDto (복합 응답)
+  - LevelUpPetAsync: PetLevelUpResponseDto (레벨업 결과)
+  - EquipPetAsync: PetEquipResponseDto (장착 결과 + 총 버프)
+  - UnequipPetAsync: Task (void, 204 No Content)
+  - DeletePetAsync: Task (void, 204 No Content)
+
+- **XML 문서화**:
+  - 각 메서드의 목적, 매개변수, 반환값 설명
+  - 비즈니스 규칙 명시 (예: "장착된 펫은 삭제 불가")
+
+### Notes
+- 기존 ISkillService 패턴 참조 (일관성)
+- 인터페이스는 계약(Contract)만 정의, 구현은 Task 3.4에서
+- design.md Service Layer Design 섹션과 100% 일치
+- CancellationToken: 장기 실행 작업 취소 지원 (가챠 10연차 등)
+
+### Architecture Alignment
+- **design.md Service Layer Design - PetService 섹션과 완전 일치**:
+  - DrawPetsAsync: design.md Line 568-596
+  - LevelUpPetAsync: design.md Line 613-642
+  - EquipPetAsync: design.md Line 653-685
+
+---
