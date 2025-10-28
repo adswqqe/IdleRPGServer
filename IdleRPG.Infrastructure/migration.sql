@@ -644,23 +644,6 @@ BEGIN
     END IF;
 END $EF$;
 
--- Migration: 20251028000000_AddCrystalsToPlayer
--- Description: Player 테이블에 Crystals 컬럼 추가 (프리미엄 화폐)
-DO $EF$
-BEGIN
-    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20251028000000_AddCrystalsToPlayer') THEN
-    ALTER TABLE "Players" ADD COLUMN "Crystals" BIGINT NOT NULL DEFAULT 0;
-    END IF;
-END $EF$;
-
-DO $EF$
-BEGIN
-    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20251028000000_AddCrystalsToPlayer') THEN
-    INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
-    VALUES ('20251028000000_AddCrystalsToPlayer', '9.0.9');
-    END IF;
-END $EF$;
-
 -- Migration: 20251027120000_AddPetSystem
 -- Description: 펫 시스템 테이블 추가 (pets, pet_templates, equipped_pets, character.pet_gacha_count)
 
