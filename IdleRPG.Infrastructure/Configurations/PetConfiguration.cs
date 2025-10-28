@@ -12,45 +12,37 @@ namespace IdleRPG.Infrastructure.Configurations
         public void Configure(EntityTypeBuilder<Pet> builder)
         {
             // Table name
-            builder.ToTable("pets");
+            builder.ToTable("Pets");
 
             // Primary Key
             builder.HasKey(p => p.Id);
 
             // Properties
             builder.Property(p => p.Id)
-                .HasColumnName("id")
                 .ValueGeneratedOnAdd()
                 .IsRequired();
 
             builder.Property(p => p.CharacterId)
-                .HasColumnName("character_id")
                 .IsRequired();
 
             builder.Property(p => p.TemplateId)
-                .HasColumnName("template_id")
                 .IsRequired();
 
             builder.Property(p => p.Level)
-                .HasColumnName("level")
                 .HasDefaultValue(1)
                 .IsRequired();
 
             builder.Property(p => p.CurrentAttack)
-                .HasColumnName("current_attack")
                 .IsRequired();
 
             builder.Property(p => p.CurrentMana)
-                .HasColumnName("current_mana")
                 .IsRequired();
 
             builder.Property(p => p.CreatedAt)
-                .HasColumnName("created_at")
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
                 .IsRequired();
 
             builder.Property(p => p.UpdatedAt)
-                .HasColumnName("updated_at")
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
                 .IsRequired();
 
@@ -67,14 +59,14 @@ namespace IdleRPG.Infrastructure.Configurations
 
             // Indexes
             builder.HasIndex(p => p.CharacterId)
-                .HasDatabaseName("idx_pets_character_id");
+                .HasDatabaseName("IX_Pets_CharacterId");
 
             // Check Constraints (PostgreSQL)
             builder.ToTable(t =>
             {
-                t.HasCheckConstraint("chk_pets_level", "level >= 1 AND level <= 50");
-                t.HasCheckConstraint("chk_pets_current_attack", "current_attack >= 0");
-                t.HasCheckConstraint("chk_pets_current_mana", "current_mana >= 0");
+                t.HasCheckConstraint("CK_Pets_Level", "\"Level\" >= 1 AND \"Level\" <= 50");
+                t.HasCheckConstraint("CK_Pets_CurrentAttack", "\"CurrentAttack\" >= 0");
+                t.HasCheckConstraint("CK_Pets_CurrentMana", "\"CurrentMana\" >= 0");
             });
         }
     }

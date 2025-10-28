@@ -12,43 +12,38 @@ namespace IdleRPG.Infrastructure.Configurations
         public void Configure(EntityTypeBuilder<PetTemplate> builder)
         {
             // Table name
-            builder.ToTable("pet_templates");
+            builder.ToTable("PetTemplates");
 
             // Primary Key
             builder.HasKey(pt => pt.Id);
 
             // Properties
             builder.Property(pt => pt.Id)
-                .HasColumnName("id")
                 .ValueGeneratedOnAdd()
                 .IsRequired();
 
             builder.Property(pt => pt.Name)
-                .HasColumnName("name")
                 .HasMaxLength(50)
                 .IsRequired();
 
             builder.Property(pt => pt.Rarity)
-                .HasColumnName("rarity")
                 .HasConversion<int>()
                 .IsRequired();
 
             builder.Property(pt => pt.BaseAttack)
-                .HasColumnName("base_attack")
                 .IsRequired();
 
             builder.Property(pt => pt.BaseMana)
-                .HasColumnName("base_mana")
                 .IsRequired();
 
             // Unique Constraints
             builder.HasIndex(pt => pt.Name)
                 .IsUnique()
-                .HasDatabaseName("uk_pet_templates_name");
+                .HasDatabaseName("UK_PetTemplates_Name");
 
             // Indexes
             builder.HasIndex(pt => pt.Rarity)
-                .HasDatabaseName("idx_pet_templates_rarity");
+                .HasDatabaseName("IX_PetTemplates_Rarity");
 
             // Relationships
             builder.HasMany(pt => pt.Pets)
@@ -59,9 +54,9 @@ namespace IdleRPG.Infrastructure.Configurations
             // Check Constraints (PostgreSQL)
             builder.ToTable(t =>
             {
-                t.HasCheckConstraint("chk_pet_templates_rarity", "rarity >= 0 AND rarity <= 3");
-                t.HasCheckConstraint("chk_pet_templates_base_attack", "base_attack >= 0");
-                t.HasCheckConstraint("chk_pet_templates_base_mana", "base_mana >= 0");
+                t.HasCheckConstraint("CK_PetTemplates_Rarity", "\"Rarity\" >= 0 AND \"Rarity\" <= 3");
+                t.HasCheckConstraint("CK_PetTemplates_BaseAttack", "\"BaseAttack\" >= 0");
+                t.HasCheckConstraint("CK_PetTemplates_BaseMana", "\"BaseMana\" >= 0");
             });
         }
     }

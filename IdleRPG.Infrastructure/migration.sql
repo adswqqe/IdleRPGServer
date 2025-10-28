@@ -645,80 +645,80 @@ BEGIN
 END $EF$;
 
 -- Migration: 20251027120000_AddPetSystem
--- Description: 펫 시스템 테이블 추가 (pets, pet_templates, equipped_pets, character.pet_gacha_count)
+-- Description: 펫 시스템 테이블 추가 (Pets, PetTemplates, EquippedPets, Characters.PetGachaCount)
 
--- 1. CREATE TABLE pet_templates (마스터 데이터)
+-- 1. CREATE TABLE PetTemplates (마스터 데이터)
 DO $EF$
 BEGIN
     IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20251027120000_AddPetSystem') THEN
-    CREATE TABLE "pet_templates" (
-        "id" SERIAL PRIMARY KEY,
-        "name" VARCHAR(50) NOT NULL,
-        "rarity" INT NOT NULL CHECK (rarity BETWEEN 0 AND 3),
-        "base_attack" INT NOT NULL CHECK (base_attack >= 0),
-        "base_mana" INT NOT NULL CHECK (base_mana >= 0),
-        CONSTRAINT "uk_pet_templates_name" UNIQUE ("name")
+    CREATE TABLE "PetTemplates" (
+        "Id" SERIAL PRIMARY KEY,
+        "Name" VARCHAR(50) NOT NULL,
+        "Rarity" INT NOT NULL CHECK ("Rarity" BETWEEN 0 AND 3),
+        "BaseAttack" INT NOT NULL CHECK ("BaseAttack" >= 0),
+        "BaseMana" INT NOT NULL CHECK ("BaseMana" >= 0),
+        CONSTRAINT "UK_PetTemplates_Name" UNIQUE ("Name")
     );
     END IF;
 END $EF$;
 
--- 2. CREATE INDEX idx_pet_templates_rarity
+-- 2. CREATE INDEX IX_PetTemplates_Rarity
 DO $EF$
 BEGIN
     IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20251027120000_AddPetSystem') THEN
-    CREATE INDEX "idx_pet_templates_rarity" ON "pet_templates" ("rarity");
+    CREATE INDEX "IX_PetTemplates_Rarity" ON "PetTemplates" ("Rarity");
     END IF;
 END $EF$;
 
--- 3. CREATE TABLE pets
+-- 3. CREATE TABLE Pets
 DO $EF$
 BEGIN
     IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20251027120000_AddPetSystem') THEN
-    CREATE TABLE "pets" (
-        "id" SERIAL PRIMARY KEY,
-        "character_id" UUID NOT NULL,
-        "template_id" INT NOT NULL,
-        "level" INT NOT NULL DEFAULT 1 CHECK (level BETWEEN 1 AND 50),
-        "current_attack" INT NOT NULL CHECK (current_attack >= 0),
-        "current_mana" INT NOT NULL CHECK (current_mana >= 0),
-        "created_at" TIMESTAMP NOT NULL DEFAULT NOW(),
-        "updated_at" TIMESTAMP NOT NULL DEFAULT NOW(),
-        CONSTRAINT "fk_pets_character_id" FOREIGN KEY ("character_id") REFERENCES "Characters" ("Id") ON DELETE CASCADE,
-        CONSTRAINT "fk_pets_template_id" FOREIGN KEY ("template_id") REFERENCES "pet_templates" ("id") ON DELETE RESTRICT
+    CREATE TABLE "Pets" (
+        "Id" SERIAL PRIMARY KEY,
+        "CharacterId" UUID NOT NULL,
+        "TemplateId" INT NOT NULL,
+        "Level" INT NOT NULL DEFAULT 1 CHECK ("Level" BETWEEN 1 AND 50),
+        "CurrentAttack" INT NOT NULL CHECK ("CurrentAttack" >= 0),
+        "CurrentMana" INT NOT NULL CHECK ("CurrentMana" >= 0),
+        "CreatedAt" TIMESTAMP NOT NULL DEFAULT NOW(),
+        "UpdatedAt" TIMESTAMP NOT NULL DEFAULT NOW(),
+        CONSTRAINT "FK_Pets_Characters_CharacterId" FOREIGN KEY ("CharacterId") REFERENCES "Characters" ("Id") ON DELETE CASCADE,
+        CONSTRAINT "FK_Pets_PetTemplates_TemplateId" FOREIGN KEY ("TemplateId") REFERENCES "PetTemplates" ("Id") ON DELETE RESTRICT
     );
     END IF;
 END $EF$;
 
--- 4. CREATE INDEX idx_pets_character_id
+-- 4. CREATE INDEX IX_Pets_CharacterId
 DO $EF$
 BEGIN
     IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20251027120000_AddPetSystem') THEN
-    CREATE INDEX "idx_pets_character_id" ON "pets" ("character_id");
+    CREATE INDEX "IX_Pets_CharacterId" ON "Pets" ("CharacterId");
     END IF;
 END $EF$;
 
--- 5. CREATE TABLE equipped_pets (Composite PK)
+-- 5. CREATE TABLE EquippedPets (Composite PK)
 DO $EF$
 BEGIN
     IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20251027120000_AddPetSystem') THEN
-    CREATE TABLE "equipped_pets" (
-        "character_id" UUID NOT NULL,
-        "slot_index" INT NOT NULL CHECK (slot_index BETWEEN 1 AND 3),
-        "pet_id" INT NOT NULL,
-        "equipped_at" TIMESTAMP NOT NULL DEFAULT NOW(),
-        CONSTRAINT "pk_equipped_pets" PRIMARY KEY ("character_id", "slot_index"),
-        CONSTRAINT "uk_equipped_pets_pet_id" UNIQUE ("pet_id"),
-        CONSTRAINT "fk_equipped_pets_character_id" FOREIGN KEY ("character_id") REFERENCES "Characters" ("Id") ON DELETE CASCADE,
-        CONSTRAINT "fk_equipped_pets_pet_id" FOREIGN KEY ("pet_id") REFERENCES "pets" ("id") ON DELETE CASCADE
+    CREATE TABLE "EquippedPets" (
+        "CharacterId" UUID NOT NULL,
+        "SlotIndex" INT NOT NULL CHECK ("SlotIndex" BETWEEN 1 AND 3),
+        "PetId" INT NOT NULL,
+        "EquippedAt" TIMESTAMP NOT NULL DEFAULT NOW(),
+        CONSTRAINT "PK_EquippedPets" PRIMARY KEY ("CharacterId", "SlotIndex"),
+        CONSTRAINT "UK_EquippedPets_PetId" UNIQUE ("PetId"),
+        CONSTRAINT "FK_EquippedPets_Characters_CharacterId" FOREIGN KEY ("CharacterId") REFERENCES "Characters" ("Id") ON DELETE CASCADE,
+        CONSTRAINT "FK_EquippedPets_Pets_PetId" FOREIGN KEY ("PetId") REFERENCES "Pets" ("Id") ON DELETE CASCADE
     );
     END IF;
 END $EF$;
 
--- 6. ALTER TABLE Characters ADD COLUMN pet_gacha_count
+-- 6. ALTER TABLE Characters ADD COLUMN PetGachaCount
 DO $EF$
 BEGIN
     IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20251027120000_AddPetSystem') THEN
-    ALTER TABLE "Characters" ADD COLUMN "pet_gacha_count" INT NOT NULL DEFAULT 0 CHECK (pet_gacha_count BETWEEN 0 AND 50);
+    ALTER TABLE "Characters" ADD COLUMN "PetGachaCount" INT NOT NULL DEFAULT 0 CHECK ("PetGachaCount" BETWEEN 0 AND 50);
     END IF;
 END $EF$;
 
