@@ -164,7 +164,8 @@
       "mcp__zen__thinkdeep",
       "Bash(powershell -Command \"(Get-Content ''D:\\Proj\\IdleGameServer\\CLAUDE.md'' -Raw).Length\")",
       "Bash(powershell -Command \"(Get-Content ''D:\\Proj\\IdleGameServer\\CLAUDE.md'' | Measure-Object -Line).Lines\")",
-      "mcp__zen__challenge"
+      "mcp__zen__challenge",
+      "Bash(find:*)"
     ]
   },
   "enableAllProjectMcpServers": true,
