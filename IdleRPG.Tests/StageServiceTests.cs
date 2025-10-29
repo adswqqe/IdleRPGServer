@@ -1,5 +1,7 @@
 using FluentAssertions;
+using IdleRPG.Application.BattleLog.Services;
 using IdleRPG.Application.Character.Services;
+using IdleRPG.Application.Combat.Services;
 using IdleRPG.Application.DTOs.Battle;
 using IdleRPG.Application.DTOs.Characters;
 using IdleRPG.Application.DTOs.Dungeon;
@@ -16,40 +18,40 @@ using DifficultyEnum = IdleRPG.Domain.Enums.DungeonDifficulty;
 
 namespace IdleRPG.Tests;
 
-public class DungeonServiceTests
+public class StageServiceTests
 {
     private readonly Mock<IUnitOfWork> _mockUnitOfWork;
     private readonly Mock<IDungeonStageRepository> _mockDungeonStageRepository;
     private readonly Mock<ICharacterDungeonProgressRepository> _mockCharacterDungeonProgressRepository;
-    private readonly Mock<IBattleLogRepository> _mockBattleLogRepository;
     private readonly Mock<ICharacterRepository> _mockCharacterRepository;
-    private readonly Mock<IBattleService> _mockBattleService;
+    private readonly Mock<ICombatService> _mockCombatService;
+    private readonly Mock<IBattleLogService> _mockBattleLogService;
     private readonly Mock<ICharacterService> _mockCharacterService;
     private readonly Mock<LootCalculator> _mockLootCalculator;
-    private readonly Mock<ILogger<DungeonService>> _mockLogger;
-    private readonly DungeonService _service;
+    private readonly Mock<ILogger<StageService>> _mockLogger;
+    private readonly StageService _service;
 
-    public DungeonServiceTests()
+    public StageServiceTests()
     {
         _mockUnitOfWork = new Mock<IUnitOfWork>();
         _mockDungeonStageRepository = new Mock<IDungeonStageRepository>();
         _mockCharacterDungeonProgressRepository = new Mock<ICharacterDungeonProgressRepository>();
-        _mockBattleLogRepository = new Mock<IBattleLogRepository>();
         _mockCharacterRepository = new Mock<ICharacterRepository>();
-        _mockBattleService = new Mock<IBattleService>();
+        _mockCombatService = new Mock<ICombatService>();
+        _mockBattleLogService = new Mock<IBattleLogService>();
         _mockCharacterService = new Mock<ICharacterService>();
         _mockLootCalculator = new Mock<LootCalculator>();
-        _mockLogger = new Mock<ILogger<DungeonService>>();
+        _mockLogger = new Mock<ILogger<StageService>>();
 
         _mockUnitOfWork.Setup(u => u.DungeonStages).Returns(_mockDungeonStageRepository.Object);
         _mockUnitOfWork.Setup(u => u.CharacterDungeonProgresses).Returns(_mockCharacterDungeonProgressRepository.Object);
-        _mockUnitOfWork.Setup(u => u.BattleLogs).Returns(_mockBattleLogRepository.Object);
         _mockUnitOfWork.Setup(u => u.Characters).Returns(_mockCharacterRepository.Object);
 
-        _service = new DungeonService(
+        _service = new StageService(
             _mockUnitOfWork.Object,
             _mockCharacterService.Object,
-            _mockBattleService.Object,
+            _mockCombatService.Object,
+            _mockBattleLogService.Object,
             _mockLootCalculator.Object,
             _mockLogger.Object);
     }
@@ -139,10 +141,9 @@ public class DungeonServiceTests
             Difficulty = DifficultyEnum.Normal
         };
 
-        var battleResult = new BattleResultResponse
+        var combatResult = new CombatResultDto
         {
             IsVictory = true,
-            Reward = new RewardDto { Gold = 100, Experience = 50 },
             Statistics = new BattleStatisticsDto
             {
                 TotalTurns = 10,
@@ -150,17 +151,6 @@ public class DungeonServiceTests
                 TotalDamageTaken = 100,
                 CriticalHitCount = 2,
                 EvasionCount = 1
-            },
-            BattleLog = new BattleLog
-            {
-                CharacterId = characterId,
-                MonsterId = monsterId,
-                DungeonStageId = 1,
-                IsVictory = true,
-                ExperienceGained = 50,
-                GoldGained = 100,
-                DamageDealt = 500,
-                DamageTaken = 100
             }
         };
 
@@ -176,21 +166,36 @@ public class DungeonServiceTests
             .Setup(r => r.GetOrCreateByCharacterIdAsync(characterId))
             .ReturnsAsync(progress);
 
-        _mockBattleService
-            .Setup(s => s.SimulateBattleAsync(
+        _mockCombatService
+            .Setup(s => s.SimulateCombatAsync(
                 characterId,
                 monsterId,
-                1,
                 DifficultyEnum.Normal))
-            .ReturnsAsync(battleResult);
+            .ReturnsAsync(combatResult);
 
         _mockCharacterService
             .Setup(s => s.ProcessExperienceGain(It.IsAny<Character>(), 50))
             .Callback<Character, int>((c, exp) => c.Experience += exp);
 
-        _mockBattleLogRepository
-            .Setup(r => r.AddAsync(It.IsAny<BattleLog>()))
-            .ReturnsAsync((BattleLog log) => log);
+        _mockBattleLogService
+            .Setup(s => s.CreateAndSaveLogAsync(
+                characterId,
+                monsterId,
+                It.IsAny<CombatResultDto>(),
+                50,
+                100,
+                1))
+            .ReturnsAsync(new BattleLog
+            {
+                CharacterId = characterId,
+                MonsterId = monsterId,
+                DungeonStageId = 1,
+                IsVictory = true,
+                ExperienceGained = 50,
+                GoldGained = 100,
+                DamageDealt = 500,
+                DamageTaken = 100
+            });
 
         _mockUnitOfWork
             .Setup(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()))
@@ -215,11 +220,14 @@ public class DungeonServiceTests
             "트랜잭션 원자성을 위해 SaveChangesAsync는 한 번만 호출되어야 함");
 
         // BattleLog 저장 검증
-        _mockBattleLogRepository.Verify(
-            r => r.AddAsync(It.Is<BattleLog>(log =>
-                log.CharacterId == characterId &&
-                log.DungeonStageId == 1 &&
-                log.IsVictory == true)),
+        _mockBattleLogService.Verify(
+            s => s.CreateAndSaveLogAsync(
+                characterId,
+                monsterId,
+                It.IsAny<CombatResultDto>(),
+                50,
+                100,
+                1),
             Times.Once);
     }
 
@@ -246,10 +254,9 @@ public class DungeonServiceTests
             Difficulty = DifficultyEnum.Normal
         };
 
-        var battleResult = new BattleResultResponse
+        var combatResult = new CombatResultDto
         {
             IsVictory = false,
-            Reward = new RewardDto(),
             Statistics = new BattleStatisticsDto
             {
                 TotalTurns = 15,
@@ -257,17 +264,6 @@ public class DungeonServiceTests
                 TotalDamageTaken = 1000,
                 CriticalHitCount = 1,
                 EvasionCount = 0
-            },
-            BattleLog = new BattleLog
-            {
-                CharacterId = characterId,
-                MonsterId = monsterId,
-                DungeonStageId = 5,
-                IsVictory = false,
-                ExperienceGained = 0,
-                GoldGained = 0,
-                DamageDealt = 200,
-                DamageTaken = 1000
             }
         };
 
@@ -283,13 +279,12 @@ public class DungeonServiceTests
             .Setup(r => r.GetOrCreateByCharacterIdAsync(characterId))
             .ReturnsAsync(progress);
 
-        _mockBattleService
-            .Setup(s => s.SimulateBattleAsync(
+        _mockCombatService
+            .Setup(s => s.SimulateCombatAsync(
                 characterId,
                 monsterId,
-                5,
                 DifficultyEnum.Normal))
-            .ReturnsAsync(battleResult);
+            .ReturnsAsync(combatResult);
 
         // Act
         var result = await _service.ClearStageAsync(characterId, request);
@@ -312,8 +307,14 @@ public class DungeonServiceTests
             "전투 패배 시에는 데이터베이스 변경이 없어야 함");
 
         // BattleLog도 저장되지 않음
-        _mockBattleLogRepository.Verify(
-            r => r.AddAsync(It.IsAny<BattleLog>()),
+        _mockBattleLogService.Verify(
+            s => s.CreateAndSaveLogAsync(
+                It.IsAny<Guid>(),
+                It.IsAny<Guid>(),
+                It.IsAny<CombatResultDto>(),
+                It.IsAny<int>(),
+                It.IsAny<int>(),
+                It.IsAny<int?>()),
             Times.Never);
     }
 
@@ -356,11 +357,10 @@ public class DungeonServiceTests
         result.ErrorMessage.Should().StartWith("레벨이 부족합니다");
 
         // 전투가 발생하지 않음
-        _mockBattleService.Verify(
-            s => s.SimulateBattleAsync(
+        _mockCombatService.Verify(
+            s => s.SimulateCombatAsync(
                 It.IsAny<Guid>(),
                 It.IsAny<Guid>(),
-                It.IsAny<int?>(),
                 It.IsAny<DifficultyEnum?>()),
             Times.Never);
     }
@@ -388,10 +388,9 @@ public class DungeonServiceTests
             Difficulty = DifficultyEnum.Normal
         };
 
-        var battleResult = new BattleResultResponse
+        var combatResult = new CombatResultDto
         {
             IsVictory = true,
-            Reward = new RewardDto { Gold = 300, Experience = 150 },
             Statistics = new BattleStatisticsDto
             {
                 TotalTurns = 20,
@@ -399,17 +398,6 @@ public class DungeonServiceTests
                 TotalDamageTaken = 300,
                 CriticalHitCount = 5,
                 EvasionCount = 2
-            },
-            BattleLog = new BattleLog
-            {
-                CharacterId = characterId,
-                MonsterId = monsterId,
-                DungeonStageId = 3,
-                IsVictory = true,
-                ExperienceGained = 150,
-                GoldGained = 300,
-                DamageDealt = 1500,
-                DamageTaken = 300
             }
         };
 
@@ -425,21 +413,36 @@ public class DungeonServiceTests
             .Setup(r => r.GetOrCreateByCharacterIdAsync(characterId))
             .ReturnsAsync(progress);
 
-        _mockBattleService
-            .Setup(s => s.SimulateBattleAsync(
+        _mockCombatService
+            .Setup(s => s.SimulateCombatAsync(
                 characterId,
                 monsterId,
-                3,
                 DifficultyEnum.Normal))
-            .ReturnsAsync(battleResult);
+            .ReturnsAsync(combatResult);
 
         _mockCharacterService
             .Setup(s => s.ProcessExperienceGain(It.IsAny<Character>(), 150))
             .Callback<Character, int>((c, exp) => c.Experience += exp);
 
-        _mockBattleLogRepository
-            .Setup(r => r.AddAsync(It.IsAny<BattleLog>()))
-            .ReturnsAsync((BattleLog log) => log);
+        _mockBattleLogService
+            .Setup(s => s.CreateAndSaveLogAsync(
+                characterId,
+                monsterId,
+                It.IsAny<CombatResultDto>(),
+                150,
+                300,
+                3))
+            .ReturnsAsync(new BattleLog
+            {
+                CharacterId = characterId,
+                MonsterId = monsterId,
+                DungeonStageId = 3,
+                IsVictory = true,
+                ExperienceGained = 150,
+                GoldGained = 300,
+                DamageDealt = 1500,
+                DamageTaken = 300
+            });
 
         var saveChangesCallCount = 0;
         _mockUnitOfWork
@@ -461,9 +464,15 @@ public class DungeonServiceTests
             Times.Once,
             "트랜잭션 원자성: 전투 결과, 보상, BattleLog가 모두 하나의 트랜잭션으로 저장되어야 함");
 
-        // BattleLog가 SaveChanges 전에 AddAsync로 추가되었는지 검증
-        _mockBattleLogRepository.Verify(
-            r => r.AddAsync(It.IsAny<BattleLog>()),
+        // BattleLog가 SaveChanges 전에 생성되었는지 검증
+        _mockBattleLogService.Verify(
+            s => s.CreateAndSaveLogAsync(
+                It.IsAny<Guid>(),
+                It.IsAny<Guid>(),
+                It.IsAny<CombatResultDto>(),
+                It.IsAny<int>(),
+                It.IsAny<int>(),
+                It.IsAny<int?>()),
             Times.Once);
 
         // 캐릭터 경험치 처리 검증
@@ -495,10 +504,9 @@ public class DungeonServiceTests
             Difficulty = DifficultyEnum.Normal
         };
 
-        var battleResult = new BattleResultResponse
+        var combatResult = new CombatResultDto
         {
             IsVictory = true,
-            Reward = new RewardDto { Gold = 700, Experience = 350 },
             Statistics = new BattleStatisticsDto
             {
                 TotalTurns = 25,
@@ -506,17 +514,6 @@ public class DungeonServiceTests
                 TotalDamageTaken = 600,
                 CriticalHitCount = 8,
                 EvasionCount = 3
-            },
-            BattleLog = new BattleLog
-            {
-                CharacterId = characterId,
-                MonsterId = monsterId,
-                DungeonStageId = 7,
-                IsVictory = true,
-                ExperienceGained = 350,
-                GoldGained = 700,
-                DamageDealt = 3500,
-                DamageTaken = 600
             }
         };
 
@@ -532,21 +529,36 @@ public class DungeonServiceTests
             .Setup(r => r.GetOrCreateByCharacterIdAsync(characterId))
             .ReturnsAsync(progress);
 
-        _mockBattleService
-            .Setup(s => s.SimulateBattleAsync(
+        _mockCombatService
+            .Setup(s => s.SimulateCombatAsync(
                 characterId,
                 monsterId,
-                7,
                 DifficultyEnum.Normal))
-            .ReturnsAsync(battleResult);
+            .ReturnsAsync(combatResult);
 
         _mockCharacterService
             .Setup(s => s.ProcessExperienceGain(It.IsAny<Character>(), 350))
             .Callback<Character, int>((c, exp) => c.Experience += exp);
 
-        _mockBattleLogRepository
-            .Setup(r => r.AddAsync(It.IsAny<BattleLog>()))
-            .ReturnsAsync((BattleLog log) => log);
+        _mockBattleLogService
+            .Setup(s => s.CreateAndSaveLogAsync(
+                characterId,
+                monsterId,
+                It.IsAny<CombatResultDto>(),
+                350,
+                700,
+                7))
+            .ReturnsAsync(new BattleLog
+            {
+                CharacterId = characterId,
+                MonsterId = monsterId,
+                DungeonStageId = 7,
+                IsVictory = true,
+                ExperienceGained = 350,
+                GoldGained = 700,
+                DamageDealt = 3500,
+                DamageTaken = 600
+            });
 
         _mockUnitOfWork
             .Setup(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()))

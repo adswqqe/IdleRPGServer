@@ -59,11 +59,20 @@ builder.Services.AddAuthentication(options =>
 builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IdleRPG.Application.Character.Services.ICharacterService, IdleRPG.Infrastructure.Service.CharacterService>();
+
+// ✅ Combat System Refactoring - Phase 1, 2, 3, 4
+builder.Services.AddScoped<IdleRPG.Application.Combat.Services.ICombatService, IdleRPG.Infrastructure.Service.CombatService>();
+builder.Services.AddScoped<IdleRPG.Application.BattleLog.Services.IBattleLogService, IdleRPG.Infrastructure.Service.BattleLogService>();
+builder.Services.AddScoped<IdleRPG.Application.Interfaces.IStageService, IdleRPG.Infrastructure.Service.StageService>();
+builder.Services.AddScoped<IdleRPG.Application.Interfaces.ISpecialDungeonService, IdleRPG.Infrastructure.Service.SpecialDungeonService>();
+
+// Legacy Services (Phase 3에서 제거 예정)
 builder.Services.AddScoped<IdleRPG.Application.Interfaces.IBattleService, IdleRPG.Infrastructure.Service.BattleService>();
+builder.Services.AddScoped<IdleRPG.Application.Interfaces.IDungeonService, IdleRPG.Infrastructure.Service.DungeonService>();
+
 builder.Services.AddScoped<IdleRPG.Application.Interfaces.IMonsterService, IdleRPG.Infrastructure.Service.MonsterService>();
 builder.Services.AddScoped<IdleRPG.Application.Interfaces.IOfflineRewardService, IdleRPG.Infrastructure.Services.OfflineRewardService>();
 builder.Services.AddScoped<IdleRPG.Application.Interfaces.IEquipmentService, IdleRPG.Infrastructure.Service.EquipmentService>();
-builder.Services.AddScoped<IdleRPG.Application.Interfaces.IDungeonService, IdleRPG.Infrastructure.Service.DungeonService>();
 builder.Services.AddScoped<IdleRPG.Application.Services.ISkillService, IdleRPG.Infrastructure.Services.SkillService>();
 builder.Services.AddScoped<IdleRPG.Application.Services.IPetService, IdleRPG.Infrastructure.Services.PetService>();
 

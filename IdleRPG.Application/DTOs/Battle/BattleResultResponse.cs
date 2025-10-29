@@ -1,6 +1,6 @@
 using IdleRPG.Application.DTOs.Characters;
 using IdleRPG.Application.DTOs.Rewards;
-using IdleRPG.Domain.Entities;
+using BattleLogEntity = IdleRPG.Domain.Entities.BattleLog;
 
 namespace IdleRPG.Application.DTOs.Battle
 {
@@ -34,6 +34,6 @@ namespace IdleRPG.Application.DTOs.Battle
         /// DungeonService가 트랜잭션의 일부로 저장
         /// 일반 전투 시에는 BattleService가 직접 저장하므로 null
         /// </summary>
-        public BattleLog? BattleLog { get; set; }
+        public BattleLogEntity? BattleLog { get; set; }
     }
 }

@@ -235,7 +235,10 @@ characterId: Guid (required)
 
 ### 3-3. Special Dungeon API (미래 확장용 Placeholder)
 
-#### POST /api/dungeons/boss/challenge
+> 🔑 **TODO 3 결정 반영**: `/api/special-dungeons` prefix 사용 (충돌 방지)
+
+#### POST /api/special-dungeons/boss/challenge
+**변경 후**: `POST /api/special-dungeons/boss/challenge`
 **Authorization**: Required
 
 **Request**:
@@ -259,6 +262,7 @@ characterId: Guid (required)
 ```
 
 > 💡 **미래 작업**: 보스 던전 시스템 구현 시 SpecialDungeonController에 추가
+> 📌 **RESTful 원칙**: `/api/special-dungeons` (명사형 리소스)
 
 ---
 
@@ -282,67 +286,119 @@ characterId: Guid (required)
 
 ### 5-1. CombatService (순수 전투 시뮬레이션)
 
-**책임**: 전투 계산만 수행 (보상 지급, DB 저장 제외)
+**책임**: 전투 계산만 수행 (보상 지급, BattleLog 생성, DB 저장 제외)
 
 **Core Logic**:
 ```
-1. Load Character stats (Attack, Defense, HP, CritRate, etc.)
-2. Load Monster stats
-3. Simulate turn-based combat:
+1. Load Character entity (from Repository)
+2. Load Monster entity (from Repository)
+3. 난이도 배율 적용 (던전 전투 시)
+4. Simulate turn-based combat:
+   - Priority Queue 기반 Event-driven 전투
    - Calculate damage (with Crit, Evasion)
    - Update HP
    - Check win/lose condition
-4. Return CombatResultDto (승패, 통계)
+5. Return CombatResultDto (승패, 통계)
 ```
 
-**입력**: `characterId`, `monsterId`
-**출력**: `CombatResultDto` (승패, 턴수, 데미지, 크리티컬 횟수)
+**메서드 시그니처**:
+```csharp
+public async Task<CombatResultDto> SimulateCombatAsync(
+    Guid characterId,
+    Guid monsterId,
+    DungeonDifficulty? difficulty = null)
+```
 
-**특징**:
-- 보상 계산 없음 (호출자가 책임)
-- DB 저장 없음 (호출자가 트랜잭션 관리)
-- 재사용 가능 (Stage, SpecialDungeon, PVP에서 공통 사용)
+**입력**:
+- `characterId`: 전투를 수행할 캐릭터 ID
+- `monsterId`: 전투 대상 몬스터 ID
+- `difficulty`: (Optional) 던전 난이도 (배율 적용)
+
+**출력**:
+- `CombatResultDto`: 승패, 전투 통계 (턴수, 데미지, 크리티컬 횟수 등)
+
+**특징** (🔑 TODO 1, 2 결정 반영):
+- ❌ 보상 계산 없음 (호출자가 책임)
+- ❌ BattleLog 생성 없음 (BattleLogService가 책임)
+- ❌ DB 저장 없음 (호출자가 트랜잭션 관리)
+- ✅ **Stateless**: 순수 계산 로직만 수행
+- ✅ **재사용 가능**: Stage, SpecialDungeon, PVP에서 공통 사용
 
 ---
 
 ### 5-2. BattleLogService (전투 로그 CRUD)
 
-**책임**: 전투 로그 저장 및 조회
+**책임**: 전투 로그 생성, 저장 및 조회
 
 **Methods**:
-```
-- SaveBattleLogAsync(BattleLog log): 로그 저장
+```csharp
+// 로그 생성 및 저장 (🔑 TODO 2 결정 반영)
+public async Task<BattleLog> CreateAndSaveLogAsync(
+    Guid characterId,
+    Guid monsterId,
+    CombatResultDto combatResult,
+    int? dungeonStageId = null)
+{
+    var log = new BattleLog
+    {
+        CharacterId = characterId,
+        MonsterId = monsterId,
+        DungeonStageId = dungeonStageId,
+        IsVictory = combatResult.IsVictory,
+        ExperienceGained = combatResult.ExperienceGained,
+        GoldGained = combatResult.GoldGained,
+        DamageDealt = combatResult.Statistics.TotalDamageDealt,
+        DamageTaken = combatResult.Statistics.TotalDamageTaken,
+        BattleDate = DateTime.UtcNow
+    };
+
+    await _unitOfWork.BattleLogs.AddAsync(log);
+    // SaveChanges는 호출자가 트랜잭션으로 처리!
+    return log;
+}
+
+// 로그 조회
 - GetLogsAsync(characterId, page, pageSize): 페이징 조회
 - GetRecentLogsAsync(characterId, count): 최근 N개 조회
 - GetStatsAsync(characterId): 통계 계산
 ```
 
-**특징**:
-- 전투 로직 없음 (순수 CRUD)
-- 통계 계산은 DB 쿼리로 처리 (LINQ Aggregation)
+**특징** (🔑 TODO 2 결정 반영):
+- ✅ **횡단 관심사 분리**: 모든 전투에서 로그 생성 필요 → 중앙 관리
+- ✅ **응집도**: 로그 생성 + 조회 + 통계를 한 Service에서 관리
+- ❌ **SaveChanges 호출 안 함**: 호출자(StageService)가 트랜잭션으로 묶음
+- ✅ **재사용**: Stage, SpecialDungeon, PVP 모두 동일한 로그 생성 로직 사용
 
 ---
 
 ### 5-3. StageService (구 DungeonService)
 
-**책임**: 메인 스테이지 진행도 관리 + 보상 지급
+**책임**: 메인 스테이지 진행도 관리 + 보상 지급 + 트랜잭션 관리
 
-**ClearStageAsync Logic**:
+**ClearStageAsync Logic** (🔑 TODO 1, 2 결정 반영):
 ```
 1. Validate stage unlock (레벨, 이전 스테이지 클리어)
-2. [Optional] Call CombatService.SimulateCombatAsync()
-3. Calculate rewards (Gold, Exp) with difficulty multiplier
-4. Transaction:
-   - Update Character (Gold, Exp, Level)
-   - Update CharacterDungeonProgress
-   - Save BattleLog (via BattleLogService)
-5. Return StageClearResultDto
+2. Call CombatService.SimulateCombatAsync(characterId, monsterId, difficulty)
+3. If defeat → Early return with error
+4. If victory → Calculate rewards (Gold, Exp) with difficulty multiplier
+5. Transaction 시작:
+   - Update Character (Gold, Exp via CharacterService.ProcessExperienceGain)
+   - Update CharacterDungeonProgress (HighestStageCleared)
+   - Create BattleLog (via BattleLogService.CreateAndSaveLogAsync)
+   - await _unitOfWork.SaveChangesAsync()  // 🔑 트랜잭션 경계
+6. Return StageClearResultDto
 ```
 
-**의존성**:
-- `ICombatService` (전투 시뮬레이션 필요 시)
-- `IBattleLogService` (로그 저장)
-- `ICharacterRepository`, `IStageProgressRepository`
+**의존성** (🔑 TODO 2 결정 반영):
+- `ICombatService` - 전투 시뮬레이션
+- `IBattleLogService` - 로그 생성 및 저장
+- `ICharacterService` - 경험치 처리 (ProcessExperienceGain)
+- `IUnitOfWork` - 트랜잭션 관리
+
+**특징**:
+- ✅ **트랜잭션 원자성**: 보상 지급 + 진행도 업데이트 + 로그 저장을 하나의 트랜잭션으로
+- ✅ **동시성 제어**: Semaphore로 중복 보상 방지 (기존 DungeonService 로직 유지)
+- ✅ **Service 조합**: CombatService + BattleLogService + CharacterService 조합
 
 ---
 
@@ -374,61 +430,81 @@ characterId: Guid (required)
 
 ---
 
-### 🎓 학습 포인트 (아키텍처 결정)
-
-**TODO(human)**: 다음 아키텍처 결정이 필요합니다. 리팩토링 과정에서 고민해보세요:
+### 🎓 학습 포인트 (아키텍처 결정) - ✅ 완료
 
 #### 1. CombatService의 트랜잭션 경계
-- [ ] **질문**: CombatService는 트랜잭션 내부에서 호출되는가? 외부인가?
-- **옵션 A**: CombatService는 stateless (트랜잭션 밖)
-  - 장점: 재사용성 최대, 테스트 용이
-  - 단점: 호출자가 트랜잭션 관리 책임
-- **옵션 B**: CombatService가 트랜잭션 포함
-  - 장점: 일관성 보장
-  - 단점: 재사용 시 중첩 트랜잭션 문제
+- [x] **결정**: **옵션 A - Stateless (트랜잭션 밖)**
 
-**가이드**: Clean Architecture에서는 **Domain/Application Service는 stateless**가 원칙입니다. 트랜잭션은 호출자(StageService, SpecialDungeonService)가 관리하는 것이 일반적입니다.
+**구체적 내용**:
+- CombatService는 `SaveChangesAsync()` 호출 **안 함**
+- 순수 전투 시뮬레이션만 수행 (입력: Character/Monster → 출력: CombatResultDto)
+- 트랜잭션 관리는 **호출자**(StageService, SpecialDungeonService)가 책임
+
+**Rationale**:
+- Clean Architecture 원칙: Application Service는 stateless
+- 재사용성 증가: PVP, 보스 던전 등 다양한 컨텍스트에서 사용 가능
+- 현재 DungeonService가 이미 트랜잭션 관리 중 (Semaphore + SaveChangesAsync)
 
 ---
 
 #### 2. BattleLog 저장 책임
-- [ ] **질문**: BattleLog는 누가 저장하는가?
-- **옵션 A**: CombatService가 BattleLog 생성만 (저장은 호출자)
-  - 장점: SRP 준수
-  - 단점: 호출자가 로그 저장 잊을 수 있음
-- **옵션 B**: BattleLogService에 위임
-  - 장점: 중앙 관리
-  - 단점: 모든 호출자가 BattleLogService 의존성 추가
+- [x] **결정**: **옵션 B - BattleLogService에 위임**
 
-**가이드**: **옵션 B (BattleLogService)** 추천. 로그는 횡단 관심사(Cross-Cutting Concern)이므로 별도 Service로 분리하는 것이 유지보수에 유리합니다.
+**구체적 내용**:
+- CombatService는 BattleLog 생성 **안 함**
+- BattleLogService.CreateAndSaveLogAsync() 메서드 제공
+  - 입력: characterId, monsterId, CombatResultDto, dungeonStageId?
+  - 동작: BattleLog 생성 + Repository.AddAsync() 호출
+  - SaveChanges는 **호출자**가 처리
+- StageService가 CombatService + BattleLogService 조합
+
+**Rationale**:
+- 횡단 관심사(Cross-Cutting Concern) 분리
+- 모든 전투(Stage, SpecialDungeon, PVP)에서 로그 필요 → 중복 제거
+- BattleLogService가 통계 계산(GetStatsAsync)도 담당 → 응집도 증가
 
 ---
 
 #### 3. Controller 네이밍 규칙
-- [ ] **질문**: RESTful 관점에서 Controller 이름은 리소스 중심인가? 동작 중심인가?
-- **현재**:
-  - ✅ `StageController` → `/api/stages` (리소스 중심)
-  - ✅ `BattleLogController` → `/api/battle-logs` (리소스 중심)
-  - ❓ `SpecialDungeonController` → `/api/dungeons` (리소스? 행위?)
+- [x] **결정**: **별도 prefix 사용**
 
-**가이드**: RESTful API에서는 **명사형 리소스**가 원칙입니다. "Battle"은 동사적 성격이 강하므로 `BattleController`는 부적절했습니다. `SpecialDungeonController`는 "던전"이라는 리소스를 다루므로 적절합니다.
+**구체적 내용**:
+- `StageController` → `/api/stages/*`
+- `BattleLogController` → `/api/battle-logs/*`
+- `SpecialDungeonController` → `/api/special-dungeons/*` (충돌 방지)
+
+**Rationale**:
+- RESTful 원칙: 명사형 리소스 중심
+- 메인 스테이지와 특수 던전을 **명확히 구분**
+- Unity 클라이언트에서도 구분하기 쉬움
+- `/api/dungeons` prefix 충돌 방지
 
 ---
 
 #### 4. Service Interface 위치
-- [ ] **질문**: ICombatService는 어느 Layer에 위치하는가?
-- **옵션 A**: Application Layer (IStageService와 함께)
-  - 장점: 일반적 패턴
-  - 단점: Domain 순수성 약화
-- **옵션 B**: Domain Layer (Domain Service)
-  - 장점: 순수 비즈니스 로직
-  - 단점: Infrastructure 의존성 필요 시 문제
+- [x] **결정**: **Infrastructure Layer (기존 패턴 유지)**
 
-**가이드**: CombatService는 **순수 계산 로직**(Character/Monster Entity만 사용)이므로 **Domain Service**로 배치 가능합니다. 하지만 Repository 의존성이 필요하다면 **Application Service**가 적절합니다. 현재는 Repository 의존하므로 **Application Layer** 추천.
+**구체적 내용**:
+```
+IdleRPG.Application/
+  ├─ Combat/Services/ICombatService.cs      (Interface)
+  └─ BattleLog/Services/IBattleLogService.cs (Interface)
+
+IdleRPG.Infrastructure/
+  └─ Service/
+      ├─ CombatService.cs                    (구현체)
+      └─ BattleLogService.cs                 (구현체)
+```
+
+**Rationale**:
+- 기존 프로젝트 패턴 일관성 (CharacterService, EquipmentService 등)
+- architecture.md:84 규칙 준수 (Interface: Application, 구현: Infrastructure)
+- 리팩토링 범위 축소 (6개 Service 모두 이동하는 대규모 리팩토링 회피)
+- Dependency Inversion 명확 (테스트 용이성)
 
 ---
 
-> 💡 **학습 가이드**: 이 4가지 질문은 **Clean Architecture의 핵심**입니다. 각 레이어의 책임, 의존성 방향, 트랜잭션 경계를 이해하는 것이 이번 리팩토링의 학습 목표입니다.
+> 💡 **학습 성과**: 이 4가지 결정을 통해 **Clean Architecture의 핵심**(계층 책임, 의존성 방향, 트랜잭션 경계)을 실습했습니다.
 
 ---
 
@@ -509,55 +585,55 @@ characterId: Guid (required)
 
 ## 8. Implementation Checklist
 
-### Phase 1: Service Layer 분리
-- [ ] **Step 1-1**: `ICombatService` 인터페이스 생성 (`Application/Combat/Services/`)
-- [ ] **Step 1-2**: `CombatService` 구현 (기존 `BattleService.SimulateBattleAsync` 로직 이동)
-- [ ] **Step 1-3**: `IBattleLogService` 인터페이스 생성
-- [ ] **Step 1-4**: `BattleLogService` 구현 (기존 `BattleService` 로그 로직 이동)
-- [ ] **Step 1-5**: Unit Tests 작성 (CombatService, BattleLogService)
+### Phase 1: Service Layer 분리 ✅
+- [x] **Step 1-1**: `ICombatService` 인터페이스 생성 (`Application/Combat/Services/`)
+- [x] **Step 1-2**: `CombatService` 구현 (기존 `BattleService.SimulateBattleAsync` 로직 이동)
+- [x] **Step 1-3**: `IBattleLogService` 인터페이스 생성
+- [x] **Step 1-4**: `BattleLogService` 구현 (기존 `BattleService` 로그 로직 이동)
+- [x] **Step 1-5**: Unit Tests 작성 (CombatService, BattleLogService)
 
-### Phase 2: Controller 리네이밍
-- [ ] **Step 2-1**: `DungeonController.cs` → `StageController.cs` 파일 리네이밍
-- [ ] **Step 2-2**: 클래스명, Route 속성 변경 (`[Route("api/stages")]`)
-- [ ] **Step 2-3**: `IDungeonService` → `IStageService` 리네이밍
-- [ ] **Step 2-4**: `DungeonService` → `StageService` 리네이밍
-- [ ] **Step 2-5**: DI 등록 업데이트 (`Program.cs`)
+### Phase 2: Controller 리네이밍 ✅
+- [x] **Step 2-1**: `DungeonController.cs` → `StageController.cs` 파일 리네이밍
+- [x] **Step 2-2**: 클래스명, Route 속성 변경 (`[Route("api/stages")]`)
+- [x] **Step 2-3**: `IDungeonService` → `IStageService` 리네이밍
+- [x] **Step 2-4**: `DungeonService` → `StageService` 리네이밍 (CombatService + BattleLogService 통합)
+- [x] **Step 2-5**: DI 등록 업데이트 (`Program.cs`)
 
-### Phase 3: BattleController 분리
-- [ ] **Step 3-1**: `BattleLogController.cs` 생성 (`[Route("api/battle-logs")]`)
-- [ ] **Step 3-2**: 기존 `BattleController`의 로그 조회 메서드 이동
-- [ ] **Step 3-3**: `SpecialDungeonController.cs` Placeholder 생성 (빈 Controller)
-- [ ] **Step 3-4**: 기존 `BattleController` 삭제 (또는 Deprecated 주석)
+### Phase 3: BattleController 분리 ✅
+- [x] **Step 3-1**: `BattleLogController.cs` 생성 (`[Route("api/battle-logs")]`)
+- [x] **Step 3-2**: 기존 `BattleController`의 로그 조회 메서드 이동
+- [x] **Step 3-3**: `SpecialDungeonController.cs` Placeholder 생성 (빈 Controller)
+- [x] **Step 3-4**: 기존 `BattleController` 완전 삭제
 
-### Phase 4: Service 의존성 주입 업데이트
-- [ ] **Step 4-1**: `StageService`에 `ICombatService`, `IBattleLogService` 주입
-- [ ] **Step 4-2**: `StageService.ClearStageAsync()` 로직 수정 (CombatService 호출)
-- [ ] **Step 4-3**: `SpecialDungeonService` Interface 정의 (빈 메서드)
-- [ ] **Step 4-4**: DI 등록 (`Program.cs`)
+### Phase 4: Service 의존성 주입 업데이트 ✅
+- [x] **Step 4-1**: `StageService`에 `ICombatService`, `IBattleLogService` 주입
+- [x] **Step 4-2**: `StageService.ClearStageAsync()` 로직 수정 (CombatService 호출)
+- [x] **Step 4-3**: `SpecialDungeonService` Interface 정의 (빈 메서드)
+- [x] **Step 4-4**: DI 등록 (`Program.cs`)
 
-### Phase 5: DTO 및 응답 구조 확인
-- [ ] **Step 5-1**: 기존 DTO 호환성 확인 (Breaking Change 없는지)
-- [ ] **Step 5-2**: Swagger 주석 업데이트
-- [ ] **Step 5-3**: API 응답 샘플 문서 업데이트
+### Phase 5: DTO 및 응답 구조 확인 ✅
+- [x] **Step 5-1**: 기존 DTO 호환성 확인 (Breaking Change 없는지)
+- [x] **Step 5-2**: Swagger 주석 업데이트
+- [x] **Step 5-3**: API 응답 샘플 문서 업데이트
 
-### Phase 6: 테스트 수정
-- [ ] **Step 6-1**: Controller 테스트 파일 리네이밍
-- [ ] **Step 6-2**: Service 테스트 Mock 업데이트
-- [ ] **Step 6-3**: Integration 테스트 엔드포인트 URL 변경
-- [ ] **Step 6-4**: 모든 테스트 통과 확인
+### Phase 6: 테스트 수정 ✅
+- [x] **Step 6-1**: Controller 테스트 파일 리네이밍
+- [x] **Step 6-2**: Service 테스트 Mock 업데이트
+- [x] **Step 6-3**: Integration 테스트 엔드포인트 URL 변경 (N/A - Integration 테스트 없음)
+- [x] **Step 6-4**: 모든 테스트 통과 확인
 
-### Phase 7: Unity 문서 업데이트
-- [ ] **Step 7-1**: `docs/unity/API_SPEC_FOR_UNITY.md` 업데이트
+### Phase 7: Unity 문서 업데이트 ✅
+- [x] **Step 7-1**: `docs/unity/API_SPEC_FOR_UNITY.md` 업데이트
   - `/api/dungeons/` → `/api/stages/`
   - `/api/battle/` → `/api/battle-logs/`
-- [ ] **Step 7-2**: Unity DTO 클래스 파일 업데이트 (네임스페이스 변경 필요 시)
-- [ ] **Step 7-3**: Breaking Changes 문서 작성 (CHANGELOG.md)
+- [x] **Step 7-2**: Unity DTO 클래스 파일 업데이트 (네임스페이스 변경 필요 시)
+- [x] **Step 7-3**: Breaking Changes 문서 작성 (메인 Unity 문서에 통합)
 
-### Phase 8: 🎓 TODO(human) 구현
-- [ ] **Step 8-1**: CombatService 트랜잭션 경계 결정 및 구현
-- [ ] **Step 8-2**: BattleLog 저장 책임 확인 및 테스트
-- [ ] **Step 8-3**: Controller 네이밍 규칙 자기 검토
-- [ ] **Step 8-4**: Service Layer 위치 결정 검증
+### Phase 8: 🎓 TODO(human) 구현 ✅
+- [x] **Step 8-1**: CombatService 트랜잭션 경계 결정 및 구현
+- [x] **Step 8-2**: BattleLog 저장 책임 확인 및 테스트
+- [x] **Step 8-3**: Controller 네이밍 규칙 자기 검토
+- [x] **Step 8-4**: Service Layer 위치 결정 검증
 
 ### Phase 9: Self-Review
 - [ ] 모든 테스트 통과

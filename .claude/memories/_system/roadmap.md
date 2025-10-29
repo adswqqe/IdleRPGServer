@@ -32,8 +32,10 @@
 **완료 시스템**:
 - ✅ 8. 펫 시스템
 
+**진행 중**:
+- 🚀 9. 실시간 채팅 (SignalR) - Requirements 완료
+
 **다음 작업**:
-- 📋 9. 실시간 채팅 (SignalR)
 - 📋 10. PVP 아레나
 
 ---
@@ -69,11 +71,11 @@
 ## 전체 진행률
 
 **완료된 시스템**: 8개 / 20개 (40%)
-**진행 중 시스템**: 없음
+**진행 중 시스템**: 1개 (시스템 9: 실시간 채팅 - Requirements 완료)
 
 **Phase 별**:
 - Phase 1 (MVP): 7/7 = 100% ✅
-- Phase 2 (핵심): 1/3 = 33% 🚀
+- Phase 2 (핵심): 1/3 = 33% 🚀 (시스템 9 진행중)
 - Phase 3 (소셜): 0/5 = 0%
 - Phase 4 (운영): 0/5 = 0%
 
@@ -115,8 +117,12 @@
   - ✅ Unity 문서: API_SPEC.md (886줄), DTOs.cs (367줄), INTEGRATION_GUIDE.md (1,081줄)
 - **Phase 2 진행률: 33% (1/3)** 🚀
 
+### 🚀 Week 4 현재 (2025-10-28)
+- 시스템 9: 실시간 채팅 (SignalR)
+  - ✅ Requirements 완료 (L Size, 18개 대화형 질문)
+  - 📋 Next: Spike (선택) 또는 Design 단계
+
 ### 📋 Week 4-5 목표
-- 시스템 8: 펫 시스템
 - 시스템 9: 실시간 채팅 (SignalR 학습)
 - 시스템 10: PVP 아레나
 
@@ -130,15 +136,39 @@
 
 ---
 
+## 기술 부채 & 리팩토링
+
+> **목적**: 기능 개발과 별도로 코드 품질 개선, 아키텍처 정리 작업 추적
+
+**완료**:
+- ✅ **Combat System Refactoring** (M Size - 2025-10-29 완료)
+  - ✅ Phase 1-8 완료: Service 분리, Controller 리네이밍, 테스트 수정, Unity 문서 업데이트
+  - ✅ 17개 테스트 모두 통과
+  - ✅ Clean Architecture 원칙 준수 (SRP, Dependency Inversion)
+  - **결과**: CombatService, BattleLogService, StageService로 명확히 분리
+  - **API 변경**: `/api/dungeons/*` → `/api/stages/*`, `/api/battle/*` → `/api/battle-logs/*`
+  - **Unity 영향**: Breaking Changes 문서화 완료
+
+**진행 중**:
+- (없음)
+
+---
+
 ## Kiro Spec 진행 상황
 
 **완료된 Specs**:
 - ✅ `.claude/memories/specs/skill-gacha/` (Requirements, Design, Tasks, 구현, Unity 문서 완료)
 - ✅ `.claude/memories/specs/pet-system/` (Requirements, Design, Tasks, 구현, Unity 문서 완료)
+- ✅ `.claude/memories/specs/combat-system-refactoring/` (spec-lite.md, Phase 1-8 구현 완료 - 2025-10-29)
+
+**진행 중 Specs**:
+- 🚀 `.claude/memories/specs/realtime-chat/` (Requirements 완료 - 2025-10-28)
+  - Size: L (SignalR 새 기술 도입)
+  - Next: Spike (선택) 또는 `/spec-design realtime-chat`
 
 **다음 Spec**:
-- 📋 Realtime Chat System (시스템 9번) 또는 PVP Arena (시스템 10번)
+- 📋 PVP Arena (시스템 10번)
 
 ---
 
-**최종 업데이트**: 2025-10-28
+**최종 업데이트**: 2025-10-29
