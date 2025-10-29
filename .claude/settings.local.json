@@ -169,7 +169,13 @@
       "WebFetch(domain:namu.wiki)",
       "WebFetch(domain:m.dcinside.com)",
       "WebFetch(domain:gall.dcinside.com)",
-      "SlashCommand(/spec-init-lite:*)"
+      "SlashCommand(/spec-init-lite:*)",
+      "Bash(if [ -d \"D:\\Proj\\IdleGameClient\\Docs\\unity\\realtime-chat\" ])",
+      "Bash([ -d \"D:\\Proj\\IdleGameClient\\Docs\\unity\\chat\" ])",
+      "Bash([ -d \"D:\\Proj\\IdleGameClient\\Docs\\unity\\signalr\" ])",
+      "Bash(then echo \"Unity docs: EXISTS\")",
+      "Bash(else echo \"Unity docs: NOT FOUND (expected, not implemented yet)\")",
+      "Bash(fi)"
     ]
   },
   "enableAllProjectMcpServers": true,

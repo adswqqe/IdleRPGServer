@@ -6,7 +6,8 @@
 
 | ID | Title | Status | Date | Decider |
 |----|-------|--------|------|---------|
-| [ADR-0001](./ADR-0001-template.md) | Template (예시) | Proposed | 2025-10-23 | - |
+| [ADR-0001](./TEMPLATE.md) | Template (예시) | Proposed | 2025-10-23 | - |
+| [ADR-0002](./ADR-0002-signalr-adoption.md) | SignalR 도입 결정 | Accepted | 2025-10-29 | Development Team |
 
 ## 📚 사용법
 

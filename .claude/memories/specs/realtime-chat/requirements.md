@@ -740,14 +740,17 @@ Requirements 승인 후:
 
 ## ✅ Approval
 
-- [ ] **Requirements 검토 완료** (User Stories, AC 확인)
-- [ ] **Data Model 승인** (ChatRoom, ChatMessage Entity)
-- [ ] **API 설계 승인** (REST + SignalR 하이브리드)
-- [ ] **TODO(human) 확인** (3개 학습 포인트)
-- [ ] **게임 밸런스 승인** (AI 제안값)
-- [ ] **Spike 실행 여부 결정** (SignalR 성능 검증)
+- [x] **Requirements 검토 완료** (User Stories, AC 확인)
+- [x] **Data Model 승인** (ChatRoom, ChatMessage Entity)
+- [x] **API 설계 승인** (REST + SignalR 하이브리드)
+- [x] **TODO(human) 확인** (3개 학습 포인트)
+- [x] **게임 밸런스 승인** (AI 제안값)
+- [x] **Spike 실행 여부 결정** (Skip - 프로토타입에서 검증 예정)
+
+**Approved by**: Development Team
+**Date**: 2025-10-29
 
 ---
 
-**Status**: Ready for Review
-**Next**: Spike (선택) → `/spec-design realtime-chat`
+**Status**: Approved
+**Next**: `/spec-design realtime-chat`
