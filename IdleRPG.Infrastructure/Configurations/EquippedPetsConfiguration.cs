@@ -12,33 +12,29 @@ namespace IdleRPG.Infrastructure.Configurations
         public void Configure(EntityTypeBuilder<EquippedPets> builder)
         {
             // Table name
-            builder.ToTable("equipped_pets");
+            builder.ToTable("EquippedPets");
 
             // Composite Primary Key
             builder.HasKey(ep => new { ep.CharacterId, ep.SlotIndex });
 
             // Properties
             builder.Property(ep => ep.CharacterId)
-                .HasColumnName("character_id")
                 .IsRequired();
 
             builder.Property(ep => ep.SlotIndex)
-                .HasColumnName("slot_index")
                 .IsRequired();
 
             builder.Property(ep => ep.PetId)
-                .HasColumnName("pet_id")
                 .IsRequired();
 
             builder.Property(ep => ep.EquippedAt)
-                .HasColumnName("equipped_at")
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
                 .IsRequired();
 
             // UNIQUE Constraint: 한 펫은 하나의 슬롯에만 장착 가능
             builder.HasIndex(ep => ep.PetId)
                 .IsUnique()
-                .HasDatabaseName("uk_equipped_pets_pet_id");
+                .HasDatabaseName("UK_EquippedPets_PetId");
 
             // Foreign Keys
             builder.HasOne(ep => ep.Character)
@@ -54,7 +50,7 @@ namespace IdleRPG.Infrastructure.Configurations
             // Check Constraints (PostgreSQL)
             builder.ToTable(t =>
             {
-                t.HasCheckConstraint("chk_equipped_pets_slot_index", "slot_index >= 1 AND slot_index <= 3");
+                t.HasCheckConstraint("CK_EquippedPets_SlotIndex", "\"SlotIndex\" >= 1 AND \"SlotIndex\" <= 3");
             });
         }
     }

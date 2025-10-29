@@ -4,7 +4,7 @@
 > **PRD**: `docs/MUSHROOM_GAME_PRD.md`
 
 **프로젝트 기간**: 8주 (2025-10-14 ~ 2025-12-06)
-**현재 진행**: Week 3 Day 3 (2025-10-23)
+**현재 진행**: Week 4 Day 0 (2025-10-28)
 
 ---
 
@@ -27,10 +27,12 @@
 ## Phase 2: Expansion (Week 4-5) - 핵심 게임플레이
 
 **시스템**: 8-10
-**진행률**: **0/3 (0%)**
+**진행률**: **1/3 (33%)** 🚀
+
+**완료 시스템**:
+- ✅ 8. 펫 시스템
 
 **다음 작업**:
-- 📋 8. 펫 시스템
 - 📋 9. 실시간 채팅 (SignalR)
 - 📋 10. PVP 아레나
 
@@ -66,12 +68,12 @@
 
 ## 전체 진행률
 
-**완료된 시스템**: 7개 / 20개 (35%)
+**완료된 시스템**: 8개 / 20개 (40%)
 **진행 중 시스템**: 없음
 
 **Phase 별**:
 - Phase 1 (MVP): 7/7 = 100% ✅
-- Phase 2 (핵심): 0/3 = 0% 📋
+- Phase 2 (핵심): 1/3 = 33% 🚀
 - Phase 3 (소셜): 0/5 = 0%
 - Phase 4 (운영): 0/5 = 0%
 
@@ -102,11 +104,16 @@
   - 20개 테스트 (Domain, Infrastructure, API)
 - **Phase 1 완료! 🎉**
 
-### 📋 Week 3-4 목표 (Phase 2 시작)
-- Drop System (던전 보상)
-- Combat-Dungeon 통합
-- 스킬 장착/해제 API
-- 시스템 8: 펫 시스템 시작
+### ✅ Week 3-4 (2025-10-24 ~ 2025-10-28) - Phase 2 시작
+- 시스템 8 완료 (Pet System - 8 endpoints) **100% 완료** ✅
+  - ✅ Domain: Pet, PetTemplate, EquippedPets, PetGachaService
+  - ✅ Application: IPetService + 9개 DTO
+  - ✅ Infrastructure: 3개 Repository + PetTemplateSeeder
+  - ✅ API: 가챠, 레벨업, 장착/해제, 목록 조회, 삭제
+  - ✅ 테스트: 36개 테스트 케이스 (1,322줄)
+  - ✅ Spec 문서: Requirements, Design, Tasks, Work-Log
+  - ✅ Unity 문서: API_SPEC.md (886줄), DTOs.cs (367줄), INTEGRATION_GUIDE.md (1,081줄)
+- **Phase 2 진행률: 33% (1/3)** 🚀
 
 ### 📋 Week 4-5 목표
 - 시스템 8: 펫 시스템
@@ -126,11 +133,12 @@
 ## Kiro Spec 진행 상황
 
 **완료된 Specs**:
-- ✅ `.claude/memories/specs/skill-gacha/` (Requirements, Design, Tasks 모두 완료)
+- ✅ `.claude/memories/specs/skill-gacha/` (Requirements, Design, Tasks, 구현, Unity 문서 완료)
+- ✅ `.claude/memories/specs/pet-system/` (Requirements, Design, Tasks, 구현, Unity 문서 완료)
 
 **다음 Spec**:
-- 📋 Pet System (시스템 8번)
+- 📋 Realtime Chat System (시스템 9번) 또는 PVP Arena (시스템 10번)
 
 ---
 
-**최종 업데이트**: 2025-10-23
+**최종 업데이트**: 2025-10-28

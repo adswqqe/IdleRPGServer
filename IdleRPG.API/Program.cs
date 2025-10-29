@@ -139,11 +139,12 @@ using (var scope = app.Services.CreateScope())
         await skillSeeder.SeedAsync();
 
         // LootTable Seed Data 생성 (던전 보상 테이블)
-        var lootTableSeeder = new IdleRPG.Infrastructure.Data.Seeders.LootTableSeeder(
-            context,
-            services.GetRequiredService<ILogger<IdleRPG.Infrastructure.Data.Seeders.LootTableSeeder>>());
-
-        await lootTableSeeder.SeedAsync();
+        // ⚠️ DISABLED: LootTables/LootItems 테이블이 아직 구현되지 않음 (Drop System 미완성)
+        // var lootTableSeeder = new IdleRPG.Infrastructure.Data.Seeders.LootTableSeeder(
+        //     context,
+        //     services.GetRequiredService<ILogger<IdleRPG.Infrastructure.Data.Seeders.LootTableSeeder>>());
+        //
+        // await lootTableSeeder.SeedAsync();
 
         // 펫 템플릿 Seed Data 생성
         var petTemplateSeeder = new IdleRPG.Infrastructure.Data.Seeders.PetTemplateSeeder(

@@ -164,7 +164,12 @@
       "mcp__zen__thinkdeep",
       "Bash(powershell -Command \"(Get-Content ''D:\\Proj\\IdleGameServer\\CLAUDE.md'' -Raw).Length\")",
       "Bash(powershell -Command \"(Get-Content ''D:\\Proj\\IdleGameServer\\CLAUDE.md'' | Measure-Object -Line).Lines\")",
-      "mcp__zen__challenge"
+      "mcp__zen__challenge",
+      "Bash(find:*)",
+      "WebFetch(domain:namu.wiki)",
+      "WebFetch(domain:m.dcinside.com)",
+      "WebFetch(domain:gall.dcinside.com)",
+      "SlashCommand(/spec-init-lite:*)"
     ]
   },
   "enableAllProjectMcpServers": true,
