@@ -53,7 +53,7 @@ public class ChatService : IChatService
         // 2. 쿨다운 체크 (1초)
         var cacheKey = $"chat:cooldown:{senderId}";
         if (_cache.TryGetValue(cacheKey, out _))
-        {
+        { 
             _logger.LogWarning("메시지 전송 실패: 쿨다운 위반. SenderId={SenderId}", senderId);
             throw new InvalidOperationException("메시지를 너무 빠르게 전송했습니다. 1초 후에 다시 시도하세요.");
         }

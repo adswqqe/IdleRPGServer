@@ -11,14 +11,14 @@
 
 ## 📊 Progress Overview
 
-**전체 진행률**: 16/31 (52%)
+**전체 진행률**: 18/31 (58%)
 
 | Milestone | 작업 수 | 완료 | 진행률 |
 |-----------|---------|------|--------|
 | Domain Layer | 6 | 6 | 100% |
 | Infrastructure Layer | 7 | 7 | 100% |
-| Application Layer | 4 | 3 | 75% |
-| API Layer | 5 | 0 | 0% |
+| Application Layer | 4 | 4 | 100% |
+| API Layer | 5 | 1 | 20% |
 | Database | 3 | 0 | 0% |
 | Testing & Documentation | 6 | 0 | 0% |
 
@@ -330,10 +330,11 @@
 
 ---
 
-### 3.4 Register ChatService in DI Container ⏱️ 15분
-- [ ] Open `IdleRPG.API/Program.cs`
-- [ ] Register: `builder.Services.AddScoped<IChatService, ChatService>()`
-- [ ] Register: `builder.Services.AddMemoryCache()` (쿨다운 캐싱)
+### 3.4 Register ChatService in DI Container ⏱️ 15분 ✅
+- [x] Open `IdleRPG.API/Program.cs`
+- [x] Register: `builder.Services.AddScoped<IChatService, ChatService>()`
+- [x] Register: `builder.Services.AddMemoryCache()` (쿨다운 캐싱)
+- [x] Update SignalR JWT path to include `/chat`
 
 **Requirements**: All
 **Design Reference**: [Service Layer Design]
@@ -342,11 +343,11 @@
 
 ## 🌐 Milestone 4: API Layer
 
-### 4.1 Create ChatController ⏱️ 1.5시간
-- [ ] Create `IdleRPG.API/Controllers/ChatController.cs`
-- [ ] Add [Authorize] attribute (JWT Bearer)
-- [ ] Inject IChatService dependency
-- [ ] Implement `GET /api/chat/rooms/{roomId}/messages`:
+### 4.1 Create ChatController ⏱️ 1.5시간 ✅
+- [x] Create `IdleRPG.API/Controllers/ChatController.cs`
+- [x] Add [Authorize] attribute (JWT Bearer)
+- [x] Inject IChatService dependency
+- [x] Implement `GET /api/chat/rooms/{roomId}/messages`:
   - Path parameter: roomId (Guid)
   - Query parameters: beforeId? (Guid), take? (int, 기본 50, 최소 10, 최대 100)
   - JWT에서 CharacterId 추출
@@ -357,11 +358,11 @@
     - 401 Unauthorized: JWT 토큰 없음/만료
     - 403 Forbidden: 권한 없음
     - 404 Not Found: 채팅방 미존재
-- [ ] Implement `GET /api/chat/rooms`:
+- [x] Implement `GET /api/chat/rooms`:
   - JWT에서 CharacterId 추출
   - Call _chatService.GetAccessibleRoomsAsync()
   - Return 200 OK: List<ChatRoomDto>
-- [ ] Add Swagger XML comments
+- [x] Add Swagger XML comments
 
 **Requirements**: US-2 (히스토리 조회), US-3 (채팅방 목록)
 **Design Reference**: [API Design - REST API Endpoints]

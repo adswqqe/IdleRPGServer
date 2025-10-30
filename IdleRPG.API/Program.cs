@@ -44,9 +44,9 @@ builder.Services.AddAuthentication(options =>
             {
                 var accessToken = context.Request.Query["access_token"];
                 var path = context.HttpContext.Request.Path;
-            
-                if (!string.IsNullOrEmpty(accessToken) && 
-                    path.StartsWithSegments("/gamehub"))
+
+                if (!string.IsNullOrEmpty(accessToken) &&
+                    (path.StartsWithSegments("/gamehub") || path.StartsWithSegments("/chat")))
                 {
                     context.Token = accessToken;
                 }
@@ -75,6 +75,10 @@ builder.Services.AddScoped<IdleRPG.Application.Interfaces.IOfflineRewardService,
 builder.Services.AddScoped<IdleRPG.Application.Interfaces.IEquipmentService, IdleRPG.Infrastructure.Service.EquipmentService>();
 builder.Services.AddScoped<IdleRPG.Application.Services.ISkillService, IdleRPG.Infrastructure.Services.SkillService>();
 builder.Services.AddScoped<IdleRPG.Application.Services.IPetService, IdleRPG.Infrastructure.Services.PetService>();
+builder.Services.AddScoped<IdleRPG.Application.Services.IChatService, IdleRPG.Infrastructure.Services.ChatService>();
+
+// Memory Cache (Chat 쿨다운 관리용)
+builder.Services.AddMemoryCache();
 
 // Domain Services (순수 비즈니스 로직)
 builder.Services.AddScoped<IdleRPG.Domain.Services.GachaLogicService>();

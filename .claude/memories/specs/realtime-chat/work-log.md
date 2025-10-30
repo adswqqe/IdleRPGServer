@@ -575,3 +575,73 @@
 - 설계 논의는 스킵하고 합리적인 기본 설계 사용 → 빠른 진행
 
 ---
+
+## 2025-10-30 (Task 3.4)
+
+### Task Completed
+- [x] 3.4 Register ChatService in DI Container
+
+### Files Changed
+- `IdleRPG.API/Program.cs` (modified, +5 lines)
+
+### Key Decisions
+- **DI 등록**:
+  - IChatService → ChatService (Scoped 생명주기)
+  - IMemoryCache 추가 (쿨다운 관리용, Singleton)
+  - 프로젝트 표준 패턴 유지 (AddScoped)
+
+- **SignalR JWT 경로 추가**:
+  - OnMessageReceived 이벤트에 `/chat` 경로 추가
+  - 기존 `/gamehub`와 동일한 토큰 추출 로직 공유
+  - Query String 방식: `?access_token={token}`
+
+### Notes
+- ✅ Application Layer 완료 (4/4, 100%)
+- ✅ 빌드 성공 (오류 0개)
+- 다음 Milestone: API Layer (ChatController, ChatHub 구현)
+- ChatHub에서도 JWT 인증 가능 (path.StartsWithSegments("/chat") 조건)
+
+---
+
+## 2025-10-30 (Task 4.1)
+
+### Task Completed
+- [x] 4.1 Create ChatController
+
+### Files Changed
+- `IdleRPG.API/Controllers/ChatController.cs` (new file, 172 lines)
+
+### Key Decisions
+- **REST API 엔드포인트 2개**:
+  - `GET /api/chat/rooms/{roomId}/messages`: 메시지 히스토리 조회 (Cursor 페이징)
+  - `GET /api/chat/rooms`: 접근 가능한 채팅방 목록 조회
+
+- **JWT에서 CharacterId 추출**:
+  - `User.FindFirst(ClaimTypes.NameIdentifier)?.Value`
+  - Guid 파싱 실패 시 401 Unauthorized 반환
+
+- **Input Validation**:
+  - roomId: Guid.Empty 체크
+  - take: 10-100 범위 검증 (기본값 50)
+  - beforeId: nullable (첫 조회 시 null)
+
+- **에러 처리 전략**:
+  - 400 Bad Request: roomId 형식 오류, take 범위 초과
+  - 401 Unauthorized: JWT 토큰 없음/만료
+  - 403 Forbidden: 권한 없음 (UnauthorizedAccessException 캐치)
+  - 404 Not Found: 채팅방/캐릭터 미존재 (KeyNotFoundException 캐치)
+  - 500 Internal Server Error: 예상치 못한 예외
+
+- **Swagger 문서화**:
+  - XML 주석 완료 (summary, param, response 태그)
+  - ProducesResponseType 어트리뷰트로 응답 코드 명시
+
+### Notes
+- ✅ API Layer 진행률: 1/5 (20%)
+- ✅ 빌드 성공 (오류 0개)
+- [Authorize] 어트리뷰트로 클래스 레벨 인증 강제
+- ILogger 의존성 주입으로 로깅 구조화
+- try-catch 패턴으로 Service Layer 예외 처리
+- 다음 작업: ChatHub 구현 (SignalR 실시간 통신)
+
+---
