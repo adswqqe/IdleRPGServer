@@ -108,6 +108,16 @@ namespace IdleRPG.Application.Interfaces
         IEquippedPetsRepository EquippedPets { get; }
 
         /// <summary>
+        /// 채팅방 Repository (Realtime Chat System)
+        /// </summary>
+        IChatRoomRepository ChatRooms { get; }
+
+        /// <summary>
+        /// 채팅 메시지 Repository (Realtime Chat System)
+        /// </summary>
+        IChatMessageRepository ChatMessages { get; }
+
+        /// <summary>
         /// 변경사항을 데이터베이스에 저장 (트랜잭션 커밋)
         /// </summary>
         /// <returns>영향받은 행 수</returns>

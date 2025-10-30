@@ -2,19 +2,26 @@
 
 **목적**: 특정 feature의 Spec 품질을 자동 검증하고 상세 보고서를 생성합니다.
 
+**검증 방식**:
+- **Claude (구조적 검증)**: 형식, 완성도, 추적성 체크
+- **Gemini Pro 2.5 (내용 품질 평가)**: 설계 적절성, 비즈니스 로직, 아키텍처 품질
+- **통합 분석**: 두 관점을 종합하여 최종 점수 산출
+
 ---
 
-## 실행 절차
+## 실행 절차 (3단계 프로세스)
 
-### 1. 인자 확인
+### 1. 인자 확인 및 Spec 타입 확인
 - `$ARGS[0]`: feature-name (필수)
 - `$ARGS[1]`: --format (선택, "summary" | "detailed", 기본값: "detailed")
-
-### 2. Spec 존재 및 타입 확인
 - L 사이즈: `.claude/memories/specs/{feature-name}/` 확인
 - M 사이즈: `.claude/memories/specs/{feature-name}/spec-lite.md` 확인
 
-### 3. 품질 검증 실행
+---
+
+### STEP 1: Claude Self-Review (구조적 검증)
+
+**목적**: 문서의 형식적 완성도와 추적성 검증
 
 #### 3.1 Self-Review Checklist 검증 (10개 항목)
 **Self-Review Checklist 위치**: `.claude/memories/kiro-system-templates/self-review-checklist.md`
@@ -74,14 +81,130 @@
 - 점수 감소 (-2점 이상): ✅ 리스크 완화 확인
 - 사이즈 재판단: 현재 리스크가 다른 사이즈 기준 초과 시 경고
 
-### 4. 품질 점수 계산
+---
 
-**점수 체계** (100점 만점):
-- Self-Review Checklist: 60점 (각 항목 6점)
-- Requirements 추적성: 20점 (100% 추적 → 20점)
-- TODO(human) 완성도: 10점 (100% 해소 → 10점)
-- Decision Log: 5점 (모든 링크 유효 → 5점, L 사이즈만)
-- Unity 문서: 5점 (존재 → 5점)
+### STEP 2: Gemini External Review (내용 품질 평가)
+
+**목적**: 설계의 적절성, 비즈니스 로직 품질, 아키텍처 일관성 평가
+
+#### 2.1 Zen MCP Clink를 통한 Gemini 호출
+
+**Tool**: `mcp__zen__clink`
+- `cli_name`: "gemini"
+- `role`: "codereviewer"
+
+**Prompt Template** (Gemini에게 전달):
+```
+You are reviewing a Clean Architecture-based ASP.NET Core backend design document.
+
+**Context**:
+- Project: {project-name}
+- Feature: {feature-name}
+- Size: {L/M}
+- Tech Stack: ASP.NET Core 8.0, EF Core, PostgreSQL, SignalR (if applicable)
+
+**Documents to Review**:
+{L 사이즈인 경우}
+- Requirements: [requirements.md 전체 내용]
+- Design: [design.md 전체 내용]
+- Tasks: [tasks.md 전체 내용]
+
+{M 사이즈인 경우}
+- Spec: [spec-lite.md 전체 내용]
+
+**Review Criteria** (각 항목 1-10점 평가):
+
+1. **Architecture Quality** (아키텍처 품질)
+   - Clean Architecture 원칙 준수 (의존성 방향, 계층 분리)
+   - Domain 순수성 (외부 의존성 없음)
+   - Service 책임 명확성 (Application vs Domain Service)
+   - 점수: ?/10
+   - 이유: [구체적 근거]
+
+2. **Data Modeling** (데이터 모델링)
+   - Entity 관계 설계의 적절성 (1:N, N:M)
+   - 정규화 vs 역정규화 선택 적절성
+   - 인덱스 전략의 효율성 (복합 인덱스, Covering Index)
+   - Cascade Delete 규칙의 타당성
+   - 점수: ?/10
+   - 이유: [구체적 근거]
+
+3. **Business Logic** (비즈니스 로직)
+   - 게임 밸런스 수치의 합리성 (확률, 쿨다운, 제한 등)
+   - 검증 로직의 충분성 (Input Validation, Business Rules)
+   - 에러 처리의 완전성 (모든 실패 시나리오 커버)
+   - 점수: ?/10
+   - 이유: [구체적 근거]
+
+4. **Performance Considerations** (성능 고려)
+   - N+1 쿼리 방지 전략 (Include, Select Projection)
+   - 페이징 전략의 적절성 (Cursor vs Offset)
+   - 캐싱 전략의 합리성 (MemoryCache, Redis)
+   - 인덱스 활용 최적화
+   - 점수: ?/10
+   - 이유: [구체적 근거]
+
+5. **Security & Authorization** (보안 및 권한)
+   - 인증 방식의 적절성 (JWT Bearer, Query String for SignalR)
+   - 권한 체크 완전성 (모든 API 엔드포인트)
+   - SQL Injection, XSS 방지
+   - 민감 정보 보호 (Password 제외, Select Projection)
+   - 점수: ?/10
+   - 이유: [구체적 근거]
+
+**Output Format**:
+```json
+{
+  "overall_score": ?/50 (5개 항목 합산),
+  "architecture_quality": { "score": ?/10, "reason": "...", "suggestions": ["..."] },
+  "data_modeling": { "score": ?/10, "reason": "...", "suggestions": ["..."] },
+  "business_logic": { "score": ?/10, "reason": "...", "suggestions": ["..."] },
+  "performance": { "score": ?/10, "reason": "...", "suggestions": ["..."] },
+  "security": { "score": ?/10, "reason": "...", "suggestions": ["..."] },
+  "critical_issues": ["issue 1", "issue 2"],
+  "strengths": ["strength 1", "strength 2"],
+  "improvement_priority": {
+    "high": ["action 1", "action 2"],
+    "medium": ["action 3"],
+    "low": ["action 4"]
+  }
+}
+```
+
+**Important**:
+- 한국어로 응답하되, 기술 용어는 영어 유지
+- 구체적인 코드 위치(design.md:123) 또는 섹션명 인용
+- AI가 제안한 게임 밸런스 수치도 합리성 평가
+- TODO(human) 항목은 아키텍처 학습 포인트이므로 긍정 평가
+```
+
+#### 2.2 Gemini 응답 파싱
+- JSON 응답 파싱
+- 각 항목 점수 추출 (총 50점 만점)
+- Critical Issues, Strengths 추출
+- Improvement Priority 추출
+
+---
+
+### STEP 3: Synthesis (결과 통합 및 최종 점수 산출)
+
+#### 3.1 점수 통합
+
+**Claude 점수 (50점 만점)**:
+- Self-Review Checklist: 30점 (각 항목 3점)
+- Requirements 추적성: 10점 (100% 추적 → 10점)
+- TODO(human) 완성도: 5점 (100% 해소 → 5점)
+- Decision Log: 2.5점 (모든 링크 유효 → 2.5점, L 사이즈만)
+- Unity 문서: 2.5점 (존재 → 2.5점)
+
+**Gemini 점수 (50점 만점)**:
+- Architecture Quality: 10점
+- Data Modeling: 10점
+- Business Logic: 10점
+- Performance: 10점
+- Security: 10점
+
+**최종 점수** = Claude 점수 + Gemini 점수 (100점 만점)
 
 **등급**:
 - 🏆 **Excellent**: 90점 이상
@@ -89,28 +212,57 @@
 - ⚠️ **Needs Improvement**: 50-69점
 - ❌ **Poor**: 50점 미만
 
-### 5. 출력 형식
+#### 3.2 Recommendations 통합
+- Claude의 구조적 문제 (HIGH 우선순위)
+- Gemini의 Critical Issues (HIGH 우선순위)
+- Gemini의 Improvement Priority (MEDIUM/LOW)
+- 중복 제거 및 우선순위 재정렬
 
-#### 5.1 Summary 모드 (`--format summary`)
+---
+
+### 4. 출력 형식
+
+#### 4.1 Summary 모드 (`--format summary`)
 ```
 📊 Spec Review: {Feature Name}
 
-**Overall Score**: {점수}/100 ({등급})
+═══════════════════════════════════════════════════
+                  OVERALL SCORE
+═══════════════════════════════════════════════════
 
-**Quick Status**:
+🏆 {최종점수}/100 - {등급}
+
+Progress Bar: [████████░░] {점수}%
+
+Claude (구조적 검증): {Claude점수}/50
+Gemini (내용 품질): {Gemini점수}/50
+
+═══════════════════════════════════════════════════
+
+**Claude Quick Status**:
 ✅ Self-Review: 9/10 passed
 ⚠️ Requirements Traceability: 15/18 items tracked (83%)
 ❌ TODO(human): 3 items remaining
 ✅ Decision Log: All links valid
 ✅ Unity Docs: Present
 
-**Recommendation**: {개선 권장사항 1줄}
+**Gemini Quick Status**:
+✅ Architecture Quality: 8/10
+⚠️ Data Modeling: 7/10
+✅ Business Logic: 9/10
+✅ Performance: 8/10
+❌ Security: 6/10 (권한 체크 불충분)
+
+**Critical Issues**: {개수}개
+**Strengths**: {개수}개
+
+**Top Recommendation**: {가장 중요한 개선사항 1줄}
 
 For detailed report, run:
 /spec-review {feature-name} --format detailed
 ```
 
-#### 5.2 Detailed 모드 (기본값)
+#### 4.2 Detailed 모드 (기본값)
 ```
 📊 Spec Quality Review: {Feature Name}
 
@@ -118,15 +270,24 @@ For detailed report, run:
                   OVERALL SCORE
 ═══════════════════════════════════════════════════
 
-🏆 {점수}/100 - {등급}
+🏆 {최종점수}/100 - {등급}
 
 Progress Bar: [████████░░] {점수}%
 
+Claude (구조적 검증): {Claude점수}/50 ({Claude등급})
+Gemini (내용 품질): {Gemini점수}/50 ({Gemini등급})
+
 ═══════════════════════════════════════════════════
-          SELF-REVIEW CHECKLIST (60점)
+          PART 1: CLAUDE STRUCTURAL REVIEW
 ═══════════════════════════════════════════════════
 
-Score: {점수}/60 ({통과 개수}/10 passed)
+Score: {Claude점수}/50
+
+─────────────────────────────────────────────────
+  1.1 SELF-REVIEW CHECKLIST (30점)
+─────────────────────────────────────────────────
+
+Score: {점수}/30 ({통과 개수}/10 passed)
 
 1. ✅ 요구사항 추적성
    → All US-1, US-2 referenced in Design
@@ -206,11 +367,11 @@ Score: {점수}/5
   → File not found
   → Action: Create ADR or remove link
 
-═══════════════════════════════════════════════════
-         UNITY DOCUMENTATION (5점)
-═══════════════════════════════════════════════════
+─────────────────────────────────────────────────
+  1.5 UNITY DOCUMENTATION (2.5점)
+─────────────────────────────────────────────────
 
-Score: {점수}/5
+Score: {점수}/2.5
 
 ✅ Present:
 - docs/unity/pet-system/API_SPEC.md (exists)
@@ -221,8 +382,106 @@ Score: {점수}/5
   → Action: Update Unity docs to match design.md
 
 ═══════════════════════════════════════════════════
-        RISK RE-ASSESSMENT (참고 정보)
+          PART 2: GEMINI QUALITY REVIEW
 ═══════════════════════════════════════════════════
+
+Score: {Gemini점수}/50
+
+─────────────────────────────────────────────────
+  2.1 ARCHITECTURE QUALITY (10점)
+─────────────────────────────────────────────────
+
+Score: {점수}/10
+
+**평가 근거**:
+{Gemini의 architecture_quality.reason}
+
+**개선 제안**:
+- {suggestion 1}
+- {suggestion 2}
+
+─────────────────────────────────────────────────
+  2.2 DATA MODELING (10점)
+─────────────────────────────────────────────────
+
+Score: {점수}/10
+
+**평가 근거**:
+{Gemini의 data_modeling.reason}
+
+**개선 제안**:
+- {suggestion 1}
+- {suggestion 2}
+
+─────────────────────────────────────────────────
+  2.3 BUSINESS LOGIC (10점)
+─────────────────────────────────────────────────
+
+Score: {점수}/10
+
+**평가 근거**:
+{Gemini의 business_logic.reason}
+
+**개선 제안**:
+- {suggestion 1}
+- {suggestion 2}
+
+─────────────────────────────────────────────────
+  2.4 PERFORMANCE CONSIDERATIONS (10점)
+─────────────────────────────────────────────────
+
+Score: {점수}/10
+
+**평가 근거**:
+{Gemini의 performance.reason}
+
+**개선 제안**:
+- {suggestion 1}
+- {suggestion 2}
+
+─────────────────────────────────────────────────
+  2.5 SECURITY & AUTHORIZATION (10점)
+─────────────────────────────────────────────────
+
+Score: {점수}/10
+
+**평가 근거**:
+{Gemini의 security.reason}
+
+**개선 제안**:
+- {suggestion 1}
+- {suggestion 2}
+
+═══════════════════════════════════════════════════
+        PART 3: INTEGRATED ANALYSIS
+═══════════════════════════════════════════════════
+
+─────────────────────────────────────────────────
+  CRITICAL ISSUES (반드시 수정 필요)
+─────────────────────────────────────────────────
+
+{Gemini의 critical_issues 리스트}
+
+예:
+1. [Gemini] 권한 체크 누락: POST /api/pets에 Authorization 없음 (design.md:120)
+2. [Claude] Requirements 추적성: US-3 (Pet evolution) 미포함
+3. [Gemini] 인덱스 전략: Pets.CharacterId 인덱스 누락 (design.md:234)
+
+─────────────────────────────────────────────────
+  STRENGTHS (잘된 점)
+─────────────────────────────────────────────────
+
+{Gemini의 strengths 리스트}
+
+예:
+1. Clean Architecture 의존성 방향 완벽 준수
+2. Cursor 페이징 전략 우수 (Offset 대비 안정성)
+3. Select Projection으로 N+1 쿼리 방지
+4. TODO(human) 학습 포인트 명확히 정의
+
+─────────────────────────────────────────────────
+  RISK RE-ASSESSMENT (참고 정보)
+─────────────────────────────────────────────────
 
 **초기 리스크 점수** (requirements.md):
 - Blast Radius: 3점 (전투 시스템 영향)
@@ -263,37 +522,63 @@ Score: {점수}/5
 ✅ Full Spec 프로세스로 리스크 조기 발견 가능했음
 
 ═══════════════════════════════════════════════════
-              RECOMMENDATIONS
+              INTEGRATED RECOMMENDATIONS
 ═══════════════════════════════════════════════════
 
+**Priority: CRITICAL** (점수 향상 +15점 이상)
+1. [Gemini] {critical_issue_1}
+   → Action: {구체적 해결 방법}
+2. [Claude] {구조적 문제 1}
+   → Action: {구체적 해결 방법}
+
+**Priority: HIGH** (점수 향상 +10점)
+3. [Gemini] {high_priority_1}
+   → Action: {구체적 해결 방법}
+4. [Claude] {구조적 문제 2}
+   → Action: {구체적 해결 방법}
+
+**Priority: MEDIUM** (점수 향상 +5점)
+5. [Gemini] {medium_priority_1}
+   → Action: {구체적 해결 방법}
+
+**Priority: LOW** (점수 향상 +2점)
+6. [Gemini] {low_priority_1}
+   → Action: {구체적 해결 방법}
+
+예시:
+Priority: CRITICAL
+1. [Gemini] Security: POST /api/pets에 [Authorize] 속성 누락 (design.md:120)
+   → Action: API Design 섹션에 [Authorize] 명시 및 권한 체크 로직 추가
+2. [Claude] Requirements: US-3 (Pet evolution) 추적 누락
+   → Action: design.md Business Logic 섹션에 진화 메커니즘 추가
+
 Priority: HIGH
-1. Define Response DTO for GET /api/pets/{id} in design.md
-2. Resolve 3 unresolved TODO(human) items (especially Domain vs Application Service decision)
-3. Fix broken ADR link (ADR-0016)
-
-Priority: MEDIUM
-4. Add traceability for US-3 (Pet evolution) in design.md
-5. Specify authorization role for POST /api/pets
-6. Update Unity API_SPEC.md to match endpoint paths
-
-Priority: LOW
-7. Add AC-4 logging task to tasks.md
+3. [Gemini] Data Modeling: Pets.CharacterId 인덱스 누락 (design.md:234)
+   → Action: Migration Plan에 CREATE INDEX IX_Pets_CharacterId 추가
+4. [Claude] TODO(human) 3개 미해소 (design.md:145, 234, 267)
+   → Action: Domain Service vs Application Service 결정 후 체크박스 완료
 
 ═══════════════════════════════════════════════════
               NEXT STEPS
 ═══════════════════════════════════════════════════
 
-To improve your score:
-1. Address HIGH priority recommendations (expected +15 points)
-2. Resolve remaining TODO(human) items (expected +5 points)
-3. Fix Unity doc inconsistencies (expected +3 points)
+**점수 향상 전략**:
+1. Address CRITICAL priority (expected +{점수}점) → Target: {목표등급}
+2. Address HIGH priority (expected +{점수}점) → Target: {목표등급}
+3. Address MEDIUM priority (expected +{점수}점) → Target: {목표등급}
 
-Target Score: {현재점수 + 개선예상} → {등급}
+**Current**: {현재점수}/100 ({현재등급})
+**Target (CRITICAL only)**: {예상점수}/100 ({예상등급})
+**Target (CRITICAL + HIGH)**: {예상점수}/100 ({예상등급})
 
-Commands to run:
-- Edit design.md: claude edit design.md
-- Create missing ADR: /spec-design pet-system (re-run to update)
-- Update Unity docs: cd ../IdleRPGClient/Docs && edit API_SPEC.md
+**Commands to run**:
+- Edit design.md: `claude edit .claude/memories/specs/{feature-name}/design.md`
+- Create missing ADR: `/adr-create {번호} {제목}`
+- Update Unity docs: `cd D:/Proj/IdleGameClient/Docs/unity && edit {feature-name}/API_SPEC.md`
+- Re-run review: `/spec-review {feature-name}`
+
+**Gemini가 제안한 추가 조치**:
+{Gemini의 improvement_priority 통합}
 ```
 
 ---
@@ -320,14 +605,33 @@ Commands to run:
 
 ## 주의사항
 
-### 자동 검증의 한계
-- **Self-Review**는 구조적 검증만 가능 (내용의 적절성은 인간 판단 필요)
-- **Traceability**는 키워드 매칭 기반 (예: "US-1", "AC-2")
-- **TODO(human)**는 체크박스 형식만 감지
+### 검증 방식의 특성
+
+**Claude (구조적 검증)**:
+- ✅ **강점**: 형식적 완성도, 추적성, 문서 구조
+- ⚠️ **한계**: 내용의 적절성, 비즈니스 로직 품질은 제한적
+- **방법**: 키워드 매칭, 파일 존재 확인, 체크리스트 항목 검색
+
+**Gemini (내용 품질 평가)**:
+- ✅ **강점**: 설계 적절성, 아키텍처 일관성, 비즈니스 로직 합리성
+- ⚠️ **한계**: 프로젝트 컨텍스트 이해 제한 (템플릿 기반 평가)
+- **방법**: 전체 문서 분석, 아키텍처 패턴 평가, 모범 사례 비교
+
+### Gemini 연동 관련
+
+**성공 조건**:
+- Zen MCP 서버가 실행 중이어야 함
+- Gemini CLI가 정상 구성되어 있어야 함 (zen:clink 동작 확인)
+- 문서 크기가 Gemini 컨텍스트 제한 내여야 함 (~1M tokens)
+
+**실패 시 대응**:
+- Gemini 연동 실패 시: Claude 점수만으로 평가 (50점 만점, 90점 목표 = 45점 필요)
+- 경고 메시지: "⚠️ Gemini review failed. Showing Claude-only score ({점수}/50). Please check Zen MCP server."
 
 ### 개선을 위한 피드백
 - 검증 로직은 지속적으로 개선 가능
 - False positive/negative 발견 시 리포트
+- Gemini 프롬프트 개선 제안 환영
 
 ---
 
@@ -343,16 +647,44 @@ Commands to run:
 ## 팁
 
 ### 점수 향상 전략
-1. **90점 이상 달성**:
-   - Self-Review 10개 항목 모두 통과
-   - 모든 Requirements 추적 완료
-   - TODO(human) 100% 해소
 
-2. **빠른 개선**:
-   - HIGH priority 권장사항 먼저 처리
-   - 구조적 문제(API 정의, 데이터 모델) 우선
+**90점 이상 달성 (Excellent)**:
+- **Claude 45점 이상** (50점 만점):
+  - Self-Review 10개 항목 모두 통과 (30점)
+  - 모든 Requirements 추적 완료 (10점)
+  - TODO(human) 100% 해소 (5점)
+- **Gemini 45점 이상** (50점 만점):
+  - Architecture Quality 9점 이상 (Clean Architecture 완벽 준수)
+  - Data Modeling 9점 이상 (인덱스 전략, 관계 설계 우수)
+  - Business Logic 9점 이상 (검증 로직 충분, 에러 처리 완전)
+  - Performance 9점 이상 (N+1 방지, 페이징 최적화)
+  - Security 9점 이상 (권한 체크 완전, 민감 정보 보호)
 
-3. **지속적 검증**:
-   - Design 단계에서 1회 검증
-   - Tasks 생성 후 1회 검증
+**빠른 개선 (70점 → 90점)**:
+1. **CRITICAL 우선순위 해결** (+15점):
+   - Gemini가 지적한 Critical Issues (보안, 아키텍처)
+   - Claude가 발견한 구조적 누락 (Requirements 추적)
+2. **HIGH 우선순위 해결** (+10점):
+   - 인덱스 누락, TODO(human) 미해소
+3. **MEDIUM 우선순위** (+5점):
+   - Unity 문서 일관성, Decision Log 링크
+
+**지속적 검증 워크플로우**:
+1. **Requirements 단계**: Complexity 체크만 (리스크 평가)
+2. **Design 단계**: `/spec-review {feature} --format summary` (70점 목표)
+   - 구조적 완성도 확인
+   - Gemini 피드백으로 설계 개선
+3. **Tasks 생성 후**: `/spec-review {feature}` (90점 목표)
+   - 전체 커버리지 확인
    - Implementation 전 최종 검증
+4. **Implementation 전**: 최종 90점 달성 확인
+
+**Gemini 피드백 활용 팁**:
+- **Architecture Quality 낮음** (7점 이하):
+  → Domain 의존성 재확인, Service 책임 분리
+- **Data Modeling 낮음** (7점 이하):
+  → 인덱스 전략 재검토, Cascade 규칙 점검
+- **Performance 낮음** (7점 이하):
+  → N+1 쿼리 확인, Select Projection 적용
+- **Security 낮음** (7점 이하):
+  → [Authorize] 누락 확인, 권한 체크 로직 추가

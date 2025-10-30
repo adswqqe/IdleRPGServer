@@ -33,6 +33,8 @@ namespace IdleRPG.Infrastructure.UnitOfWork
         private IPetRepository? _pets;
         private IPetTemplateRepository? _petTemplates;
         private IEquippedPetsRepository? _equippedPets;
+        private IChatRoomRepository? _chatRooms;
+        private IChatMessageRepository? _chatMessages;
 
         public UnitOfWork(GameDBContext context)
         {
@@ -336,6 +338,36 @@ namespace IdleRPG.Infrastructure.UnitOfWork
                     _equippedPets = new EquippedPetsRepository(_context);
                 }
                 return _equippedPets;
+            }
+        }
+
+        /// <summary>
+        /// 채팅방 Repository (Lazy 초기화) - Realtime Chat System
+        /// </summary>
+        public IChatRoomRepository ChatRooms
+        {
+            get
+            {
+                if (_chatRooms == null)
+                {
+                    _chatRooms = new ChatRoomRepository(_context);
+                }
+                return _chatRooms;
+            }
+        }
+
+        /// <summary>
+        /// 채팅 메시지 Repository (Lazy 초기화) - Realtime Chat System
+        /// </summary>
+        public IChatMessageRepository ChatMessages
+        {
+            get
+            {
+                if (_chatMessages == null)
+                {
+                    _chatMessages = new ChatMessageRepository(_context);
+                }
+                return _chatMessages;
             }
         }
 

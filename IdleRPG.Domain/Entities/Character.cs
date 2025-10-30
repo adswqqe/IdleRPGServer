@@ -1,11 +1,13 @@
-﻿using IdleRPG.Domain.ValueObjects;
+﻿using IdleRPG.Domain.Repositories;
+using IdleRPG.Domain.ValueObjects;
 
 namespace IdleRPG.Domain.Entities
 {
-    public class Character
+    /// <summary>
+    /// 캐릭터 Entity
+    /// </summary>
+    public class Character : BaseEntity
     {
-        public Guid Id { get; set; } = Guid.NewGuid();
-
         // Foreign Key to Player
         public Guid PlayerId { get; set; }
 
@@ -39,7 +41,9 @@ namespace IdleRPG.Domain.Entities
 
         public CharacterStats Stats { get; set; }
 
-        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        /// <summary>
+        /// 마지막 업데이트 시간 (UTC)
+        /// </summary>
         public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 
         // Navigation Property

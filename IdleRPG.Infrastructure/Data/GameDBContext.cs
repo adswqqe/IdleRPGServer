@@ -43,6 +43,11 @@ public class GameDBContext : DbContext
     public DbSet<PetTemplate> PetTemplates { get; set; }
     public DbSet<EquippedPets> EquippedPets { get; set; }
 
+    // Chat System (Realtime Chat)
+    public DbSet<ChatRoom> ChatRooms { get; set; }
+    public DbSet<ChatRoomParticipant> ChatRoomParticipants { get; set; }
+    public DbSet<ChatMessage> ChatMessages { get; set; }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);

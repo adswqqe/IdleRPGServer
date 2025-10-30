@@ -175,7 +175,8 @@
       "Bash([ -d \"D:\\Proj\\IdleGameClient\\Docs\\unity\\signalr\" ])",
       "Bash(then echo \"Unity docs: EXISTS\")",
       "Bash(else echo \"Unity docs: NOT FOUND (expected, not implemented yet)\")",
-      "Bash(fi)"
+      "Bash(fi)",
+      "SlashCommand(/spec-review realtime-chat --format detailed)"
     ]
   },
   "enableAllProjectMcpServers": true,

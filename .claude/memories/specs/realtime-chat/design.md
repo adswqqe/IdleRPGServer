@@ -105,6 +105,43 @@
 
 ---
 
+### 신규 테이블: `ChatRoomParticipants`
+
+**목적**: Whisper(1:1 채팅) 참여자 관리 (N:M 중간 테이블)
+
+**필드**:
+- `Id` (PK): GUID, 고유 식별자
+- `RoomId` (FK): GUID, 채팅방 ID
+  - NOT NULL, ChatRooms.Id 참조
+- `CharacterId` (FK): GUID, 참여자 Character ID
+  - NOT NULL, Characters.Id 참조
+- `JoinedAt`: DateTime, 참여 시간 (UTC)
+  - NOT NULL, 기본값 UTC_NOW
+
+**제약사항**:
+- `RoomId`, `CharacterId`: NOT NULL, FK 제약
+- `UNIQUE(RoomId, CharacterId)`: 중복 참여 방지
+- 1:1 제약: Application 레벨에서 검증 (Whisper 방은 정확히 2명)
+
+**인덱스 요구사항**:
+- `IX_ChatRoomParticipants_RoomId`: 방별 참여자 조회
+- `IX_ChatRoomParticipants_CharacterId`: 사용자별 참여 방 조회
+
+**관계**:
+- `ChatRooms`와 N:1 관계 (FK: `RoomId`, ON DELETE CASCADE)
+  - 채팅방 삭제 시 참여자 정보도 함께 삭제
+- `Characters`와 N:1 관계 (FK: `CharacterId`, ON DELETE RESTRICT)
+  - 캐릭터 삭제 시 참여 정보 보존 (별도 정리 필요)
+
+**Business Logic**:
+- Whisper 방 생성 시: 정확히 2명 추가 (A, B)
+- 기존 Whisper 방 재사용: A-B 또는 B-A 방이 이미 존재하면 재사용
+- Global, Guild 방: 이 테이블 사용 안 함 (모든 인증 사용자/길드 멤버 접근)
+
+**Requirements**: US-3 (Whisper 채팅방 접근 권한)
+
+---
+
 ### 신규 테이블: `ChatMessages`
 
 **목적**: 채팅 메시지 저장 및 히스토리 조회
@@ -145,12 +182,17 @@
 **ERD 개요**:
 ```
 Player (1) ──< (N) Character (1) ──< (N) ChatMessages
-                       │
-                       │ (N:1 SenderId)
-                       │
-                       ▼
+                       │                     │
+                       │ (N:1 SenderId)      │ (N:1 RoomId)
+                       │                     │
+                       │ (N:M via ChatRoomParticipants)
+                       │                     │
+                       ▼                     ▼
 Guild (1) ──< (N) ChatRooms (1) ──< (N) ChatMessages
-                 (nullable)            (RoomId)
+         (nullable)        │
+                           │ (1:N)
+                           ▼
+                   ChatRoomParticipants (Whisper only)
 ```
 
 **관계 설명**:
@@ -160,10 +202,17 @@ Guild (1) ──< (N) ChatRooms (1) ──< (N) ChatMessages
   - 한 채팅방에 여러 메시지
 - `ChatRoom` → `Guild`: N:1 (GuildId, nullable)
   - Guild 타입 채팅방만 길드 참조
+- `ChatRoom` ↔ `Character`: N:M (via ChatRoomParticipants)
+  - **Whisper 타입만 사용** (1:1 제약)
+  - Global, Guild는 이 테이블 사용 안 함
 
 **Cascade 규칙**:
-- `ChatRoom` 삭제 시: ChatMessages 보존 (RESTRICT)
-- `Character` 삭제 시: ChatMessages 보존 (RESTRICT), 익명화 권장
+- `ChatRoom` 삭제 시:
+  - ChatMessages 보존 (RESTRICT)
+  - ChatRoomParticipants 삭제 (CASCADE)
+- `Character` 삭제 시:
+  - ChatMessages 보존 (RESTRICT), 익명화 권장
+  - ChatRoomParticipants 보존 (RESTRICT), 별도 정리 로직
 - `Guild` 삭제 시: ChatRooms 보존 (RESTRICT), 별도 정리 로직
 
 **Requirements**: US-3 (채팅방 타입), AC-4 (N+1 방지)
@@ -212,9 +261,17 @@ Guild (1) ──< (N) ChatRooms (1) ──< (N) ChatMessages
 
 **ChatRoomConfiguration.cs**:
 - `HasMany(r => r.Messages).WithOne(m => m.Room).HasForeignKey(m => m.RoomId).OnDelete(DeleteBehavior.Restrict)`
+- `HasMany(r => r.Participants).WithOne(p => p.Room).HasForeignKey(p => p.RoomId).OnDelete(DeleteBehavior.Cascade)`
 - `HasOne(r => r.Guild).WithMany().HasForeignKey(r => r.GuildId).OnDelete(DeleteBehavior.Restrict).IsRequired(false)`
 - `Property(r => r.Name).HasMaxLength(100).IsRequired()`
 - `Property(r => r.Type).HasConversion<int>()` (Enum → int)
+
+**ChatRoomParticipantConfiguration.cs**:
+- `HasOne(p => p.Room).WithMany(r => r.Participants).HasForeignKey(p => p.RoomId).OnDelete(DeleteBehavior.Cascade)`
+- `HasOne(p => p.Character).WithMany().HasForeignKey(p => p.CharacterId).OnDelete(DeleteBehavior.Restrict)`
+- `HasIndex(p => new { p.RoomId, p.CharacterId }).IsUnique()` (중복 참여 방지)
+- `HasIndex(p => p.RoomId)`
+- `HasIndex(p => p.CharacterId)`
 
 **ChatMessageConfiguration.cs**:
 - `HasOne(m => m.Room).WithMany(r => r.Messages).HasForeignKey(m => m.RoomId).OnDelete(DeleteBehavior.Restrict)`
@@ -491,19 +548,23 @@ connection.On<object>("UserTyping", (data) => {
    - 이유: Discord/Slack 표준 패턴 (1초 쿨다운)
 3. **연속 메시지 체크** (선택):
    - 최근 5개 메시지가 동일 내용 → 10초 쿨다운 (스팸 방지)
-4. **욕설 필터 (TODO)**:
-   - 기본 욕설 목록 50개 → `***` 치환
-   - 관리자는 필터 우회
+4. **~~욕설 필터~~**: 서버는 원본 저장, Unity 클라이언트에서 표시 시 필터링
+   - 이유: 신고 시스템 증거 보존, 사용자 선택권 (필터 ON/OFF)
 
 **예외 처리**:
 - `InvalidOperationException`: 비즈니스 규칙 위반 (클라이언트 에러)
 - `Exception`: 서버 에러 (로그 + 일반 에러 응답)
 
 **🎓 학습 포인트 (아키텍처 결정)**:
-- **TODO(human)**: 쿨다운 저장소 선택 (Redis vs MemoryCache vs DB?)
-  - Trade-off: Redis (확장성, 추가 인프라) vs MemoryCache (단순, 단일 서버)
-- **TODO(human)**: 욕설 필터 구현 위치 (Domain Service vs Application Service?)
-  - Domain: 불변 비즈니스 규칙, Application: 외부 API 연동 (Google Perspective API)
+- **✅ 결정**: 쿨다운 저장소 = **MemoryCache (현재) → Redis (나중에 교체)**
+  - 현재: `IMemoryCache` 사용 (학습 초기, 단일 서버)
+  - 나중: Redis 학습 단계에서 `IDistributedCache`로 교체 (분산 캐시 학습)
+  - 교체 용이성: ASP.NET Core 표준 인터페이스 (`IMemoryCache` → `IDistributedCache`)
+- **✅ 결정**: 욕설 필터 = **서버는 원본 저장 + 클라이언트에서 필터링**
+  - 서버: Content 원본 그대로 저장 (길이 검증만)
+  - Unity 클라이언트: 표시 시 필터링 (사용자 설정 ON/OFF 가능)
+  - 이유: 신고 시스템 증거 보존, 사용자 선택권, 서버 부하 감소
+  - 학습 포인트: 클라이언트-서버 책임 분리 (표시 로직 vs 비즈니스 규칙)
 
 > 💡 **학습 가이드**: 계산식과 수치는 AI가 제안합니다. **저장소 선택**, **계층 분리**, **캐싱 전략**에 집중하세요.
 
@@ -532,8 +593,8 @@ connection.On<object>("UserTyping", (data) => {
      return character.GuildId == room.GuildId  // 같은 길드만
 
    case Whisper:
-     // TODO: Whisper 참여자 테이블 (미래 확장)
-     return false
+     participants = await _unitOfWork.ChatRoomParticipants.GetByRoomIdAsync(roomId)
+     return participants.Any(p => p.CharacterId == characterId)  // 참여자만
 
    default:
      return false
@@ -544,10 +605,16 @@ connection.On<object>("UserTyping", (data) => {
 - `NotFoundException`: 캐릭터 미존재 (401)
 
 **🎓 학습 포인트 (아키텍처 결정)**:
-- **TODO(human)**: Whisper 참여자 저장 (별도 테이블 vs ChatRoom.ParticipantIds JSONB?)
-  - Trade-off: 정규화 (조인 쿼리) vs 역정규화 (JSONB, 쿼리 단순)
-- **TODO(human)**: 권한 체크 캐싱 (Redis vs 매번 DB 조회?)
-  - 고려: 길드 변경 빈도 vs 조회 빈도
+- **✅ 결정**: Whisper 참여자 저장 = **별도 테이블 (ChatRoomParticipants)**
+  - N:M 중간 테이블 패턴 (RoomId, CharacterId)
+  - 1:1 제약은 Application 레벨에서 검증 (CreateWhisperRoomAsync)
+  - 장점: 확장성 (나중에 그룹 채팅 가능), FK 무결성, 일관된 패턴
+  - 학습 포인트: 관계형 모델링, 중간 테이블 패턴, UNIQUE 제약
+- **✅ 결정**: 권한 체크 캐싱 = **현재 Skip (매번 DB 조회) → 성능 문제 시 추가**
+  - 현재: `CanAccessRoomAsync()` 매번 DB 조회 (구현 단순)
+  - 나중: 성능 병목 확인 시 Redis 캐싱 도입 (성능 최적화 학습)
+  - 이유: YAGNI 원칙 (조기 최적화 방지), 실제 측정 후 결정
+  - 학습 포인트: 측정 기반 최적화, 점진적 개선
 
 > 💡 **학습 가이드**: Enum 기반 비즈니스 로직 분기, Authorization 패턴 학습에 집중하세요.
 
@@ -566,9 +633,8 @@ connection.On<object>("UserTyping", (data) => {
 - `List<ChatMessageDto>` (최대 `take`개)
 
 **프로세스 (EF Core 쿼리)**:
-```
+```csharp
 1. query = _context.ChatMessages
-     .Include(m => m.Sender)  // N+1 방지
      .AsNoTracking()  // 읽기 전용
      .Where(m => m.RoomId == roomId)
 
@@ -579,9 +645,31 @@ connection.On<object>("UserTyping", (data) => {
 3. messages = await query
      .OrderByDescending(m => m.CreatedAt)  // 최신순
      .Take(take)
+     .Select(m => new ChatMessageDto {  // Projection (성능 최적화)
+         Id = m.Id,
+         RoomId = m.RoomId,
+         Content = m.Content,
+         CreatedAt = m.CreatedAt,
+         Sender = new CharacterSummaryDto {
+             Id = m.Sender.Id,
+             Name = m.Sender.Name,
+             Level = m.Sender.Level
+         }
+     })
      .ToListAsync()
 
-4. return messages.Select(m => MapToDto(m))
+4. return messages
+```
+
+**SQL 결과** (필요한 컬럼만 SELECT):
+```sql
+SELECT m.Id, m.RoomId, m.Content, m.CreatedAt,
+       c.Id AS Sender_Id, c.Name AS Sender_Name, c.Level AS Sender_Level
+FROM ChatMessages m
+LEFT JOIN Characters c ON m.SenderId = c.Id
+WHERE m.RoomId = ? AND m.CreatedAt < ?
+ORDER BY m.CreatedAt DESC
+LIMIT ?
 ```
 
 **인덱스 활용**:
@@ -627,15 +715,15 @@ connection.On<object>("UserTyping", (data) => {
    - roomId, senderId 존재 확인 (NotFoundException)
 2. **Business logic**:
    - 쿨다운 체크 (1초)
-   - 욕설 필터 적용 (선택)
+   - ~~욕설 필터 적용~~ → 클라이언트에서 처리
 3. **Domain logic**:
    - ChatMessage Entity 생성
 4. **Repository 저장**:
    - `_unitOfWork.ChatMessages.AddAsync(message)`
    - `await _unitOfWork.SaveChangesAsync(cancellationToken)`
 5. **Return result**:
-   - Include Sender: `await _unitOfWork.ChatMessages.GetByIdWithSenderAsync(message.Id)`
-   - MapToDto(message) → ChatMessageDto
+   - Select Projection: `await _unitOfWork.ChatMessages.GetDtoByIdAsync(message.Id)`
+   - 필요한 필드만 조회하여 ChatMessageDto 반환
 
 **에러 조건**:
 - `ValidationException`: 길이 초과, 빈 메시지
@@ -644,10 +732,14 @@ connection.On<object>("UserTyping", (data) => {
 - `DbUpdateException`: DB 저장 실패
 
 **🎓 학습 포인트 (트랜잭션 관리)**:
-- **TODO(human)**: 트랜잭션 경계 설정 (SaveChangesAsync 호출 시점)
-  - Service에서 트랜잭션? Repository에서 자동?
-- **TODO(human)**: 낙관적 동시성 제어 (RowVersion) 필요 여부
-  - 채팅은 동시성 충돌 낮음, 필요 없을 수도
+- **✅ 결정**: 트랜잭션 경계 = **Service Layer에서 SaveChangesAsync() 호출**
+  - EF Core가 자동으로 트랜잭션 처리 (단일 INSERT는 단순)
+  - 복잡한 트랜잭션 (방 생성 + 참여자 추가)도 Service에서 관리
+  - 학습 포인트: Unit of Work 패턴, 트랜잭션 범위 설정
+- **✅ 결정**: 낙관적 동시성 제어 (RowVersion) **불필요**
+  - 채팅 메시지는 INSERT만 (UPDATE/DELETE 없음)
+  - 동시성 충돌 가능성 거의 없음 (추가만 하므로)
+  - 학습 포인트: 동시성 제어가 필요한 경우 vs 불필요한 경우 판단
 
 **Requirements**: US-1 (메시지 전송), AC-1 (브로드캐스팅)
 
@@ -664,9 +756,9 @@ connection.On<object>("UserTyping", (data) => {
    - `await CanAccessRoomAsync(characterId, roomId)` (false → 403 Forbidden)
 2. **Repository 조회**:
    - `await _unitOfWork.ChatMessages.GetByRoomIdAsync(roomId, beforeId, take, cancellationToken)`
-   - Cursor 페이징, Include(m => m.Sender)
+   - Cursor 페이징, **Select Projection** (필요한 필드만 조회)
 3. **Return result**:
-   - messages.Select(m => MapToDto(m))
+   - Repository에서 이미 ChatMessageDto로 변환되어 반환
 
 **에러 조건**:
 - `NotFoundException`: 채팅방 미존재
@@ -693,10 +785,17 @@ connection.On<object>("UserTyping", (data) => {
 - `NotFoundException`: 채팅방/캐릭터 미존재
 
 **🎓 학습 포인트 (권한 체크 패턴)**:
-- **TODO(human)**: Authorization Policy 활용 (ASP.NET Core Policy-based Auth)
-  - 장점: 선언적, 재사용 가능
-  - 단점: 학습 곡선
-- **TODO(human)**: 권한 체크 결과 캐싱 (Redis vs 매번 조회)
+- **✅ 결정**: Authorization = **수동 체크 (Service Layer)**
+  - 현재: `CanAccessRoomAsync()` 메서드로 명시적 체크
+  - 나중: Policy-based Authorization 학습 단계에서 전환 가능
+  - Policy-based vs 수동 체크 비교:
+    - Policy-based: `[Authorize(Policy = "GuildMemberOnly")]` 선언적, 재사용 가능
+    - 수동 체크: `if (!await CanAccessRoom()) return Forbidden()` 명시적, 유연함
+    - 학습 초기에는 수동 체크가 더 이해하기 쉬움
+  - 이유: 학습 초기 단순성, 명시적 로직, 유연성
+  - 학습 포인트: 권한 체크 패턴, Service Layer 책임
+- **✅ 결정**: 권한 체크 캐싱 Skip (현재 매번 DB 조회)
+  - 성능 문제 발생 시 추가 (YAGNI 원칙)
 
 **Requirements**: US-3 (채팅방 타입별 접근)
 
@@ -711,11 +810,47 @@ connection.On<object>("UserTyping", (data) => {
 **프로세스 흐름**:
 1. character = await _unitOfWork.Characters.GetByIdAsync(characterId)
 2. rooms = await _unitOfWork.ChatRooms.GetAccessibleRoomsAsync(characterId, character.GuildId)
-   - Global 모두 + Guild (같은 GuildId) + Whisper (참여자)
+   - Global: 모든 Global 타입 방
+   - Guild: 같은 GuildId를 가진 Guild 타입 방
+   - Whisper: ChatRoomParticipants에서 characterId가 참여한 Whisper 방
 3. 각 방의 lastMessage 조회 (선택)
 4. Return ChatRoomDto 리스트
 
 **Requirements**: US-3 (채팅방 타입별 접근)
+
+---
+
+#### `CreateWhisperRoomAsync(characterAId, characterBId)`
+
+**시그니처**:
+- 입력: `Guid characterAId`, `Guid characterBId`, `CancellationToken cancellationToken`
+- 반환: `Task<Guid>` (Whisper 방 ID)
+
+**프로세스 흐름**:
+1. **기존 방 확인**:
+   - `await _unitOfWork.ChatRoomParticipants.FindWhisperRoomAsync(characterAId, characterBId)`
+   - A-B 또는 B-A 방이 이미 존재하면 기존 방 ID 반환 (재사용)
+2. **새 방 생성**:
+   - `var room = new ChatRoom { Type = RoomType.Whisper, Name = "Whisper" }`
+   - `await _unitOfWork.ChatRooms.AddAsync(room)`
+3. **참여자 2명 추가**:
+   - `await _unitOfWork.ChatRoomParticipants.AddAsync(new ChatRoomParticipant { RoomId = room.Id, CharacterId = characterAId })`
+   - `await _unitOfWork.ChatRoomParticipants.AddAsync(new ChatRoomParticipant { RoomId = room.Id, CharacterId = characterBId })`
+4. **저장**:
+   - `await _unitOfWork.SaveChangesAsync(cancellationToken)`
+5. **Return**: room.Id
+
+**에러 조건**:
+- `NotFoundException`: 캐릭터 A 또는 B 미존재
+- `InvalidOperationException`: characterAId == characterBId (자기 자신과 Whisper 불가)
+- `DbUpdateException`: DB 저장 실패
+
+**🎓 학습 포인트 (비즈니스 로직)**:
+- 중복 방 생성 방지 (기존 방 재사용)
+- 트랜잭션 경계 (방 생성 + 참여자 2명 추가)
+- UNIQUE 제약 활용 (RoomId, CharacterId)
+
+**Requirements**: US-3 (Whisper 채팅방 생성)
 
 ---
 
@@ -741,6 +876,13 @@ connection.On<object>("UserTyping", (data) => {
   - ✅ Global 채팅방 → true
   - ✅ Guild 채팅방 (같은 길드) → true
   - ✅ Guild 채팅방 (다른 길드) → false
+  - ✅ Whisper 채팅방 (참여자) → true
+  - ✅ Whisper 채팅방 (비참여자) → false
+- `CreateWhisperRoomAsync`:
+  - ✅ 새 Whisper 방 생성 → room.Id 반환
+  - ✅ 기존 방 존재 (A-B 또는 B-A) → 기존 room.Id 반환
+  - ✅ 자기 자신과 Whisper (A==B) → InvalidOperationException
+  - ✅ 존재하지 않는 캐릭터 → NotFoundException
 
 **Mock 대상**:
 - `IUnitOfWork`: Repository 동작 시뮬레이션
@@ -772,7 +914,8 @@ connection.On<object>("UserTyping", (data) => {
 - `ChatMessageRepository.GetByRoomIdAsync()`:
   - ✅ Cursor 페이징 (beforeId 제공)
   - ✅ 인덱스 사용 확인 (Execution Plan)
-  - ✅ Include(m => m.Sender) → 단일 쿼리 (N+1 방지)
+  - ✅ Select Projection → 단일 LEFT JOIN 쿼리 (N+1 방지)
+  - ✅ 필요한 컬럼만 SELECT (보안, 성능)
 
 ---
 
@@ -922,6 +1065,47 @@ connection.On<object>("UserTyping", (data) => {
 
 ## 📊 Performance Considerations
 
+### Logging Strategy
+
+**목적**: 디버깅, 모니터링, 감사 추적
+
+**로깅 대상 및 레벨**:
+
+**Info Level**:
+- 메시지 전송 성공: `"[ChatHub] Message sent: RoomId={roomId}, SenderId={senderId}"`
+  - 포함 정보: RoomId, SenderId, MessageId, CreatedAt
+  - **민감 정보 제외**: Content (Privacy 고려)
+- 채팅방 입장/퇴장: `"[ChatHub] User joined: RoomId={roomId}, CharacterId={characterId}"`
+- Whisper 방 생성: `"[ChatService] Whisper room created: RoomId={roomId}, ParticipantA={charA}, ParticipantB={charB}"`
+
+**Warning Level**:
+- 검증 실패: `"[ChatService] Validation failed: {errorCode}, SenderId={senderId}"`
+  - 예: INVALID_MESSAGE, COOLDOWN_ACTIVE
+- 권한 체크 실패: `"[ChatService] Access denied: RoomId={roomId}, CharacterId={characterId}, Reason={reason}"`
+  - 이유: NOT_GUILD_MEMBER, NOT_PARTICIPANT
+
+**Error Level**:
+- DB 저장 실패: `"[ChatService] Failed to save message: {exception}"`
+- SignalR 연결 에러: `"[ChatHub] Connection error: {exception}"`
+- 예상치 못한 예외: `"[ChatHub] Unexpected error in SendMessage: {exception}"`
+
+**로그 제외 항목** (Privacy & Security):
+- ❌ 메시지 Content (개인정보)
+- ❌ JWT 토큰 (보안)
+- ❌ 사용자 IP 주소 (Privacy)
+
+**로깅 구현**:
+- `ILogger<ChatService>`, `ILogger<ChatHub>` 의존성 주입
+- Structured Logging: `_logger.LogInformation("Message sent: {RoomId}, {SenderId}", roomId, senderId)`
+- ASP.NET Core 기본 로깅 사용 (Serilog/NLog는 나중에 고려)
+
+**모니터링 메트릭** (미래 확장):
+- 메시지 전송 속도 (msg/sec)
+- 동시 접속자 수 (SignalR Connections)
+- 평균 응답 시간 (API Latency)
+
+---
+
 ### Database Indexes
 
 **중요도 1순위**:
@@ -934,11 +1118,17 @@ connection.On<object>("UserTyping", (data) => {
 - `IX_ChatRooms_GuildId`: 길드 채팅방 조회
 
 **🎓 학습 포인트 (인덱스 전략)**:
-- **TODO(human)**: Covering Index vs 일반 Index
-  - Covering: SELECT 컬럼 모두 인덱스에 포함 (Lookup 불필요)
-  - 일반: Key 컬럼만 인덱스 (인덱스 크기 작음)
-- **TODO(human)**: 인덱스 유지보수 비용
-  - INSERT 성능 저하 vs SELECT 성능 향상
+- **현재**: 일반 Index 사용 (Key 컬럼만)
+  - `IX_ChatMessages_RoomId_CreatedAt`: RoomId, CreatedAt만 인덱스
+  - SELECT 시 Table Lookup 필요하지만, 인덱스 크기 작고 관리 용이
+- **미래 최적화**: Covering Index 고려 (성능 측정 후)
+  - Covering Index: SELECT 컬럼(Content, SenderId)까지 인덱스에 포함
+  - 장점: Table Lookup 불필요, SELECT 성능 극대화
+  - 단점: 인덱스 크기 증가, INSERT 성능 저하
+  - 판단 기준: 실제 성능 측정 후 결정 (조기 최적화 방지)
+- **인덱스 유지보수 비용**:
+  - INSERT 시 인덱스도 함께 업데이트 (약간의 성능 저하)
+  - 트레이드오프: INSERT 느림 vs SELECT 빠름 (채팅은 SELECT 빈번하므로 유리)
 
 **Requirements**: AC-4 (N+1 방지)
 
@@ -950,19 +1140,25 @@ connection.On<object>("UserTyping", (data) => {
 - Key: `chat:cooldown:{senderId}`
 - Value: DateTime (마지막 메시지 시간)
 - TTL: 5초
-- 저장소: MemoryCache (단일 서버) 또는 Redis (Scale-out)
+- 저장소: **MemoryCache (현재)** → Redis (나중에 교체)
+  - 현재: `IMemoryCache` 사용 (학습 초기)
+  - 교체 시점: Redis 학습 단계에서 `IDistributedCache`로 전환
 
-**권한 체크 캐싱** (선택):
-- Key: `chat:access:{characterId}:{roomId}`
-- Value: bool (접근 가능 여부)
-- TTL: 60초
-- 갱신 조건: 길드 가입/탈퇴 시
+**권한 체크 캐싱** (미래 확장):
+- **현재**: 캐싱 없음 (매번 DB 조회)
+  - 이유: YAGNI 원칙, 조기 최적화 방지
+  - 사용자 100명 이하에서는 문제 없음
+- **나중** (성능 병목 시):
+  - Key: `chat:access:{characterId}:{roomId}`
+  - Value: bool (접근 가능 여부)
+  - TTL: 60초
+  - 갱신 조건: 길드 가입/탈퇴 시 즉시 삭제 (Event 기반)
+  - 저장소: Redis 또는 MemoryCache
 
 **🎓 학습 포인트 (캐싱 전략)**:
-- **TODO(human)**: Cache Invalidation 전략
-  - TTL 기반 vs Event 기반 (길드 탈퇴 시 즉시 삭제)
-- **TODO(human)**: Cache Stampede 방지
-  - Lock 사용 vs Stale-While-Revalidate 패턴
+- 측정 기반 최적화 (추측하지 말고 측정하라)
+- Cache Invalidation 전략 (TTL vs Event 기반)
+- Cache Stampede 방지 (Lock vs Stale-While-Revalidate)
 
 ---
 
@@ -979,20 +1175,31 @@ connection.On<object>("UserTyping", (data) => {
 
 ### N+1 Query Prevention
 
-**EF Core Include**:
-- `Include(m => m.Sender)` - 메시지 조회 시 발신자 정보 함께 로드
+**Select Projection**:
+- 필요한 필드만 명시적으로 SELECT (Sender.Id, Name, Level)
 - 단일 LEFT JOIN 쿼리 실행
+- Include 대비 장점: 불필요한 컬럼 제외 (Password, Email), 네트워크 트래픽 감소
 
 **AsNoTracking()**:
 - 읽기 전용 쿼리 (히스토리 조회)
 - Change Tracking 오버헤드 제거
 
 **🎓 학습 포인트 (쿼리 최적화)**:
-- **TODO(human)**: Include vs Select (Projection)
-  - Include: `Select(m => new ChatMessageDto { Sender = new CharacterSummaryDto { ... } })`
-  - Projection: 필요한 필드만 SELECT (성능 우수)
-- **TODO(human)**: Lazy Loading 사용 금지 이유
-  - N+1 쿼리 발생, 성능 저하
+- **✅ 결정**: **Select (Projection) 방식 사용**
+  - Include 대신 필요한 필드만 명시적으로 SELECT
+  - 이유: 보안 (Password 제외), 성능 (네트워크 트래픽 감소), 명시성
+  - 패턴: `.Select(m => new ChatMessageDto { Sender = new CharacterSummaryDto { Id, Name, Level } })`
+  - Include vs Select 비교:
+    - Include: 편리하지만 모든 컬럼 조회 (Password 등 불필요한 데이터 포함)
+    - Select: 코드 길지만 보안+성능 우수 (필요한 컬럼만)
+  - 학습 포인트: SQL 최적화, 명시적 매핑, 보안 고려
+- **✅ 결정**: AsNoTracking() 사용 (읽기 전용)
+  - 히스토리 조회는 읽기 전용이므로 Change Tracking 불필요
+  - 사용 시기: SELECT 쿼리 (조회만), 미사용: INSERT/UPDATE (수정 필요)
+  - 성능 이점: Change Tracking 오버헤드 제거
+- **✅ 결정**: Lazy Loading 사용 금지
+  - 이유: N+1 쿼리 발생, 성능 저하
+  - 대안: Eager Loading (Include) 또는 Projection (Select)
 
 **Requirements**: AC-4 (N+1 방지)
 
@@ -1009,10 +1216,17 @@ connection.On<object>("UserTyping", (data) => {
 1. `ChatRooms`:
    - 목적: 채팅방 정보 저장 (Global, Guild, Whisper)
    - 필드: Id (GUID PK), Type (int), Name (varchar 100), GuildId (GUID nullable FK), CreatedAt (timestamp)
-   - 관계: Guilds (N:1, nullable), ChatMessages (1:N)
+   - 관계: Guilds (N:1, nullable), ChatMessages (1:N), ChatRoomParticipants (1:N)
    - 인덱스: Type, GuildId
 
-2. `ChatMessages`:
+2. `ChatRoomParticipants`:
+   - 목적: Whisper 채팅방 참여자 관리 (N:M 중간 테이블)
+   - 필드: Id (GUID PK), RoomId (GUID FK), CharacterId (GUID FK), JoinedAt (timestamp)
+   - 관계: ChatRooms (N:1), Characters (N:1)
+   - 인덱스: RoomId, CharacterId
+   - 제약: UNIQUE(RoomId, CharacterId)
+
+3. `ChatMessages`:
    - 목적: 채팅 메시지 저장 및 히스토리
    - 필드: Id (GUID PK), RoomId (GUID FK), SenderId (GUID FK), Content (varchar 1000), CreatedAt (timestamp)
    - 관계: ChatRooms (N:1), Characters (N:1)
@@ -1026,9 +1240,13 @@ connection.On<object>("UserTyping", (data) => {
 **인덱스 추가** (우선순위 순):
 1. `IX_ChatMessages_RoomId_CreatedAt` (복합, DESC)
    - 이유: Cursor 페이징, 모든 히스토리 조회에 사용
-2. `IX_ChatRooms_Type`
+2. `IX_ChatRoomParticipants_RoomId`
+   - 이유: 방별 참여자 조회 (권한 체크)
+3. `IX_ChatRoomParticipants_CharacterId`
+   - 이유: 사용자별 참여 방 조회 (Whisper 방 목록)
+4. `IX_ChatRooms_Type`
    - 이유: 채팅방 목록 필터링 (Global/Guild/Whisper)
-3. `IX_ChatRooms_GuildId`
+5. `IX_ChatRooms_GuildId`
    - 이유: 길드 채팅방 조회
 
 **데이터 마이그레이션**:
@@ -1044,18 +1262,22 @@ connection.On<object>("UserTyping", (data) => {
 **백업 권장 여부**: No (신규 테이블, 기존 데이터 영향 없음)
 
 **🎓 학습 포인트 (데이터베이스 설계)**:
-- **TODO(human)**: Cascade Delete vs Application 처리
-  - ON DELETE CASCADE: DB가 자동 삭제 (빠름)
-  - Application: 커스텀 로직 (익명화, 로그)
-- **TODO(human)**: GUID vs Serial (Auto-increment)
-  - GUID: 분산 환경, 클라이언트 생성 가능
-  - Serial: 성능 우수, 순차적
-- **TODO(human)**: VARCHAR(1000) vs TEXT
-  - VARCHAR: 길이 제한, 인덱스 가능
-  - TEXT: 무제한, 인덱스 제약
-- **TODO(human)**: CreatedAt 기본값 (UTC_NOW vs Application 설정)
-  - DB 기본값: 일관성
-  - Application: 테스트 용이성
+- **✅ 결정**: Cascade Delete = **RESTRICT (Application 처리)**
+  - 메시지/참여자는 보존 후 Application에서 익명화/정리
+  - 이유: 신고 시스템 증거 보존, 규정 준수, 커스텀 로직
+  - 학습 포인트: 데이터 보존 정책, Application 레벨 제어
+- **✅ 결정**: **GUID 사용**
+  - 프로젝트 전체 일관성 (Characters, Guilds 모두 GUID)
+  - 이유: 분산 환경 대비, 클라이언트 생성 가능
+  - 학습 포인트: 식별자 선택 기준 (일관성 우선)
+- **✅ 결정**: **VARCHAR(1000)**
+  - 명확한 길이 제한 (Application 500자, DB 1000자 여유)
+  - 이유: 인덱스 가능, 제약 조건 명시
+  - 학습 포인트: DB와 Application 양쪽 검증
+- **✅ 결정**: CreatedAt = **DB 기본값 (DEFAULT NOW())**
+  - DB가 자동 설정 (Application 실수 방지)
+  - 이유: 일관성 보장, 타임존 통일 (UTC)
+  - 학습 포인트: DB 레벨 기본값의 장점
 
 > 💡 **학습 가이드**: SQL 문법은 AI가 작성합니다. **Cascade 규칙**, **타입 선택**, **인덱스 전략** 같은 설계 결정에 집중하세요.
 
@@ -1097,8 +1319,14 @@ connection.On<object>("UserTyping", (data) => {
 | D3 | ChatMessage.Content VARCHAR(1000) (Application 500자 검증) | - | - | Accepted |
 | D4 | 복합 인덱스 (RoomId, CreatedAt DESC) | - | - | Accepted |
 | D5 | JWT Query String 방식 (SignalR) | - | - | Accepted |
-| D6 | MemoryCache 쿨다운 저장 (Redis는 Scale-out 시) | - | - | Accepted |
+| D6 | MemoryCache 쿨다운 저장 (현재) → Redis (나중에 교체) | - | - | Accepted |
 | D7 | SignalR Error 이벤트 (vs Exception 던지기) | - | - | Accepted |
+| D8 | 욕설 필터 = 서버 원본 저장 + 클라이언트 필터링 | - | - | Accepted |
+| D9 | Whisper 참여자 = ChatRoomParticipants 테이블 (N:M 중간 테이블) | - | - | Accepted |
+| D10 | Select Projection 방식 (Include 대신) | - | - | Accepted |
+| D11 | 트랜잭션 = Service Layer, RowVersion 불필요 | - | - | Accepted |
+| D12 | Authorization = 수동 체크 (Policy-based는 나중) | - | - | Accepted |
+| D13 | DB 설계 = RESTRICT, GUID, VARCHAR(1000), DEFAULT NOW() | - | - | Accepted |
 
 **가이드**:
 - **간단한 결정**: ADR 없이 테이블에 1줄로 기록
@@ -1122,6 +1350,83 @@ connection.On<object>("UserTyping", (data) => {
 - Alternatives: Exception 던지기 (클라이언트 연결 끊김 위험)
 - Decision: Clients.Caller.SendAsync("Error", ErrorDto)
 - Consequences: ✅ 연결 유지, ✅ 클라이언트 에러 핸들링 가능
+
+**D8 상세**:
+- Context: 욕설 필터링 구현 위치 (서버 vs 클라이언트)
+- Alternatives:
+  - Domain Service: 서버에서 필터링 후 저장 (증거 손실)
+  - Application Service: 외부 API 연동 (비용, 복잡도)
+- Decision: 서버는 원본 저장, Unity 클라이언트에서 표시 시 필터링
+- Consequences:
+  - ✅ 신고 시스템 증거 보존 (원본 메시지 필요)
+  - ✅ 사용자 선택권 (필터 ON/OFF)
+  - ✅ 서버 부하 감소
+  - ✅ 다국어 지원 용이 (클라이언트별 필터 목록)
+  - 학습 포인트: 클라이언트-서버 책임 분리
+
+**D9 상세**:
+- Context: Whisper(1:1 채팅) 참여자 저장 방식
+- Alternatives:
+  - JSONB 컬럼: 쿼리 단순, FK 제약 불가, 인덱스 제약
+  - ChatRooms 컬럼 추가: NULL 많음, Whisper만 특수 처리
+  - 별도 Whisper 전용 테이블: 구조 분리, 일관성 부족
+- Decision: **ChatRoomParticipants 테이블** (N:M 중간 테이블)
+- Consequences:
+  - ✅ 확장성 (나중에 그룹 채팅 3명+ 가능)
+  - ✅ 일관된 패턴 (Global, Guild와 동일한 구조)
+  - ✅ FK 무결성 보장 (CASCADE/RESTRICT)
+  - ✅ 중복 방 생성 방지 (기존 방 재사용 로직)
+  - 학습 포인트: N:M 관계 모델링, 중간 테이블 패턴, UNIQUE 제약
+
+**D10 상세**:
+- Context: EF Core 쿼리 최적화 (Include vs Select Projection)
+- Alternatives:
+  - Include: Navigation Property 전체 로드 (Character 모든 컬럼, Password 포함 위험)
+  - Select Projection: 필요한 필드만 명시적 SELECT
+- Decision: **Select Projection 방식**
+- Consequences:
+  - ✅ 보안 (Password, Email 등 민감 정보 제외)
+  - ✅ 성능 (네트워크 트래픽 감소)
+  - ✅ 명시적 (DTO 매핑 의도 명확)
+  - ⚠️ 코드 길이 증가 (트레이드오프)
+  - 학습 포인트: SQL 최적화, 보안 고려, 명시적 매핑
+
+**D11 상세**:
+- Context: 트랜잭션 관리 및 동시성 제어
+- Alternatives:
+  - Repository 트랜잭션: Repository가 SaveChanges 호출
+  - RowVersion 추가: UPDATE 충돌 방지
+- Decision: **Service Layer 트랜잭션, RowVersion 불필요**
+- Consequences:
+  - ✅ 표준 패턴 (Service가 Unit of Work 관리)
+  - ✅ 단순성 (채팅은 INSERT만, 동시성 충돌 없음)
+  - 학습 포인트: 트랜잭션 범위, 동시성 제어 필요 여부 판단
+
+**D12 상세**:
+- Context: Authorization 패턴 선택
+- Alternatives:
+  - Policy-based: `[Authorize(Policy = "...")]` 선언적
+  - 수동 체크: `CanAccessRoomAsync()` 명시적
+- Decision: **수동 체크 (Service Layer)**
+- Consequences:
+  - ✅ 학습 초기 단순성
+  - ✅ 명시적 로직 (이해 용이)
+  - ✅ 유연성 (복잡한 조건 처리)
+  - 나중에 Policy-based로 전환 가능
+  - 학습 포인트: Authorization 패턴, 점진적 학습
+
+**D13 상세**:
+- Context: 데이터베이스 설계 표준 (4가지 결정)
+- Decision:
+  1. **Cascade Delete = RESTRICT**: 메시지/참여자 보존 후 Application 정리 (신고 시스템 증거)
+  2. **GUID 사용**: 프로젝트 일관성, 분산 환경 대비
+  3. **VARCHAR(1000)**: 명확한 길이 제한, 인덱스 가능 (Application 500자, DB 1000자 여유)
+  4. **CreatedAt DEFAULT NOW()**: DB가 자동 설정 (Application 실수 방지)
+- Consequences:
+  - ✅ 데이터 보존 정책 명확
+  - ✅ 프로젝트 전체 일관성
+  - ✅ DB-Application 양쪽 검증
+  - 학습 포인트: DB 설계 표준, 제약 조건 배치
 
 ---
 
@@ -1182,7 +1487,32 @@ public class ErrorDto {
   await connection.InvokeAsync("SendMessage", "room-guid", "Hello!");
   ```
 
-**4. 에러 처리 가이드** (`docs/unity/signalr/ERROR_HANDLING.md`):
+**4. 욕설 필터 가이드** (`docs/unity/chat/PROFANITY_FILTER.md`):
+- 서버는 원본 메시지 저장, 클라이언트에서 표시 시 필터링
+- Unity 구현 예시:
+  ```csharp
+  public class ProfanityFilter {
+      private List<string> bannedWords = new() { "욕설1", "욕설2" };
+
+      public string FilterContent(string content) {
+          foreach (var word in bannedWords) {
+              content = content.Replace(word, "***");
+          }
+          return content;
+      }
+  }
+
+  // ChatUI에서 사용
+  connection.On<ChatMessageDto>("ReceiveMessage", (message) => {
+      var filteredContent = useFilter
+          ? profanityFilter.FilterContent(message.content)
+          : message.content;
+      ShowMessage(message.sender.name, filteredContent);
+  });
+  ```
+- 사용자 설정: PlayerPrefs.SetInt("ProfanityFilterEnabled", 1)
+
+**5. 에러 처리 가이드** (`docs/unity/signalr/ERROR_HANDLING.md`):
 - Error 이벤트 구독:
   ```csharp
   connection.On<ErrorDto>("Error", (error) => {
@@ -1213,27 +1543,42 @@ public class ErrorDto {
   - [x] AC-3: JWT 인증 (REST + SignalR Query String)
   - [x] AC-4: N+1 쿼리 방지 (Include, AsNoTracking)
   - [x] AC-5: 에러 처리 표준화 (ErrorDto)
-- [x] TODO(human) 아키텍처 학습 포인트 확인 완료
-  - [x] 쿨다운 저장소 선택 (Redis vs MemoryCache)
-  - [x] 욕설 필터 구현 위치 (Domain vs Application)
-  - [x] Whisper 참여자 저장 (별도 테이블 vs JSONB)
-  - [x] 권한 체크 캐싱 전략
-  - [x] Include vs Select (Projection) 성능
-  - [x] Cascade Delete vs Application 처리
-  - [x] GUID vs Serial
-  - [x] 인덱스 전략 (Covering Index vs 일반)
-- [ ] Self-Review Checklist 10개 항목 통과 (9/10 이상)
+- [x] TODO(human) 아키텍처 학습 포인트 확인 완료 (10/10)
+  - [x] 쿨다운 저장소 선택 → MemoryCache (현재) → Redis (나중)
+  - [x] 욕설 필터 구현 위치 → 서버 원본 + 클라이언트 필터링
+  - [x] Whisper 참여자 저장 → ChatRoomParticipants 테이블 (N:M)
+  - [x] 권한 체크 캐싱 전략 → 현재 Skip (YAGNI)
+  - [x] Include vs Select (Projection) 성능 → Select 방식
+  - [x] 트랜잭션 경계 → Service Layer (SaveChangesAsync)
+  - [x] 낙관적 동시성 제어 → 불필요 (INSERT만)
+  - [x] Authorization Policy → 수동 체크 (명시적)
+  - [x] Cascade Delete → RESTRICT (Application 처리)
+  - [x] GUID vs Serial → GUID (일관성)
+  - [x] VARCHAR vs TEXT → VARCHAR(1000)
+  - [x] CreatedAt 기본값 → DB DEFAULT NOW()
+- [x] Self-Review Checklist 10개 항목 통과 (10/10 완료)
+  - [x] 1. 요구사항 추적성: Perfect (모든 US/AC 추적)
+  - [x] 2. Clean Architecture: Domain 순수성 보장
+  - [x] 3. API 계약 정의: REST + SignalR 명확
+  - [x] 4. 데이터 모델 정의: 3개 테이블, 인덱스, 제약조건
+  - [x] 5. 인증 및 권한: JWT + CanAccessRoomAsync
+  - [x] 6. 유효성 검사: 길이, 쿨다운, GUID 형식
+  - [x] 7. 에러 처리: HTTP Status + SignalR ErrorDto
+  - [x] 8. 트랜잭션 경계: Service Layer SaveChangesAsync
+  - [x] 9. 비기능 요구사항: 성능(인덱스, N+1 방지), 로깅(Info/Warning/Error), 보안(JWT, Select Projection)
+  - [x] 10. Unity 문서화 계획: API_SPEC, DTOs, Integration Guide
 - [x] 게임 밸런스 AI 제안값 확인
   - [x] 메시지 길이: 500자 (DB: 1000자)
   - [x] 쿨다운: 1초
   - [x] 히스토리: 기본 50개, 최대 100개
 - [ ] ADR-0002 검토 완료 (SignalR 도입 결정)
-- [ ] Tasks 단계로 진행 승인
+- [x] Tasks 단계로 진행 승인 (모든 TODO(human) 결정 완료)
 
 ---
 
 **작성일**: 2025-10-29
+**최종 업데이트**: 2025-10-30 (품질 개선 완료)
 **작성자**: KTS
-**상태**: Draft
+**상태**: ✅ Approved - Ready for Tasks (Self-Review 10/10, TODO 정리 완료, 로깅 전략 추가)
 **Requirements 추적성**: [requirements.md](./requirements.md) - US-1 (메시지 전송), US-2 (히스토리 조회), US-3 (채팅방 타입), AC-1~AC-5 (기술 요구사항)
 **ADR**: [ADR-0002 SignalR 도입](../../../docs/adr/ADR-0002-signalr-adoption.md)
