@@ -11,14 +11,14 @@
 
 ## 📊 Progress Overview
 
-**전체 진행률**: 18/31 (58%)
+**전체 진행률**: 19/31 (61%)
 
 | Milestone | 작업 수 | 완료 | 진행률 |
 |-----------|---------|------|--------|
 | Domain Layer | 6 | 6 | 100% |
 | Infrastructure Layer | 7 | 7 | 100% |
 | Application Layer | 4 | 4 | 100% |
-| API Layer | 5 | 1 | 20% |
+| API Layer | 5 | 2 | 40% |
 | Database | 3 | 0 | 0% |
 | Testing & Documentation | 6 | 0 | 0% |
 
@@ -369,30 +369,30 @@
 
 ---
 
-### 4.2 Create ChatHub (SignalR Hub) ⏱️ 2시간
-- [ ] Create `IdleRPG.API/Hubs/ChatHub.cs`
-- [ ] Inherit from `Hub`
-- [ ] Add [Authorize] attribute
-- [ ] Inject dependencies:
+### 4.2 Create ChatHub (SignalR Hub) ⏱️ 2시간 ✅
+- [x] Create `IdleRPG.API/Hubs/ChatHub.cs`
+- [x] Inherit from `Hub`
+- [x] Add [Authorize] attribute
+- [x] Inject dependencies:
   - IChatService
   - ILogger<ChatHub>
-- [ ] Implement `JoinRoom(string roomId)`:
+- [x] Implement `JoinRoom(string roomId)`:
   - JWT에서 CharacterId 추출 (Context.User.FindFirst("characterId"))
   - 권한 체크: await _chatService.CanAccessRoomAsync()
   - Groups.AddToGroupAsync(Context.ConnectionId, roomId)
   - 실패 시: Clients.Caller.SendAsync("Error", ErrorDto { Code="FORBIDDEN" })
-- [ ] Implement `LeaveRoom(string roomId)`:
+- [x] Implement `LeaveRoom(string roomId)`:
   - Groups.RemoveFromGroupAsync(Context.ConnectionId, roomId)
-- [ ] Implement `SendMessage(string roomId, string content)`:
+- [x] Implement `SendMessage(string roomId, string content)`:
   - JWT에서 SenderId 추출
   - try-catch:
     - var dto = await _chatService.SendMessageAsync()
     - Clients.Group(roomId).SendAsync("ReceiveMessage", dto)
   - catch (InvalidOperationException): Clients.Caller.SendAsync("Error", ErrorDto)
   - catch (Exception): 로그 + 일반 에러 응답
-- [ ] Implement `Typing(string roomId)` (미래 확장):
+- [x] Implement `Typing(string roomId)` (미래 확장):
   - Clients.OthersInGroup(roomId).SendAsync("UserTyping", { CharacterId })
-- [ ] Add logging
+- [x] Add logging
 
 **Requirements**: US-1 (메시지 전송 및 수신), AC-1 (브로드캐스팅), AC-5 (에러 처리)
 **Design Reference**: [API Design - SignalR Hub Methods]

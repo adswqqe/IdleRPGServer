@@ -645,3 +645,54 @@
 - 다음 작업: ChatHub 구현 (SignalR 실시간 통신)
 
 ---
+
+## 2025-10-30 (Task 4.2)
+
+### Task Completed
+- [x] 4.2 Create ChatHub (SignalR Hub)
+
+### Files Changed
+- `IdleRPG.API/Hubs/ChatHub.cs` (new file, 339 lines)
+
+### Key Decisions
+- **SignalR Hub 메서드 4개**:
+  1. `JoinRoom(string roomId)`: 채팅방 참여 + 권한 체크
+  2. `LeaveRoom(string roomId)`: 채팅방 나가기
+  3. `SendMessage(string roomId, string content)`: 메시지 전송 + 브로드캐스트
+  4. `Typing(string roomId)`: 타이핑 상태 알림 (미래 확장)
+
+- **JWT 인증 통합**:
+  - `Context.User.FindFirst(ClaimTypes.NameIdentifier)` 사용
+  - GetCharacterIdFromContext() private helper 메서드로 추출
+  - 인증 실패 시 Error 이벤트 전송
+
+- **SignalR Groups 활용**:
+  - `Groups.AddToGroupAsync(Context.ConnectionId, roomId)`: 방 참여
+  - `Clients.Group(roomId).SendAsync("ReceiveMessage", dto)`: 브로드캐스팅
+  - `Clients.OthersInGroup(roomId)`: 자신 제외 브로드캐스트
+  - `Clients.Caller`: 호출자에게만 응답 (에러 처리)
+
+- **에러 처리 전략**:
+  - InvalidOperationException → COOLDOWN_ACTIVE
+  - ArgumentException → INVALID_MESSAGE
+  - UnauthorizedAccessException → FORBIDDEN
+  - Exception → SERVER_ERROR
+  - 모든 에러를 ErrorDto로 표준화
+
+- **Connection 생명주기 관리**:
+  - OnConnectedAsync(): 연결 시 로깅
+  - OnDisconnectedAsync(): 연결 해제 시 로깅 + 예외 처리
+
+- **UserJoined/UserLeft 이벤트**:
+  - 선택적 알림 기능 (미래 확장)
+  - OthersInGroup으로 자신 제외 알림
+
+### Notes
+- ✅ API Layer 진행률: 2/5 (40%)
+- ✅ 빌드 성공 (오류 0개)
+- SignalR Hub는 [Authorize] 어트리뷰트로 전체 메서드 보호
+- Context.ConnectionAborted를 CancellationToken으로 전달
+- Typing 이벤트는 LogDebug 레벨 (빈도 높은 이벤트)
+- 다음 작업: Program.cs에서 SignalR 설정
+
+---
