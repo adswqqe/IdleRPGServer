@@ -176,7 +176,10 @@
       "Bash(then echo \"Unity docs: EXISTS\")",
       "Bash(else echo \"Unity docs: NOT FOUND (expected, not implemented yet)\")",
       "Bash(fi)",
-      "SlashCommand(/spec-review realtime-chat --format detailed)"
+      "SlashCommand(/spec-review realtime-chat --format detailed)",
+      "Bash(if [ -d \"D:\\Proj\\IdleGameClient\\Docs\\unity\" ])",
+      "Bash(then echo \"Unity docs folder exists\")",
+      "Bash(else echo \"Unity docs folder NOT FOUND\")"
     ]
   },
   "enableAllProjectMcpServers": true,
