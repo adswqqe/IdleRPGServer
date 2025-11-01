@@ -732,5 +732,126 @@ BEGIN
     END IF;
 END $EF$;
 
+-- ============================================
+-- Migration: Add Realtime Chat System
+-- Date: 2025-10-30
+-- Description: 실시간 채팅 시스템 (Global/Guild/Whisper), SignalR 통합
+-- ============================================
+
+-- 1. CREATE TABLE ChatRooms
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20251030000000_AddRealtimeChatSystem') THEN
+    CREATE TABLE "ChatRooms" (
+        "Id" UUID NOT NULL,
+        "Type" INT NOT NULL,
+        "Name" VARCHAR(100) NOT NULL,
+        "GuildId" UUID NULL,
+        "CreatedAt" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT (CURRENT_TIMESTAMP),
+        CONSTRAINT "PK_ChatRooms" PRIMARY KEY ("Id"),
+        CONSTRAINT "CK_ChatRooms_Type" CHECK ("Type" BETWEEN 1 AND 3)
+    );
+    END IF;
+END $EF$;
+
+-- 2. CREATE TABLE ChatRoomParticipants
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20251030000000_AddRealtimeChatSystem') THEN
+    CREATE TABLE "ChatRoomParticipants" (
+        "Id" UUID NOT NULL,
+        "RoomId" UUID NOT NULL,
+        "CharacterId" UUID NOT NULL,
+        "JoinedAt" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT (CURRENT_TIMESTAMP),
+        CONSTRAINT "PK_ChatRoomParticipants" PRIMARY KEY ("Id"),
+        CONSTRAINT "FK_ChatRoomParticipants_Rooms_RoomId" FOREIGN KEY ("RoomId") REFERENCES "ChatRooms" ("Id") ON DELETE CASCADE,
+        CONSTRAINT "FK_ChatRoomParticipants_Characters_CharacterId" FOREIGN KEY ("CharacterId") REFERENCES "Characters" ("Id") ON DELETE RESTRICT
+    );
+    END IF;
+END $EF$;
+
+-- 3. CREATE TABLE ChatMessages
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20251030000000_AddRealtimeChatSystem') THEN
+    CREATE TABLE "ChatMessages" (
+        "Id" UUID NOT NULL,
+        "RoomId" UUID NOT NULL,
+        "SenderId" UUID NOT NULL,
+        "Content" VARCHAR(1000) NOT NULL,
+        "CreatedAt" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT (CURRENT_TIMESTAMP),
+        CONSTRAINT "PK_ChatMessages" PRIMARY KEY ("Id"),
+        CONSTRAINT "FK_ChatMessages_Rooms_RoomId" FOREIGN KEY ("RoomId") REFERENCES "ChatRooms" ("Id") ON DELETE RESTRICT,
+        CONSTRAINT "FK_ChatMessages_Characters_SenderId" FOREIGN KEY ("SenderId") REFERENCES "Characters" ("Id") ON DELETE RESTRICT
+    );
+    END IF;
+END $EF$;
+
+-- 4. CREATE INDEX IX_ChatRooms_Type
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20251030000000_AddRealtimeChatSystem') THEN
+    CREATE INDEX "IX_ChatRooms_Type" ON "ChatRooms" ("Type");
+    END IF;
+END $EF$;
+
+-- 5. CREATE INDEX IX_ChatRooms_GuildId
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20251030000000_AddRealtimeChatSystem') THEN
+    CREATE INDEX "IX_ChatRooms_GuildId" ON "ChatRooms" ("GuildId") WHERE "GuildId" IS NOT NULL;
+    END IF;
+END $EF$;
+
+-- 6. CREATE INDEX IX_ChatRoomParticipants_RoomId
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20251030000000_AddRealtimeChatSystem') THEN
+    CREATE INDEX "IX_ChatRoomParticipants_RoomId" ON "ChatRoomParticipants" ("RoomId");
+    END IF;
+END $EF$;
+
+-- 7. CREATE INDEX IX_ChatRoomParticipants_CharacterId
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20251030000000_AddRealtimeChatSystem') THEN
+    CREATE INDEX "IX_ChatRoomParticipants_CharacterId" ON "ChatRoomParticipants" ("CharacterId");
+    END IF;
+END $EF$;
+
+-- 8. CREATE UNIQUE INDEX IX_ChatRoomParticipants_RoomId_CharacterId
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20251030000000_AddRealtimeChatSystem') THEN
+    CREATE UNIQUE INDEX "IX_ChatRoomParticipants_RoomId_CharacterId" ON "ChatRoomParticipants" ("RoomId", "CharacterId");
+    END IF;
+END $EF$;
+
+-- 9. CREATE INDEX IX_ChatMessages_RoomId_CreatedAt (복합 인덱스, Cursor 페이징 최적화)
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20251030000000_AddRealtimeChatSystem') THEN
+    CREATE INDEX "IX_ChatMessages_RoomId_CreatedAt" ON "ChatMessages" ("RoomId", "CreatedAt" DESC);
+    END IF;
+END $EF$;
+
+-- 10. INSERT Seed Data: Global ChatRoom
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20251030000000_AddRealtimeChatSystem') THEN
+    INSERT INTO "ChatRooms" ("Id", "Type", "Name", "GuildId", "CreatedAt")
+    VALUES ('00000000-0000-0000-0000-000000000001', 1, '전체 채팅', NULL, TIMESTAMPTZ '2025-10-30T00:00:00Z');
+    END IF;
+END $EF$;
+
+-- 11. INSERT Migration History
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20251030000000_AddRealtimeChatSystem') THEN
+    INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
+    VALUES ('20251030000000_AddRealtimeChatSystem', '9.0.9');
+    END IF;
+END $EF$;
+
 COMMIT;
 

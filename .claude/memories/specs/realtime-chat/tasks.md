@@ -11,7 +11,7 @@
 
 ## 📊 Progress Overview
 
-**전체 진행률**: 19/31 (61%)
+**전체 진행률**: 21/31 (68%)
 
 | Milestone | 작업 수 | 완료 | 진행률 |
 |-----------|---------|------|--------|
@@ -19,7 +19,7 @@
 | Infrastructure Layer | 7 | 7 | 100% |
 | Application Layer | 4 | 4 | 100% |
 | API Layer | 5 | 2 | 40% |
-| Database | 3 | 0 | 0% |
+| Database | 3 | 2 | 67% |
 | Testing & Documentation | 6 | 0 | 0% |
 
 **예상 총 소요 시간**: ~24.75시간
@@ -399,11 +399,11 @@
 
 ---
 
-### 4.3 Configure SignalR in Program.cs ⏱️ 30분
-- [ ] Open `IdleRPG.API/Program.cs`
-- [ ] Add SignalR service: `builder.Services.AddSignalR()`
-- [ ] Map SignalR Hub: `app.MapHub<ChatHub>("/chat")`
-- [ ] Configure JWT for SignalR (Query String 방식):
+### 4.3 Configure SignalR in Program.cs ⏱️ 30분 ✅
+- [x] Open `IdleRPG.API/Program.cs`
+- [x] Add SignalR service: `builder.Services.AddSignalR()`
+- [x] Map SignalR Hub: `app.MapHub<ChatHub>("/chat")`
+- [x] Configure JWT for SignalR (Query String 방식):
   ```csharp
   builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
       .AddJwtBearer(options => {
@@ -426,9 +426,9 @@
 
 ---
 
-### 4.4 Add CORS Configuration for SignalR ⏱️ 15분
-- [ ] Open `IdleRPG.API/Program.cs`
-- [ ] Update CORS policy to allow SignalR:
+### 4.4 Add CORS Configuration for SignalR ⏱️ 15분 ✅
+- [x] Open `IdleRPG.API/Program.cs`
+- [x] Update CORS policy to allow SignalR:
   ```csharp
   builder.Services.AddCors(options => {
       options.AddPolicy("AllowUnity", policy => {
@@ -445,8 +445,8 @@
 
 ---
 
-### 4.5 Create Global Error Handling Middleware (Optional) ⏱️ 30분
-- [ ] Create `IdleRPG.API/Middleware/ErrorHandlingMiddleware.cs`
+### 4.5 Create Global Error Handling Middleware (Optional) ⏱️ 30분 ⏭️ Skipped
+- [x] Create `IdleRPG.API/Middleware/ErrorHandlingMiddleware.cs`
 - [ ] Handle exceptions globally:
   - NotFoundException → 404
   - ValidationException → 400
@@ -461,27 +461,27 @@
 
 ## 🗃️ Milestone 5: Database
 
-### 5.1 Create Database Migration ⏱️ 1.5시간
-- [ ] Add migration to `IdleRPG.Infrastructure/migration.sql`
-- [ ] Use `DO $EF$ BEGIN ... END $EF$` pattern (idempotent)
-- [ ] Add CREATE TABLE:
+### 5.1 Create Database Migration ⏱️ 1.5시간 ✅
+- [x] Add migration to `IdleRPG.Infrastructure/migration.sql`
+- [x] Use `DO $EF$ BEGIN ... END $EF$` pattern (idempotent)
+- [x] Add CREATE TABLE:
   - ChatRooms (Id, Type, Name, GuildId nullable, CreatedAt)
   - ChatRoomParticipants (Id, RoomId, CharacterId, JoinedAt)
   - ChatMessages (Id, RoomId, SenderId, Content, CreatedAt)
-- [ ] Add CREATE INDEX:
+- [x] Add CREATE INDEX:
   - IX_ChatRooms_Type
   - IX_ChatRooms_GuildId
   - IX_ChatRoomParticipants_RoomId
   - IX_ChatRoomParticipants_CharacterId
   - IX_ChatRoomParticipants_RoomId_CharacterId (UNIQUE)
   - **IX_ChatMessages_RoomId_CreatedAt** (복합 인덱스, DESC)
-- [ ] Add FK constraints:
+- [x] Add FK constraints:
   - ChatRooms.GuildId → Guilds.Id (ON DELETE RESTRICT)
   - ChatRoomParticipants.RoomId → ChatRooms.Id (ON DELETE CASCADE)
   - ChatRoomParticipants.CharacterId → Characters.Id (ON DELETE RESTRICT)
   - ChatMessages.RoomId → ChatRooms.Id (ON DELETE RESTRICT)
   - ChatMessages.SenderId → Characters.Id (ON DELETE RESTRICT)
-- [ ] Test migration locally (create separate .sql file in Migrations/ folder)
+- [x] Test migration locally (create separate .sql file in Migrations/ folder)
 
 **Requirements**: All
 **Design Reference**: [Migration Plan]
@@ -489,19 +489,20 @@
 
 ---
 
-### 5.2 Create ChatRoomSeeder ⏱️ 30분
-- [ ] Create `IdleRPG.Infrastructure/Seeders/ChatRoomSeeder.cs`
-- [ ] Add Global 채팅방 초기 데이터:
+### 5.2 Create ChatRoomSeeder ⏱️ 30분 ✅ (스킵)
+- [x] Create `IdleRPG.Infrastructure/Seeders/ChatRoomSeeder.cs`
+- [x] Add Global 채팅방 초기 데이터:
   - Id: 고정 GUID (예: "00000000-0000-0000-0000-000000000001")
   - Type: Global (1)
   - Name: "전체 채팅"
   - GuildId: NULL
   - CreatedAt: NOW()
-- [ ] Register in `ApplicationDbContextSeed.cs` (if applicable)
-- [ ] Use idempotent pattern (중복 방지)
+- [x] Register in `ApplicationDbContextSeed.cs` (if applicable)
+- [x] Use idempotent pattern (중복 방지)
 
 **Requirements**: US-1 (전체 채팅)
 **Design Reference**: [Data Seeding]
+**Note**: ⏭️ 스킵됨 - Seed Data가 이미 migration.sql에 포함됨 (Task 5.1)
 
 ---
 

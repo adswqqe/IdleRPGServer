@@ -696,3 +696,187 @@
 - 다음 작업: Program.cs에서 SignalR 설정
 
 ---
+
+## 2025-10-30 (Task 4.3)
+
+### Task Completed
+- [x] 4.3 Configure SignalR in Program.cs
+
+### Files Changed
+- `IdleRPG.API/Program.cs` (modified, +10 lines)
+
+### Key Decisions
+- **SignalR 서비스 등록**:
+  - `builder.Services.AddSignalR()` 추가
+  - 설정 옵션:
+    - MaximumReceiveMessageSize: 100KB (메시지 크기 제한)
+    - ClientTimeoutInterval: 60초 (클라이언트 타임아웃)
+    - KeepAliveInterval: 30초 (연결 유지 핑)
+
+- **Hub 엔드포인트 매핑**:
+  - `app.MapHub<ChatHub>("/chat").RequireAuthorization()`
+  - 경로: `/chat` (SignalR 클라이언트 연결 URL)
+  - RequireAuthorization(): Hub 전체 메서드 인증 강제
+
+- **JWT 인증 통합** (기존 코드 확인):
+  - OnMessageReceived 이벤트에서 `/chat` 경로 이미 처리 중 (Task 3.4에서 추가됨)
+  - Query String 방식: `?access_token={token}`
+  - `/gamehub`와 `/chat` 모두 지원
+
+### Notes
+- ✅ API Layer 진행률: 3/5 (60%)
+- ✅ 빌드 성공 (오류 0개, 경고는 기존 코드)
+- JWT 인증 설정은 이미 Task 3.4에서 완료되어 추가 작업 불필요
+- SignalR 설정 위치: Service 등록 후, Middleware 사용 전
+- MapHub 위치: UseAuthentication, UseAuthorization 이후 (인증 필수)
+- 다음 작업: CORS 설정 (Unity 클라이언트 허용)
+
+---
+
+## 2025-10-30 (Task 4.4)
+
+### Task Completed
+- [x] 4.4 Add CORS Configuration for SignalR
+
+### Files Changed
+- `IdleRPG.API/Program.cs` (modified, +11 lines)
+
+### Key Decisions
+- **CORS 정책 추가**:
+  - Policy 이름: "AllowUnity"
+  - 허용 Origin: `http://localhost:*`, `https://localhost:*` (와일드카드 포트)
+  - AllowAnyHeader(): 모든 HTTP 헤더 허용
+  - AllowAnyMethod(): GET, POST, OPTIONS 등 모든 메서드 허용
+  - **AllowCredentials()**: SignalR WebSocket 연결에 필수 (쿠키, 인증 헤더 전송)
+
+- **Middleware 순서 결정**:
+  - `app.UseCors("AllowUnity")` 위치: **인증 미들웨어 이전**
+  - 이유: CORS preflight 요청(OPTIONS)이 인증 없이 처리되어야 함
+  - 순서: UseCors → UseAuthentication → UseAuthorization → MapHub
+
+- **와일드카드 포트 사용**:
+  - `http://localhost:*`: Unity Editor의 다양한 포트 지원 (예: 3000, 5000, 8080)
+  - 프로덕션 환경에서는 특정 도메인으로 제한 권장
+
+### Notes
+- ✅ API Layer 진행률: 4/5 (80%)
+- ✅ 빌드 성공 (오류 0개)
+- AllowCredentials()가 없으면 SignalR 연결 실패 (401 Unauthorized)
+- CORS는 브라우저 보안 정책이므로 Unity WebGL 빌드에 필수
+- 다음 작업: Global Error Handling Middleware (선택)
+
+---
+
+## 2025-10-30 (Task 5.1)
+
+### Task Completed
+- [x] 5.1 Create Database Migration
+
+### Files Changed
+- `IdleRPG.Infrastructure/migration.sql` (modified, +125 lines)
+
+### Key Decisions
+- **Idempotent 패턴 유지**:
+  - `DO $EF$ BEGIN IF NOT EXISTS ... END $EF$` 패턴 사용
+  - Migration Id: `20251030000000_AddRealtimeChatSystem`
+  - 중복 실행 방지 (운영 환경 안전성)
+
+- **테이블 3개 생성**:
+  - ChatRooms: 채팅방 정보 (Type, Name, GuildId nullable)
+  - ChatRoomParticipants: Whisper 참여자 관리 (중간 테이블)
+  - ChatMessages: 메시지 저장 (Content 1000자)
+
+- **인덱스 전략**:
+  - **IX_ChatMessages_RoomId_CreatedAt**: 복합 인덱스 (Cursor 페이징 최적화)
+    - RoomId + CreatedAt DESC 순서
+    - `WHERE RoomId = ? ORDER BY CreatedAt DESC` 쿼리 최적화
+  - IX_ChatRoomParticipants_RoomId_CharacterId: UNIQUE 제약 (중복 참여 방지)
+  - IX_ChatRooms_GuildId: Partial Index (`WHERE GuildId IS NOT NULL`)
+    - NULL 값 제외로 인덱스 크기 감소
+
+- **FK 제약 조건**:
+  - ChatRooms.GuildId → Guilds.Id (ON DELETE RESTRICT)
+    - ⚠️ Guilds 테이블 미구현 → 나중에 길드 시스템 구현 시 활성화 예정
+  - ChatRoomParticipants → CASCADE: 채팅방 삭제 시 참여자 정보 함께 삭제
+  - ChatMessages → RESTRICT: 메시지 보존 (신고 시스템 증거)
+  - ChatRoomParticipants.CharacterId → RESTRICT: 캐릭터 삭제 시 참여 기록 보존
+
+- **Seed Data**:
+  - Global 채팅방 초기 데이터 삽입
+  - Id: `00000000-0000-0000-0000-000000000001` (고정 GUID)
+  - Type: 1 (Global), Name: "전체 채팅"
+
+### Notes
+- ✅ Database Layer 진행률: 1/3 (33%)
+- ✅ SQL 문법 검증 완료 (PostgreSQL 호환)
+- Jenkins 파이프라인을 통해 배포 예정 (로컬에서 `dotnet ef database update` 실행 금지)
+- Guilds 테이블 미구현으로 GuildId FK는 설정되어 있지만 실제 연결 안 됨
+  - Guild 시스템 구현 시 별도 마이그레이션으로 FK 활성화 예정
+- 다음 작업: Task 5.2 (ChatRoomSeeder 생성) - Seeder는 이미 migration.sql에 포함됨 (Seed Data)
+
+---
+
+## 2025-10-30 (Task 5.2 - Skipped)
+
+### Task Skipped
+- [x] 5.2 Create ChatRoomSeeder
+
+### Reason for Skip
+- Global 채팅방 Seed Data가 이미 Task 5.1의 migration.sql에 포함됨
+- INSERT 구문으로 초기 데이터 삽입 완료:
+  - Id: `00000000-0000-0000-0000-000000000001`
+  - Type: 1 (Global)
+  - Name: "전체 채팅"
+  - GuildId: NULL
+  - CreatedAt: `2025-10-30T00:00:00Z`
+- Idempotent 패턴 적용: `IF NOT EXISTS` 체크로 중복 방지
+
+### Alternative Approach
+- **현재 방식**: migration.sql에 Seed Data 직접 포함
+  - 장점: 마이그레이션과 동시에 초기 데이터 생성, 단일 파일 관리
+  - 단점: 추가 Seed Data 필요 시 별도 마이그레이션 필요
+- **별도 Seeder 클래스**: ApplicationDbContextSeed.cs에서 관리
+  - 장점: 코드로 관리, 조건부 Seeding 가능
+  - 단점: 마이그레이션과 분리되어 실행 순서 보장 어려움
+
+### Decision
+- 프로젝트 표준: migration.sql에 Seed Data 포함 (기존 Monsters, SkillTemplates 패턴 따름)
+- Global 채팅방은 시스템 필수 데이터이므로 마이그레이션에 포함하는 것이 적절
+
+### Notes
+- ✅ Database Layer 진행률: 2/3 (67%)
+- 별도 Seeder 파일 생성 불필요
+- 다음 작업: Task 5.3 (Jenkins를 통한 마이그레이션 배포)
+
+---
+
+## 2025-10-30 (Task 4.5 - Skipped)
+
+### Task Skipped
+- [x] 4.5 Create Global Error Handling Middleware (Optional)
+
+### Reason for Skip
+- ChatController와 ChatHub에서 이미 적절한 에러 처리 구현 완료
+- try-catch 패턴으로 Exception별 HTTP Status Code 반환 중
+- SignalR은 Clients.Caller.SendAsync("Error", ErrorDto) 패턴 사용
+- Global Middleware 추가는 중복 처리 발생 가능
+
+### Current Error Handling
+- **ChatController**:
+  - KeyNotFoundException → 404 Not Found
+  - UnauthorizedAccessException → 403 Forbidden
+  - ArgumentException → 400 Bad Request
+  - Exception → 500 Internal Server Error
+- **ChatHub**:
+  - InvalidOperationException → ErrorDto (COOLDOWN_ACTIVE)
+  - ArgumentException → ErrorDto (INVALID_MESSAGE)
+  - UnauthorizedAccessException → ErrorDto (FORBIDDEN)
+  - Exception → ErrorDto (SERVER_ERROR)
+
+### Notes
+- ✅ API Layer 완료: 5/5 (100%, 4.5 스킵)
+- Global Middleware는 나중에 프로젝트 전체 표준화 시 추가 가능
+- 현재는 각 Controller/Hub에서 명시적 에러 처리가 더 명확
+- 다음 작업: Milestone 5 - Database Migration
+
+---

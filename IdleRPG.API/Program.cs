@@ -80,6 +80,26 @@ builder.Services.AddScoped<IdleRPG.Application.Services.IChatService, IdleRPG.In
 // Memory Cache (Chat 쿨다운 관리용)
 builder.Services.AddMemoryCache();
 
+// SignalR 추가 (실시간 채팅용)
+builder.Services.AddSignalR(options =>
+{
+    options.MaximumReceiveMessageSize = 1024 * 100; // 100KB
+    options.ClientTimeoutInterval = TimeSpan.FromSeconds(60);
+    options.KeepAliveInterval = TimeSpan.FromSeconds(30);
+});
+
+// CORS 설정 (Unity 클라이언트 허용)
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowUnity", policy =>
+    {
+        policy.WithOrigins("http://localhost:*", "https://localhost:*")
+              .AllowAnyHeader()
+              .AllowAnyMethod()
+              .AllowCredentials(); // SignalR requires credentials
+    });
+});
+
 // Domain Services (순수 비즈니스 로직)
 builder.Services.AddScoped<IdleRPG.Domain.Services.GachaLogicService>();
 builder.Services.AddScoped<IdleRPG.Domain.Services.PetGachaService>();
@@ -192,8 +212,17 @@ else
     // 또는 Let's Encrypt 인증서 설정 후 활성화 가능
 }
 
+// CORS 미들웨어 (인증 전에 실행)
+app.UseCors("AllowUnity");
+
 // 인증/인가 미들웨어 (순서 중요!)
 app.UseAuthentication(); // 먼저 인증
 app.UseAuthorization();  // 그 다음 권한 체크
+
+// Controllers 매핑
 app.MapControllers();
+
+// SignalR Hub 매핑 (인증 필요)
+app.MapHub<IdleRPG.API.Hubs.ChatHub>("/chat").RequireAuthorization();
+
 app.Run();
