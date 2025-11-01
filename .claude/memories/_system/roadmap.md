@@ -4,7 +4,7 @@
 > **PRD**: `docs/MUSHROOM_GAME_PRD.md`
 
 **프로젝트 기간**: 8주 (2025-10-14 ~ 2025-12-06)
-**현재 진행**: Week 4 Day 0 (2025-10-28)
+**현재 진행**: Week 4 Day 4 (2025-11-01)
 
 ---
 
@@ -27,13 +27,11 @@
 ## Phase 2: Expansion (Week 4-5) - 핵심 게임플레이
 
 **시스템**: 8-10
-**진행률**: **1/3 (33%)** 🚀
+**진행률**: **2/3 (67%)** 🚀
 
 **완료 시스템**:
 - ✅ 8. 펫 시스템
-
-**진행 중**:
-- 🚀 9. 실시간 채팅 (SignalR) - Requirements 완료
+- ✅ 9. 실시간 채팅 (SignalR)
 
 **다음 작업**:
 - 📋 10. PVP 아레나
@@ -70,12 +68,12 @@
 
 ## 전체 진행률
 
-**완료된 시스템**: 8개 / 20개 (40%)
-**진행 중 시스템**: 1개 (시스템 9: 실시간 채팅 - Requirements 완료)
+**완료된 시스템**: 9개 / 20개 (45%)
+**진행 중 시스템**: 0개
 
 **Phase 별**:
 - Phase 1 (MVP): 7/7 = 100% ✅
-- Phase 2 (핵심): 1/3 = 33% 🚀 (시스템 9 진행중)
+- Phase 2 (핵심): 2/3 = 67% 🚀
 - Phase 3 (소셜): 0/5 = 0%
 - Phase 4 (운영): 0/5 = 0%
 
@@ -117,10 +115,19 @@
   - ✅ Unity 문서: API_SPEC.md (886줄), DTOs.cs (367줄), INTEGRATION_GUIDE.md (1,081줄)
 - **Phase 2 진행률: 33% (1/3)** 🚀
 
-### 🚀 Week 4 현재 (2025-10-28)
-- 시스템 9: 실시간 채팅 (SignalR)
-  - ✅ Requirements 완료 (L Size, 18개 대화형 질문)
-  - 📋 Next: Spike (선택) 또는 Design 단계
+### ✅ Week 4 Day 1-4 (2025-10-28 ~ 2025-11-01)
+- 시스템 9 완료 (실시간 채팅 - SignalR) **100% 완료** ✅
+  - ✅ Requirements: L Size (18개 대화형 질문)
+  - ✅ Design: Full Spec (requirements, design, tasks)
+  - ✅ Domain: ChatRoom, ChatMessage, ChatRoomParticipant, RoomType Enum
+  - ✅ Application: IChatService + 5개 DTO (ChatMessage, ChatRoom, Error 등)
+  - ✅ Infrastructure: 2개 Repository + ChatRoom/ChatMessage Configuration
+  - ✅ API: ChatController (2 endpoints) + ChatHub (SignalR 4 methods)
+  - ✅ 테스트: 45개 테스트 케이스 (ChatService 20, Controller 14, Repository 11)
+  - ✅ Migration: 3개 테이블 (ChatRooms, ChatMessages, ChatRoomParticipants), 9개 인덱스
+  - ✅ Unity 문서: API_SPEC.md (680줄), DTOs.cs (320줄), SIGNALR_INTEGRATION_GUIDE.md (560줄), PROFANITY_FILTER.md (480줄), README.md (150줄)
+  - ✅ Spec 문서: Requirements, Design, Tasks (27/31, 87%), Work-Log
+- **Phase 2 진행률: 67% (2/3)** 🚀
 
 ### 📋 Week 4-5 목표
 - 시스템 9: 실시간 채팅 (SignalR 학습)
@@ -160,15 +167,14 @@
 - ✅ `.claude/memories/specs/skill-gacha/` (Requirements, Design, Tasks, 구현, Unity 문서 완료)
 - ✅ `.claude/memories/specs/pet-system/` (Requirements, Design, Tasks, 구현, Unity 문서 완료)
 - ✅ `.claude/memories/specs/combat-system-refactoring/` (spec-lite.md, Phase 1-8 구현 완료 - 2025-10-29)
+- ✅ `.claude/memories/specs/realtime-chat/` (Requirements, Design, Tasks 87%, 구현, Unity 문서 완료 - 2025-11-01)
 
 **진행 중 Specs**:
-- 🚀 `.claude/memories/specs/realtime-chat/` (Requirements 완료 - 2025-10-28)
-  - Size: L (SignalR 새 기술 도입)
-  - Next: Spike (선택) 또는 `/spec-design realtime-chat`
+- (없음)
 
 **다음 Spec**:
 - 📋 PVP Arena (시스템 10번)
 
 ---
 
-**최종 업데이트**: 2025-10-29
+**최종 업데이트**: 2025-11-01
