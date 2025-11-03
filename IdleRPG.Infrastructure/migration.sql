@@ -853,5 +853,328 @@ BEGIN
     END IF;
 END $EF$;
 
+-- ============================================
+-- Migration: Add Dungeon System and Loot Table Pattern
+-- Date: 2025-10-17
+-- Description: 던전 템플릿, 난이도, 보상 테이블 시스템 추가
+-- ============================================
+
+-- 1. CREATE TABLE DungeonTemplates
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20251017042133_AddDungeonSystemAndLootTablePattern') THEN
+    CREATE TABLE "DungeonTemplates" (
+        "Id" SERIAL PRIMARY KEY,
+        "Name" VARCHAR(100) NOT NULL,
+        "Description" VARCHAR(500),
+        "Category" VARCHAR(50) NOT NULL,
+        "MinLevel" INT NOT NULL,
+        "IsEnabled" BOOLEAN NOT NULL DEFAULT TRUE
+    );
+    END IF;
+END $EF$;
+
+-- 2. CREATE TABLE ItemTemplates
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20251017042133_AddDungeonSystemAndLootTablePattern') THEN
+    CREATE TABLE "ItemTemplates" (
+        "Id" UUID PRIMARY KEY,
+        "Name" VARCHAR(100) NOT NULL,
+        "Description" VARCHAR(500),
+        "Type" VARCHAR(50) NOT NULL,
+        "IconUrl" VARCHAR(500),
+        "MaxStackSize" INT NOT NULL DEFAULT 999
+    );
+    END IF;
+END $EF$;
+
+-- 3. CREATE TABLE LootTables
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20251017042133_AddDungeonSystemAndLootTablePattern') THEN
+    CREATE TABLE "LootTables" (
+        "Id" SERIAL PRIMARY KEY,
+        "Name" VARCHAR(100) NOT NULL,
+        "NumberOfRolls" INT NOT NULL DEFAULT 1
+    );
+    END IF;
+END $EF$;
+
+-- 4. CREATE TABLE UserDungeonDailies
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20251017042133_AddDungeonSystemAndLootTablePattern') THEN
+    CREATE TABLE "UserDungeonDailies" (
+        "Id" UUID PRIMARY KEY,
+        "UserId" UUID NOT NULL,
+        "DungeonTemplateId" INT NOT NULL,
+        "DifficultyCode" VARCHAR(50) NOT NULL,
+        "EntryCount" INT NOT NULL DEFAULT 0,
+        "Date" DATE NOT NULL,
+        CONSTRAINT "FK_UserDungeonDailies_DungeonTemplates_DungeonTemplateId" FOREIGN KEY ("DungeonTemplateId")
+            REFERENCES "DungeonTemplates"("Id") ON DELETE RESTRICT,
+        CONSTRAINT "FK_UserDungeonDailies_Players_UserId" FOREIGN KEY ("UserId")
+            REFERENCES "Players"("Id") ON DELETE RESTRICT
+    );
+    END IF;
+END $EF$;
+
+-- 5. CREATE TABLE PlayerItems
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20251017042133_AddDungeonSystemAndLootTablePattern') THEN
+    CREATE TABLE "PlayerItems" (
+        "Id" UUID PRIMARY KEY,
+        "CharacterId" UUID NOT NULL,
+        "ItemTemplateId" UUID NOT NULL,
+        "Quantity" INT NOT NULL,
+        "CreatedAt" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        "UpdatedAt" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        CONSTRAINT "FK_PlayerItems_Characters_CharacterId" FOREIGN KEY ("CharacterId")
+            REFERENCES "Characters"("Id") ON DELETE RESTRICT,
+        CONSTRAINT "FK_PlayerItems_ItemTemplates_ItemTemplateId" FOREIGN KEY ("ItemTemplateId")
+            REFERENCES "ItemTemplates"("Id") ON DELETE RESTRICT
+    );
+    END IF;
+END $EF$;
+
+-- 6. CREATE TABLE DungeonDifficulties
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20251017042133_AddDungeonSystemAndLootTablePattern') THEN
+    CREATE TABLE "DungeonDifficulties" (
+        "Id" SERIAL PRIMARY KEY,
+        "TemplateId" INT NOT NULL,
+        "Code" VARCHAR(50) NOT NULL,
+        "RecommendedPower" INT NOT NULL,
+        "BaseGold" BIGINT NOT NULL,
+        "BaseExp" INT NOT NULL,
+        "LootTableId" INT,
+        "MaxWaves" INT NOT NULL,
+        "DailyEntryLimit" INT NOT NULL DEFAULT 3,
+        "EntryCostGold" INT NOT NULL DEFAULT 0,
+        CONSTRAINT "FK_DungeonDifficulties_DungeonTemplates_TemplateId" FOREIGN KEY ("TemplateId")
+            REFERENCES "DungeonTemplates"("Id") ON DELETE CASCADE,
+        CONSTRAINT "FK_DungeonDifficulties_LootTables_LootTableId" FOREIGN KEY ("LootTableId")
+            REFERENCES "LootTables"("Id") ON DELETE RESTRICT
+    );
+    END IF;
+END $EF$;
+
+-- 7. CREATE TABLE LootItems
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20251017042133_AddDungeonSystemAndLootTablePattern') THEN
+    CREATE TABLE "LootItems" (
+        "Id" SERIAL PRIMARY KEY,
+        "LootTableId" INT NOT NULL,
+        "Type" VARCHAR(50) NOT NULL,
+        "ItemId" UUID,
+        "IsGuaranteed" BOOLEAN NOT NULL DEFAULT FALSE,
+        "Weight" INT NOT NULL,
+        "MinQuantity" INT NOT NULL DEFAULT 1,
+        "MaxQuantity" INT NOT NULL DEFAULT 1,
+        CONSTRAINT "FK_LootItems_LootTables_LootTableId" FOREIGN KEY ("LootTableId")
+            REFERENCES "LootTables"("Id") ON DELETE CASCADE
+    );
+    END IF;
+END $EF$;
+
+-- 8. CREATE TABLE DungeonProgresses
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20251017042133_AddDungeonSystemAndLootTablePattern') THEN
+    CREATE TABLE "DungeonProgresses" (
+        "Id" UUID PRIMARY KEY,
+        "CharacterId" UUID NOT NULL,
+        "DifficultyId" INT NOT NULL,
+        "CurrentWave" INT NOT NULL DEFAULT 1,
+        "CurrentHealth" INT NOT NULL,
+        "StartedAt" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        CONSTRAINT "FK_DungeonProgresses_Characters_CharacterId" FOREIGN KEY ("CharacterId")
+            REFERENCES "Characters"("Id") ON DELETE RESTRICT,
+        CONSTRAINT "FK_DungeonProgresses_DungeonDifficulties_DifficultyId" FOREIGN KEY ("DifficultyId")
+            REFERENCES "DungeonDifficulties"("Id") ON DELETE RESTRICT
+    );
+    END IF;
+END $EF$;
+
+-- 9. CREATE TABLE DungeonRunHistories
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20251017042133_AddDungeonSystemAndLootTablePattern') THEN
+    CREATE TABLE "DungeonRunHistories" (
+        "Id" UUID PRIMARY KEY,
+        "CharacterId" UUID NOT NULL,
+        "DifficultyId" INT NOT NULL,
+        "IsCleared" BOOLEAN NOT NULL,
+        "ClearedWave" INT NOT NULL,
+        "CompletedAt" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        CONSTRAINT "FK_DungeonRunHistories_Characters_CharacterId" FOREIGN KEY ("CharacterId")
+            REFERENCES "Characters"("Id") ON DELETE RESTRICT,
+        CONSTRAINT "FK_DungeonRunHistories_DungeonDifficulties_DifficultyId" FOREIGN KEY ("DifficultyId")
+            REFERENCES "DungeonDifficulties"("Id") ON DELETE RESTRICT
+    );
+    END IF;
+END $EF$;
+
+-- 10. CREATE TABLE DungeonWaves
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20251017042133_AddDungeonSystemAndLootTablePattern') THEN
+    CREATE TABLE "DungeonWaves" (
+        "Id" SERIAL PRIMARY KEY,
+        "DifficultyId" INT NOT NULL,
+        "WaveNumber" INT NOT NULL,
+        "MonsterId" UUID NOT NULL,
+        CONSTRAINT "FK_DungeonWaves_DungeonDifficulties_DifficultyId" FOREIGN KEY ("DifficultyId")
+            REFERENCES "DungeonDifficulties"("Id") ON DELETE CASCADE,
+        CONSTRAINT "FK_DungeonWaves_Monsters_MonsterId" FOREIGN KEY ("MonsterId")
+            REFERENCES "Monsters"("Id") ON DELETE RESTRICT
+    );
+    END IF;
+END $EF$;
+
+-- 11. CREATE INDEXES
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20251017042133_AddDungeonSystemAndLootTablePattern') THEN
+    CREATE INDEX "IX_DungeonDifficulties_LootTableId" ON "DungeonDifficulties" ("LootTableId");
+    CREATE INDEX "IX_DungeonDifficulties_TemplateId" ON "DungeonDifficulties" ("TemplateId");
+    CREATE UNIQUE INDEX "IX_DungeonProgresses_CharacterId" ON "DungeonProgresses" ("CharacterId");
+    CREATE INDEX "IX_DungeonProgresses_DifficultyId" ON "DungeonProgresses" ("DifficultyId");
+    CREATE INDEX "IX_DungeonRunHistories_CharacterId_CompletedAt" ON "DungeonRunHistories" ("CharacterId", "CompletedAt");
+    CREATE INDEX "IX_DungeonRunHistories_DifficultyId" ON "DungeonRunHistories" ("DifficultyId");
+    CREATE INDEX "IX_DungeonWaves_DifficultyId" ON "DungeonWaves" ("DifficultyId");
+    CREATE INDEX "IX_DungeonWaves_MonsterId" ON "DungeonWaves" ("MonsterId");
+    CREATE INDEX "IX_LootItems_LootTableId" ON "LootItems" ("LootTableId");
+    CREATE INDEX "IX_PlayerItems_CharacterId" ON "PlayerItems" ("CharacterId");
+    CREATE INDEX "IX_PlayerItems_ItemTemplateId" ON "PlayerItems" ("ItemTemplateId");
+    CREATE INDEX "IX_UserDungeonDailies_DungeonTemplateId" ON "UserDungeonDailies" ("DungeonTemplateId");
+    CREATE UNIQUE INDEX "IX_UserDungeonDailies_UserId_DungeonTemplateId_DifficultyCode_~" ON "UserDungeonDailies" ("UserId", "DungeonTemplateId", "DifficultyCode", "Date");
+    END IF;
+END $EF$;
+
+-- 12. INSERT Migration History
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20251017042133_AddDungeonSystemAndLootTablePattern') THEN
+    INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
+    VALUES ('20251017042133_AddDungeonSystemAndLootTablePattern', '9.0.9');
+    END IF;
+END $EF$;
+
+-- ============================================
+-- Migration: Add Dungeon Stage System
+-- Date: 2025-10-18
+-- Description: Main Battle용 DungeonStage 시스템 (간소화된 던전)
+-- ============================================
+
+-- 1. ALTER TABLE BattleLogs ADD COLUMN DungeonStageId
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20251018112141_AddDungeonStageSystem') THEN
+    ALTER TABLE "BattleLogs" ADD COLUMN "DungeonStageId" INT NULL;
+    END IF;
+END $EF$;
+
+-- 2. CREATE TABLE CharacterDungeonProgresses
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20251018112141_AddDungeonStageSystem') THEN
+    CREATE TABLE "CharacterDungeonProgresses" (
+        "Id" UUID PRIMARY KEY,
+        "CharacterId" UUID NOT NULL,
+        "HighestStageClearedNormal" INT NOT NULL DEFAULT 0,
+        "HighestStageClearedHard" INT NOT NULL DEFAULT 0,
+        "HighestStageClearedNightmare" INT NOT NULL DEFAULT 0,
+        "CreatedAt" TIMESTAMP WITH TIME ZONE NOT NULL,
+        "UpdatedAt" TIMESTAMP WITH TIME ZONE NOT NULL,
+        CONSTRAINT "FK_CharacterDungeonProgresses_Characters_CharacterId" FOREIGN KEY ("CharacterId")
+            REFERENCES "Characters"("Id") ON DELETE CASCADE
+    );
+    END IF;
+END $EF$;
+
+-- 3. CREATE TABLE DungeonStages
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20251018112141_AddDungeonStageSystem') THEN
+    CREATE TABLE "DungeonStages" (
+        "Id" SERIAL PRIMARY KEY,
+        "Name" VARCHAR(100) NOT NULL,
+        "RequiredLevel" INT NOT NULL,
+        "MonsterId" UUID NOT NULL,
+        "BaseExperience" INT NOT NULL,
+        "BaseGold" INT NOT NULL,
+        "FirstClearBonusExp" INT,
+        "FirstClearBonusGold" INT,
+        "CreatedAt" TIMESTAMP WITH TIME ZONE NOT NULL,
+        CONSTRAINT "FK_DungeonStages_Monsters_MonsterId" FOREIGN KEY ("MonsterId")
+            REFERENCES "Monsters"("Id") ON DELETE RESTRICT
+    );
+    END IF;
+END $EF$;
+
+-- 4. CREATE INDEXES
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20251018112141_AddDungeonStageSystem') THEN
+    CREATE UNIQUE INDEX "IX_CharacterDungeonProgresses_CharacterId_Unique" ON "CharacterDungeonProgresses" ("CharacterId");
+    CREATE INDEX "IX_DungeonStages_MonsterId" ON "DungeonStages" ("MonsterId");
+    CREATE INDEX "IX_DungeonStages_RequiredLevel" ON "DungeonStages" ("RequiredLevel");
+    END IF;
+END $EF$;
+
+-- 5. INSERT Migration History
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20251018112141_AddDungeonStageSystem') THEN
+    INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
+    VALUES ('20251018112141_AddDungeonStageSystem', '9.0.9');
+    END IF;
+END $EF$;
+
+-- ============================================
+-- Migration: Add LootTable To DungeonStage
+-- Date: 2025-10-22
+-- Description: DungeonStage에 보상 테이블 연결 (LootTableId 추가)
+-- ============================================
+
+-- 1. ALTER TABLE DungeonStages ADD COLUMN LootTableId
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20251022062932_AddLootTableToDungeonStage') THEN
+    ALTER TABLE "DungeonStages" ADD COLUMN "LootTableId" INT NULL;
+    END IF;
+END $EF$;
+
+-- 2. CREATE INDEX IX_DungeonStages_LootTableId
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20251022062932_AddLootTableToDungeonStage') THEN
+    CREATE INDEX "IX_DungeonStages_LootTableId" ON "DungeonStages" ("LootTableId");
+    END IF;
+END $EF$;
+
+-- 3. ADD FOREIGN KEY CONSTRAINT
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20251022062932_AddLootTableToDungeonStage') THEN
+    ALTER TABLE "DungeonStages" ADD CONSTRAINT "FK_DungeonStages_LootTables_LootTableId"
+        FOREIGN KEY ("LootTableId") REFERENCES "LootTables"("Id");
+    END IF;
+END $EF$;
+
+-- 4. INSERT Migration History
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20251022062932_AddLootTableToDungeonStage') THEN
+    INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
+    VALUES ('20251022062932_AddLootTableToDungeonStage', '9.0.9');
+    END IF;
+END $EF$;
+
 COMMIT;
 
