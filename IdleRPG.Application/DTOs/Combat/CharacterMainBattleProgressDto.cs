@@ -1,12 +1,16 @@
 using IdleRPG.Domain.Enums;
 
-namespace IdleRPG.Application.DTOs.Dungeon
+namespace IdleRPG.Application.DTOs.Combat
 {
     /// <summary>
-    /// 캐릭터의 던전 진행 상황 DTO
+    /// 캐릭터의 메인 전투 진행 상황 DTO
+    ///
+    /// [사용처]
+    /// - GET /api/stages/progress (메인 스테이지 진행도)
+    ///
     /// 각 난이도별로 최고 클리어한 스테이지를 추적합니다.
     /// </summary>
-    public class CharacterDungeonProgressDto
+    public class CharacterMainBattleProgressDto
     {
         /// <summary>
         /// 진행 상황 ID

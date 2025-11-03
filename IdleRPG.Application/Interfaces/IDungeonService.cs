@@ -1,4 +1,4 @@
-using IdleRPG.Application.DTOs.Dungeon;
+using IdleRPG.Application.DTOs.Combat;
 using IdleRPG.Domain.Enums;
 
 namespace IdleRPG.Application.Interfaces
@@ -32,7 +32,7 @@ namespace IdleRPG.Application.Interfaces
         /// </summary>
         /// <param name="characterId">캐릭터 ID</param>
         /// <returns>난이도별 진행 상황</returns>
-        Task<CharacterDungeonProgressDto> GetProgressAsync(Guid characterId);
+        Task<CharacterMainBattleProgressDto> GetProgressAsync(Guid characterId);
 
         /// <summary>
         /// 던전 스테이지 클리어를 처리합니다.

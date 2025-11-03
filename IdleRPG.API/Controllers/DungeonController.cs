@@ -1,5 +1,5 @@
 using IdleRPG.Application.Character.Services;
-using IdleRPG.Application.DTOs.Dungeon;
+using IdleRPG.Application.DTOs.Combat;
 using IdleRPG.Application.Interfaces;
 using IdleRPG.Domain.Enums;
 using Microsoft.AspNetCore.Authorization;
@@ -81,7 +81,7 @@ namespace IdleRPG.API.Controllers
         /// <response code="404">존재하지 않는 캐릭터</response>
         [HttpGet("progress")]
         [AllowAnonymous]
-        [ProducesResponseType(typeof(CharacterDungeonProgressDto), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(CharacterMainBattleProgressDto), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> GetProgress([FromQuery] Guid characterId)
         {

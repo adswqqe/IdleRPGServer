@@ -1,10 +1,15 @@
 using IdleRPG.Domain.Enums;
 
-namespace IdleRPG.Application.DTOs.Dungeon
+namespace IdleRPG.Application.DTOs.Combat
 {
     /// <summary>
-    /// 던전 스테이지 정보 DTO
-    /// 클라이언트에 던전 정보를 전달할 때 사용 (정적 구성 데이터)
+    /// 전투 스테이지 정보 DTO (MainBattle, Dungeon 공통)
+    ///
+    /// [사용처]
+    /// - MainBattle System: GET /api/stages (메인 스테이지 진행)
+    /// - Special Dungeon System: GET /api/dungeons (보스 던전, 미래 구현)
+    ///
+    /// [참고] "Dungeon" prefix는 레거시 이름이며, 모든 전투 컨텐츠에서 재사용됩니다.
     /// </summary>
     public class DungeonStageDto
     {

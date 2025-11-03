@@ -4,7 +4,7 @@ using IdleRPG.Application.Character.Services;
 using IdleRPG.Application.Combat.Services;
 using IdleRPG.Application.DTOs.Battle;
 using IdleRPG.Application.DTOs.Characters;
-using IdleRPG.Application.DTOs.Dungeon;
+using IdleRPG.Application.DTOs.Combat;
 using IdleRPG.Application.DTOs.Rewards;
 using IdleRPG.Application.Interfaces;
 using IdleRPG.Domain.Entities;

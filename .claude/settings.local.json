@@ -179,7 +179,9 @@
       "SlashCommand(/spec-review realtime-chat --format detailed)",
       "Bash(if [ -d \"D:\\Proj\\IdleGameClient\\Docs\\unity\" ])",
       "Bash(then echo \"Unity docs folder exists\")",
-      "Bash(else echo \"Unity docs folder NOT FOUND\")"
+      "Bash(else echo \"Unity docs folder NOT FOUND\")",
+      "Bash(where:*)",
+      "Bash(powershell:*)"
     ]
   },
   "enableAllProjectMcpServers": true,

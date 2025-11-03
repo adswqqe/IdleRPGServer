@@ -2,10 +2,15 @@ using IdleRPG.Application.DTOs.Battle;
 using IdleRPG.Application.DTOs.Equipment;
 using IdleRPG.Application.DTOs.Rewards;
 
-namespace IdleRPG.Application.DTOs.Dungeon
+namespace IdleRPG.Application.DTOs.Combat
 {
     /// <summary>
-    /// 던전 스테이지 클리어 결과 DTO
+    /// 전투 스테이지 클리어 결과 DTO (MainBattle, Dungeon 공통)
+    ///
+    /// [사용처]
+    /// - POST /api/stages/clear (메인 스테이지 클리어 응답)
+    /// - POST /api/dungeons/clear (특수 던전 클리어 응답, 미래 구현)
+    ///
     /// 서버가 검증 완료 후 보상을 지급하고 결과를 반환할 때 사용
     ///
     /// [서버 권한 설계]
@@ -14,6 +19,8 @@ namespace IdleRPG.Application.DTOs.Dungeon
     /// - DroppedEquipments: 서버가 랜덤 생성한 장비 드랍 목록
     /// - NewHighestStage: 서버가 업데이트한 진행도
     /// - ErrorMessage: 검증 실패 시 이유
+    ///
+    /// [참고] "Dungeon" prefix는 레거시 이름이며, 모든 전투 컨텐츠에서 재사용됩니다.
     /// </summary>
     public class DungeonClearResultDto
     {

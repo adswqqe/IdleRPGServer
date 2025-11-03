@@ -1,7 +1,7 @@
 using IdleRPG.Application.BattleLog.Services;
 using IdleRPG.Application.Character.Services;
 using IdleRPG.Application.Combat.Services;
-using IdleRPG.Application.DTOs.Dungeon;
+using IdleRPG.Application.DTOs.Combat;
 using IdleRPG.Application.DTOs.Equipment;
 using IdleRPG.Application.DTOs.Rewards;
 using IdleRPG.Application.Interfaces;
@@ -113,7 +113,7 @@ namespace IdleRPG.Infrastructure.Service
             return result.OrderBy(s => s.Difficulty).ThenBy(s => s.Id).ToList();
         }
 
-        public async Task<CharacterDungeonProgressDto> GetProgressAsync(Guid characterId)
+        public async Task<CharacterMainBattleProgressDto> GetProgressAsync(Guid characterId)
         {
             // 캐릭터 존재 여부 확인
             var character = await _unitOfWork.Characters.GetByIdAsync(characterId);
@@ -123,7 +123,7 @@ namespace IdleRPG.Infrastructure.Service
             // 진행 상황 조회 (없으면 새로 생성)
             var progress = await _unitOfWork.CharacterDungeonProgresses.GetOrCreateByCharacterIdAsync(characterId);
 
-            return new CharacterDungeonProgressDto
+            return new CharacterMainBattleProgressDto
             {
                 Id = progress.Id,
                 CharacterId = progress.CharacterId,
