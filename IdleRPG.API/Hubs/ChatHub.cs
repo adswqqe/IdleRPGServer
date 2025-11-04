@@ -38,10 +38,10 @@ public class ChatHub : Hub
             return;
         }
 
-        var characterId = GetCharacterIdFromContext();
-        if (characterId == Guid.Empty)
+        var playerId = GetPlayerIdFromContext();
+        if (playerId == Guid.Empty)
         {
-            _logger.LogWarning("JoinRoom: CharacterId extraction failed");
+            _logger.LogWarning("JoinRoom: PlayerId extraction failed");
             await Clients.Caller.SendAsync("Error", new ErrorDto
             {
                 Code = "UNAUTHORIZED",
@@ -52,13 +52,13 @@ public class ChatHub : Hub
 
         try
         {
-            // 권한 체크
-            var canAccess = await _chatService.CanAccessRoomAsync(characterId, roomGuid);
+            // 권한 체크 (ChatService에서 Player.Id → Character.Id 변환 수행)
+            var canAccess = await _chatService.CanAccessRoomAsync(playerId, roomGuid);
             if (!canAccess)
             {
                 _logger.LogWarning(
-                    "JoinRoom: Access denied. CharacterId={CharacterId}, RoomId={RoomId}",
-                    characterId,
+                    "JoinRoom: Access denied. PlayerId={PlayerId}, RoomId={RoomId}",
+                    playerId,
                     roomGuid);
 
                 await Clients.Caller.SendAsync("Error", new ErrorDto
@@ -73,15 +73,15 @@ public class ChatHub : Hub
             await Groups.AddToGroupAsync(Context.ConnectionId, roomId);
 
             _logger.LogInformation(
-                "JoinRoom: Success. CharacterId={CharacterId}, RoomId={RoomId}, ConnectionId={ConnectionId}",
-                characterId,
+                "JoinRoom: Success. PlayerId={PlayerId}, RoomId={RoomId}, ConnectionId={ConnectionId}",
+                playerId,
                 roomGuid,
                 Context.ConnectionId);
 
             // 다른 참여자들에게 알림 (선택적)
             await Clients.OthersInGroup(roomId).SendAsync("UserJoined", new
             {
-                CharacterId = characterId,
+                PlayerId = playerId,
                 Timestamp = DateTime.UtcNow
             });
         }
@@ -89,8 +89,8 @@ public class ChatHub : Hub
         {
             _logger.LogError(
                 ex,
-                "JoinRoom: Unexpected error. CharacterId={CharacterId}, RoomId={RoomId}",
-                characterId,
+                "JoinRoom: Unexpected error. PlayerId={PlayerId}, RoomId={RoomId}",
+                playerId,
                 roomGuid);
 
             await Clients.Caller.SendAsync("Error", new ErrorDto
@@ -113,10 +113,10 @@ public class ChatHub : Hub
             return;
         }
 
-        var characterId = GetCharacterIdFromContext();
-        if (characterId == Guid.Empty)
+        var playerId = GetPlayerIdFromContext();
+        if (playerId == Guid.Empty)
         {
-            _logger.LogWarning("LeaveRoom: CharacterId extraction failed");
+            _logger.LogWarning("LeaveRoom: PlayerId extraction failed");
             return;
         }
 
@@ -125,15 +125,15 @@ public class ChatHub : Hub
             await Groups.RemoveFromGroupAsync(Context.ConnectionId, roomId);
 
             _logger.LogInformation(
-                "LeaveRoom: Success. CharacterId={CharacterId}, RoomId={RoomId}, ConnectionId={ConnectionId}",
-                characterId,
+                "LeaveRoom: Success. PlayerId={PlayerId}, RoomId={RoomId}, ConnectionId={ConnectionId}",
+                playerId,
                 roomGuid,
                 Context.ConnectionId);
 
             // 다른 참여자들에게 알림 (선택적)
             await Clients.OthersInGroup(roomId).SendAsync("UserLeft", new
             {
-                CharacterId = characterId,
+                PlayerId = playerId,
                 Timestamp = DateTime.UtcNow
             });
         }
@@ -141,8 +141,8 @@ public class ChatHub : Hub
         {
             _logger.LogError(
                 ex,
-                "LeaveRoom: Unexpected error. CharacterId={CharacterId}, RoomId={RoomId}",
-                characterId,
+                "LeaveRoom: Unexpected error. PlayerId={PlayerId}, RoomId={RoomId}",
+                playerId,
                 roomGuid);
         }
     }
@@ -176,10 +176,10 @@ public class ChatHub : Hub
             return;
         }
 
-        var characterId = GetCharacterIdFromContext();
-        if (characterId == Guid.Empty)
+        var playerId = GetPlayerIdFromContext();
+        if (playerId == Guid.Empty)
         {
-            _logger.LogWarning("SendMessage: CharacterId extraction failed");
+            _logger.LogWarning("SendMessage: PlayerId extraction failed");
             await Clients.Caller.SendAsync("Error", new ErrorDto
             {
                 Code = "UNAUTHORIZED",
@@ -190,10 +190,10 @@ public class ChatHub : Hub
 
         try
         {
-            // 메시지 저장 및 전송 (쿨다운 체크 포함)
+            // 메시지 저장 및 전송 (ChatService에서 Player.Id → Character.Id 변환 수행)
             var messageDto = await _chatService.SendMessageAsync(
                 roomGuid,
-                characterId,
+                playerId,
                 content,
                 Context.ConnectionAborted);
 
@@ -201,24 +201,24 @@ public class ChatHub : Hub
             await Clients.Group(roomId).SendAsync("ReceiveMessage", messageDto);
 
             _logger.LogInformation(
-                "SendMessage: Success. CharacterId={CharacterId}, RoomId={RoomId}, MessageId={MessageId}",
-                characterId,
+                "SendMessage: Success. PlayerId={PlayerId}, RoomId={RoomId}, MessageId={MessageId}",
+                playerId,
                 roomGuid,
                 messageDto.Id);
         }
         catch (InvalidOperationException ex)
         {
-            // 쿨다운 위반
+            // 쿨다운 위반 또는 캐릭터 미존재
             _logger.LogWarning(
                 ex,
-                "SendMessage: Cooldown violation. CharacterId={CharacterId}, RoomId={RoomId}",
-                characterId,
+                "SendMessage: Operation failed. PlayerId={PlayerId}, RoomId={RoomId}",
+                playerId,
                 roomGuid);
 
             await Clients.Caller.SendAsync("Error", new ErrorDto
             {
-                Code = "COOLDOWN_ACTIVE",
-                Message = "Please wait before sending another message"
+                Code = "OPERATION_FAILED",
+                Message = ex.Message
             });
         }
         catch (ArgumentException ex)
@@ -226,8 +226,8 @@ public class ChatHub : Hub
             // 메시지 길이 초과
             _logger.LogWarning(
                 ex,
-                "SendMessage: Invalid message. CharacterId={CharacterId}, RoomId={RoomId}",
-                characterId,
+                "SendMessage: Invalid message. PlayerId={PlayerId}, RoomId={RoomId}",
+                playerId,
                 roomGuid);
 
             await Clients.Caller.SendAsync("Error", new ErrorDto
@@ -241,8 +241,8 @@ public class ChatHub : Hub
             // 권한 없음
             _logger.LogWarning(
                 ex,
-                "SendMessage: Access denied. CharacterId={CharacterId}, RoomId={RoomId}",
-                characterId,
+                "SendMessage: Access denied. PlayerId={PlayerId}, RoomId={RoomId}",
+                playerId,
                 roomGuid);
 
             await Clients.Caller.SendAsync("Error", new ErrorDto
@@ -256,8 +256,8 @@ public class ChatHub : Hub
             // 예상치 못한 에러
             _logger.LogError(
                 ex,
-                "SendMessage: Unexpected error. CharacterId={CharacterId}, RoomId={RoomId}",
-                characterId,
+                "SendMessage: Unexpected error. PlayerId={PlayerId}, RoomId={RoomId}",
+                playerId,
                 roomGuid);
 
             await Clients.Caller.SendAsync("Error", new ErrorDto
@@ -279,8 +279,8 @@ public class ChatHub : Hub
             return;
         }
 
-        var characterId = GetCharacterIdFromContext();
-        if (characterId == Guid.Empty)
+        var playerId = GetPlayerIdFromContext();
+        if (playerId == Guid.Empty)
         {
             return;
         }
@@ -288,30 +288,30 @@ public class ChatHub : Hub
         // 자신을 제외한 같은 방의 사용자들에게만 알림
         await Clients.OthersInGroup(roomId).SendAsync("UserTyping", new
         {
-            CharacterId = characterId,
+            PlayerId = playerId,
             RoomId = roomGuid,
             Timestamp = DateTime.UtcNow
         });
 
         _logger.LogDebug(
-            "Typing: CharacterId={CharacterId}, RoomId={RoomId}",
-            characterId,
+            "Typing: PlayerId={PlayerId}, RoomId={RoomId}",
+            playerId,
             roomGuid);
     }
 
     /// <summary>
-    /// JWT에서 CharacterId를 추출합니다.
+    /// JWT에서 PlayerId를 추출합니다.
     /// </summary>
-    /// <returns>CharacterId (추출 실패 시 Guid.Empty)</returns>
-    private Guid GetCharacterIdFromContext()
+    /// <returns>PlayerId (추출 실패 시 Guid.Empty)</returns>
+    private Guid GetPlayerIdFromContext()
     {
-        var characterIdClaim = Context.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        if (string.IsNullOrEmpty(characterIdClaim) || !Guid.TryParse(characterIdClaim, out var characterId))
+        var playerIdClaim = Context.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (string.IsNullOrEmpty(playerIdClaim) || !Guid.TryParse(playerIdClaim, out var playerId))
         {
             return Guid.Empty;
         }
 
-        return characterId;
+        return playerId;
     }
 
     /// <summary>
@@ -319,10 +319,10 @@ public class ChatHub : Hub
     /// </summary>
     public override async Task OnConnectedAsync()
     {
-        var characterId = GetCharacterIdFromContext();
+        var playerId = GetPlayerIdFromContext();
         _logger.LogInformation(
-            "OnConnectedAsync: CharacterId={CharacterId}, ConnectionId={ConnectionId}",
-            characterId,
+            "OnConnectedAsync: PlayerId={PlayerId}, ConnectionId={ConnectionId}",
+            playerId,
             Context.ConnectionId);
 
         await base.OnConnectedAsync();
@@ -333,11 +333,11 @@ public class ChatHub : Hub
     /// </summary>
     public override async Task OnDisconnectedAsync(Exception? exception)
     {
-        var characterId = GetCharacterIdFromContext();
+        var playerId = GetPlayerIdFromContext();
         _logger.LogInformation(
             exception,
-            "OnDisconnectedAsync: CharacterId={CharacterId}, ConnectionId={ConnectionId}",
-            characterId,
+            "OnDisconnectedAsync: PlayerId={PlayerId}, ConnectionId={ConnectionId}",
+            playerId,
             Context.ConnectionId);
 
         await base.OnDisconnectedAsync(exception);

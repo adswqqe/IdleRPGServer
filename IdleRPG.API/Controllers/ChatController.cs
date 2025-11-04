@@ -61,11 +61,11 @@ public class ChatController : ControllerBase
             return BadRequest(new { error = "take must be between 10 and 100" });
         }
 
-        // JWT에서 CharacterId 추출
-        var characterIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        if (string.IsNullOrEmpty(characterIdClaim) || !Guid.TryParse(characterIdClaim, out var characterId))
+        // JWT에서 PlayerId 추출
+        var playerIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (string.IsNullOrEmpty(playerIdClaim) || !Guid.TryParse(playerIdClaim, out var playerId))
         {
-            _logger.LogWarning("GetMessages: Invalid or missing CharacterId in JWT token");
+            _logger.LogWarning("GetMessages: Invalid or missing PlayerId in JWT token");
             return Unauthorized(new { error = "Invalid authentication token" });
         }
 
@@ -73,18 +73,23 @@ public class ChatController : ControllerBase
         {
             var messages = await _chatService.GetMessagesAsync(
                 roomId,
-                characterId,
+                playerId,
                 beforeId,
                 take,
                 cancellationToken);
 
             _logger.LogInformation(
-                "GetMessages: CharacterId={CharacterId}, RoomId={RoomId}, Count={Count}",
-                characterId,
+                "GetMessages: PlayerId={PlayerId}, RoomId={RoomId}, Count={Count}",
+                playerId,
                 roomId,
                 messages.Count);
 
             return Ok(messages);
+        }
+        catch (InvalidOperationException ex)
+        {
+            _logger.LogWarning(ex, "GetMessages: Character not found. PlayerId={PlayerId}", playerId);
+            return NotFound(new { error = "Character not found. Please create a character first." });
         }
         catch (KeyNotFoundException ex)
         {
@@ -95,8 +100,8 @@ public class ChatController : ControllerBase
         {
             _logger.LogWarning(
                 ex,
-                "GetMessages: Access denied. CharacterId={CharacterId}, RoomId={RoomId}",
-                characterId,
+                "GetMessages: Access denied. PlayerId={PlayerId}, RoomId={RoomId}",
+                playerId,
                 roomId);
             return StatusCode(StatusCodes.Status403Forbidden, new { error = "Access denied to this chat room" });
         }
@@ -104,8 +109,8 @@ public class ChatController : ControllerBase
         {
             _logger.LogError(
                 ex,
-                "GetMessages: Unexpected error. CharacterId={CharacterId}, RoomId={RoomId}",
-                characterId,
+                "GetMessages: Unexpected error. PlayerId={PlayerId}, RoomId={RoomId}",
+                playerId,
                 roomId);
             return StatusCode(StatusCodes.Status500InternalServerError, new { error = "Internal server error" });
         }
@@ -125,33 +130,33 @@ public class ChatController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<List<ChatRoomDto>>> GetRooms(CancellationToken cancellationToken = default)
     {
-        // JWT에서 CharacterId 추출
-        var characterIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        if (string.IsNullOrEmpty(characterIdClaim) || !Guid.TryParse(characterIdClaim, out var characterId))
+        // JWT에서 PlayerId 추출
+        var playerIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (string.IsNullOrEmpty(playerIdClaim) || !Guid.TryParse(playerIdClaim, out var playerId))
         {
-            _logger.LogWarning("GetRooms: Invalid or missing CharacterId in JWT token");
+            _logger.LogWarning("GetRooms: Invalid or missing PlayerId in JWT token");
             return Unauthorized(new { error = "Invalid authentication token" });
         }
 
         try
         {
-            var rooms = await _chatService.GetAccessibleRoomsAsync(characterId, cancellationToken);
+            var rooms = await _chatService.GetAccessibleRoomsAsync(playerId, cancellationToken);
 
             _logger.LogInformation(
-                "GetRooms: CharacterId={CharacterId}, RoomCount={Count}",
-                characterId,
+                "GetRooms: PlayerId={PlayerId}, RoomCount={Count}",
+                playerId,
                 rooms.Count);
 
             return Ok(rooms);
         }
         catch (KeyNotFoundException ex)
         {
-            _logger.LogWarning(ex, "GetRooms: Character not found. CharacterId={CharacterId}", characterId);
-            return NotFound(new { error = $"Character not found: {characterId}" });
+            _logger.LogWarning(ex, "GetRooms: Character not found. PlayerId={PlayerId}", playerId);
+            return NotFound(new { error = "Character not found. Please create a character first." });
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "GetRooms: Unexpected error. CharacterId={CharacterId}", characterId);
+            _logger.LogError(ex, "GetRooms: Unexpected error. PlayerId={PlayerId}", playerId);
             return StatusCode(StatusCodes.Status500InternalServerError, new { error = "Internal server error" });
         }
     }

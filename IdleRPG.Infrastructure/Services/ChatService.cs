@@ -31,62 +31,79 @@ public class ChatService : IChatService
     /// <summary>
     /// 채팅 메시지를 전송합니다.
     /// </summary>
+    /// <param name="roomId">채팅방 ID</param>
+    /// <param name="playerId">Player ID (JWT에서 추출)</param>
+    /// <param name="content">메시지 내용</param>
+    /// <param name="cancellationToken">취소 토큰</param>
+    /// <returns>전송된 메시지 DTO</returns>
     public async Task<ChatMessageDto> SendMessageAsync(
         Guid roomId,
-        Guid senderId,
+        Guid playerId,
         string content,
         CancellationToken cancellationToken = default)
     {
         // 1. 입력 검증: 메시지 길이
         if (string.IsNullOrWhiteSpace(content))
         {
-            _logger.LogWarning("메시지 전송 실패: 빈 메시지. SenderId={SenderId}, RoomId={RoomId}", senderId, roomId);
+            _logger.LogWarning("메시지 전송 실패: 빈 메시지. PlayerId={PlayerId}, RoomId={RoomId}", playerId, roomId);
             throw new ArgumentException("메시지 내용은 비워둘 수 없습니다.", nameof(content));
         }
 
         if (content.Length > 500)
         {
-            _logger.LogWarning("메시지 전송 실패: 길이 초과. SenderId={SenderId}, Length={Length}", senderId, content.Length);
+            _logger.LogWarning("메시지 전송 실패: 길이 초과. PlayerId={PlayerId}, Length={Length}", playerId, content.Length);
             throw new ArgumentException($"메시지는 최대 500자까지 입력 가능합니다. (현재: {content.Length}자)", nameof(content));
         }
 
-        // 2. 쿨다운 체크 (1초)
-        var cacheKey = $"chat:cooldown:{senderId}";
+        // 2. Player.Id → Character.Id 변환
+        var characters = await _unitOfWork.Characters.GetByPlayerIdAsync(playerId);
+        var character = characters.FirstOrDefault();
+
+        if (character == null)
+        {
+            _logger.LogWarning("메시지 전송 실패: 캐릭터 미존재. PlayerId={PlayerId}", playerId);
+            throw new InvalidOperationException("캐릭터가 존재하지 않습니다. 먼저 캐릭터를 생성해주세요.");
+        }
+
+        var characterId = character.Id;
+
+        // 3. 쿨다운 체크 (1초) - Character.Id 기반
+        var cacheKey = $"chat:cooldown:{characterId}";
         if (_cache.TryGetValue(cacheKey, out _))
-        { 
-            _logger.LogWarning("메시지 전송 실패: 쿨다운 위반. SenderId={SenderId}", senderId);
+        {
+            _logger.LogWarning("메시지 전송 실패: 쿨다운 위반. CharacterId={CharacterId}", characterId);
             throw new InvalidOperationException("메시지를 너무 빠르게 전송했습니다. 1초 후에 다시 시도하세요.");
         }
 
-        // 3. 권한 체크: 채팅방 접근 가능 여부
-        var canAccess = await CanAccessRoomAsync(senderId, roomId, cancellationToken);
+        // 4. 권한 체크: 채팅방 접근 가능 여부
+        var canAccess = await CanAccessRoomAsync(characterId, roomId, cancellationToken);
         if (!canAccess)
         {
-            _logger.LogWarning("메시지 전송 실패: 권한 없음. SenderId={SenderId}, RoomId={RoomId}", senderId, roomId);
+            _logger.LogWarning("메시지 전송 실패: 권한 없음. CharacterId={CharacterId}, RoomId={RoomId}", characterId, roomId);
             throw new UnauthorizedAccessException("이 채팅방에 메시지를 보낼 권한이 없습니다.");
         }
 
-        // 4. ChatMessage Entity 생성
+        // 5. ChatMessage Entity 생성
         var message = new ChatMessage
         {
             Id = Guid.NewGuid(),
             RoomId = roomId,
-            SenderId = senderId,
+            SenderId = characterId, // 실제 Character.Id 사용
             Content = content,
             CreatedAt = DateTime.UtcNow
         };
 
-        // 5. Repository에 추가 및 저장
+        // 6. Repository에 추가 및 저장
         await _unitOfWork.ChatMessages.AddAsync(message, cancellationToken);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-        _logger.LogInformation("메시지 전송 성공. MessageId={MessageId}, SenderId={SenderId}, RoomId={RoomId}",
-            message.Id, senderId, roomId);
+        _logger.LogInformation("메시지 전송 성공. MessageId={MessageId}, CharacterId={CharacterId}, RoomId={RoomId}",
+            message.Id, characterId, roomId);
 
-        // 6. 쿨다운 캐시 설정 (5초 TTL)
+        // 7. 쿨다운 캐시 설정 (5초 TTL)
         _cache.Set(cacheKey, true, TimeSpan.FromSeconds(5));
 
-        // 7. Entity → DTO 변환 (Sender 정보 포함)
+        // 8. Entity → DTO 변환 (Sender 정보 포함)
         var messageWithSender = await _unitOfWork.ChatMessages.GetByIdAsync(message.Id, cancellationToken);
         if (messageWithSender == null)
         {
@@ -103,12 +120,24 @@ public class ChatService : IChatService
     /// </summary>
     public async Task<List<ChatMessageDto>> GetMessagesAsync(
         Guid roomId,
-        Guid characterId,
+        Guid playerId,
         Guid? beforeId = null,
         int take = 50,
         CancellationToken cancellationToken = default)
     {
-        // 1. 권한 체크: 채팅방 접근 가능 여부
+        // 1. Player.Id → Character.Id 변환
+        var characters = await _unitOfWork.Characters.GetByPlayerIdAsync(playerId);
+        var character = characters.FirstOrDefault();
+
+        if (character == null)
+        {
+            _logger.LogWarning("메시지 조회 실패: 캐릭터 미존재. PlayerId={PlayerId}", playerId);
+            throw new InvalidOperationException("캐릭터가 존재하지 않습니다. 먼저 캐릭터를 생성해주세요.");
+        }
+
+        var characterId = character.Id;
+
+        // 2. 권한 체크: 채팅방 접근 가능 여부
         var canAccess = await CanAccessRoomAsync(characterId, roomId, cancellationToken);
         if (!canAccess)
         {
@@ -116,10 +145,10 @@ public class ChatService : IChatService
             throw new UnauthorizedAccessException("이 채팅방의 메시지를 조회할 권한이 없습니다.");
         }
 
-        // 2. Repository에서 메시지 조회 (Cursor 페이징)
+        // 3. Repository에서 메시지 조회 (Cursor 페이징)
         var messages = await _unitOfWork.ChatMessages.GetByRoomIdAsync(roomId, beforeId, take, cancellationToken);
 
-        // 3. Entity → DTO 변환
+        // 4. Entity → DTO 변환
         var dtos = messages.Select(MapToDto).ToList();
 
         _logger.LogInformation("메시지 조회 성공. RoomId={RoomId}, Count={Count}", roomId, dtos.Count);
@@ -128,14 +157,26 @@ public class ChatService : IChatService
     }
 
     /// <summary>
-    /// 캐릭터가 특정 채팅방에 접근할 수 있는지 확인합니다.
+    /// 플레이어가 특정 채팅방에 접근할 수 있는지 확인합니다.
     /// </summary>
     public async Task<bool> CanAccessRoomAsync(
-        Guid characterId,
+        Guid playerId,
         Guid roomId,
         CancellationToken cancellationToken = default)
     {
-        // 1. 채팅방 조회
+        // 1. Player.Id → Character.Id 변환
+        var characters = await _unitOfWork.Characters.GetByPlayerIdAsync(playerId);
+        var character = characters.FirstOrDefault();
+
+        if (character == null)
+        {
+            _logger.LogWarning("권한 체크 실패: 캐릭터 미존재. PlayerId={PlayerId}", playerId);
+            return false;
+        }
+
+        var characterId = character.Id;
+
+        // 2. 채팅방 조회
         var room = await _unitOfWork.ChatRooms.GetByIdAsync(roomId, cancellationToken);
         if (room == null)
         {
@@ -143,18 +184,17 @@ public class ChatService : IChatService
             return false;
         }
 
-        // 2. 채팅방 타입별 권한 체크
+        // 3. 채팅방 타입별 권한 체크
         switch (room.Type)
         {
             case RoomType.Global:
-                // Global 채팅방: 모든 캐릭터 접근 가능
+                // Global 채팅방: 캐릭터가 존재하면 모두 접근 가능
                 return true;
 
             case RoomType.Guild:
                 // Guild 채팅방: 같은 길드 소속 캐릭터만 접근 가능
                 // TODO: Guild 시스템 구현 후 활성화
-                // var character = await _unitOfWork.Characters.GetByIdAsync(characterId, cancellationToken);
-                // return character != null && character.GuildId == room.GuildId;
+                // return character.GuildId == room.GuildId;
                 _logger.LogWarning("Guild 채팅방 접근 시도: Guild 시스템 미구현. RoomId={RoomId}", roomId);
                 return false; // Guild 시스템 미구현
 
@@ -179,16 +219,20 @@ public class ChatService : IChatService
     /// 캐릭터가 접근 가능한 모든 채팅방 목록을 조회합니다.
     /// </summary>
     public async Task<List<ChatRoomDto>> GetAccessibleRoomsAsync(
-        Guid characterId,
+        Guid playerId,
         CancellationToken cancellationToken = default)
     {
-        // 1. 캐릭터 조회 (존재 여부 확인)
-        var character = await _unitOfWork.Characters.GetByIdAsync(characterId);
+        // 1. Player.Id → Character.Id 변환 및 캐릭터 조회 (존재 여부 확인)
+        var characters = await _unitOfWork.Characters.GetByPlayerIdAsync(playerId);
+        var character = characters.FirstOrDefault();
+
         if (character == null)
         {
-            _logger.LogWarning("채팅방 목록 조회 실패: 캐릭터 미존재. CharacterId={CharacterId}", characterId);
-            throw new KeyNotFoundException($"캐릭터를 찾을 수 없습니다. (ID: {characterId})");
+            _logger.LogWarning("채팅방 목록 조회 실패: 캐릭터 미존재. PlayerId={PlayerId}", playerId);
+            throw new KeyNotFoundException($"캐릭터를 찾을 수 없습니다. (PlayerId: {playerId})");
         }
+
+        var characterId = character.Id;
 
         // 2. Repository에서 접근 가능한 채팅방 조회
         // TODO: Guild 시스템 구현 후 character.GuildId 전달
