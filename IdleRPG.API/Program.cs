@@ -86,6 +86,11 @@ builder.Services.AddSignalR(options =>
     options.MaximumReceiveMessageSize = 1024 * 100; // 100KB
     options.ClientTimeoutInterval = TimeSpan.FromSeconds(60);
     options.KeepAliveInterval = TimeSpan.FromSeconds(30);
+})
+.AddJsonProtocol(options =>
+{
+    // Unity 클라이언트와 호환성을 위해 camelCase 사용
+    options.PayloadSerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
 });
 
 // CORS 설정 (Unity 클라이언트 허용)
