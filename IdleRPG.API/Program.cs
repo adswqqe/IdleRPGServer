@@ -87,10 +87,11 @@ builder.Services.AddSignalR(options =>
     options.ClientTimeoutInterval = TimeSpan.FromSeconds(60);
     options.KeepAliveInterval = TimeSpan.FromSeconds(30);
 })
-.AddJsonProtocol(options =>
+.AddNewtonsoftJsonProtocol(options =>
 {
-    // Unity 클라이언트와 호환성을 위해 camelCase 사용
-    options.PayloadSerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
+    // Unity 클라이언트와 호환성을 위해 Newtonsoft.Json + camelCase 사용
+    options.PayloadSerializerSettings.ContractResolver =
+        new Newtonsoft.Json.Serialization.CamelCasePropertyNamesContractResolver();
 });
 
 // CORS 설정 (Unity 클라이언트 허용)
