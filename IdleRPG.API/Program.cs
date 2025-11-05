@@ -93,7 +93,7 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowUnity", policy =>
     {
-        policy.WithOrigins("http://localhost:*", "https://localhost:*")
+        policy.SetIsOriginAllowed(_ => true) // 모든 Origin 허용 (개발 환경용)
               .AllowAnyHeader()
               .AllowAnyMethod()
               .AllowCredentials(); // SignalR requires credentials
