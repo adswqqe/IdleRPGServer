@@ -75,11 +75,11 @@ public class ChatService : IChatService
             throw new InvalidOperationException("메시지를 너무 빠르게 전송했습니다. 1초 후에 다시 시도하세요.");
         }
 
-        // 4. 권한 체크: 채팅방 접근 가능 여부
-        var canAccess = await CanAccessRoomAsync(characterId, roomId, cancellationToken);
+        // 4. 권한 체크: 채팅방 접근 가능 여부 (playerId 전달)
+        var canAccess = await CanAccessRoomAsync(playerId, roomId, cancellationToken);
         if (!canAccess)
         {
-            _logger.LogWarning("메시지 전송 실패: 권한 없음. CharacterId={CharacterId}, RoomId={RoomId}", characterId, roomId);
+            _logger.LogWarning("메시지 전송 실패: 권한 없음. PlayerId={PlayerId}, CharacterId={CharacterId}, RoomId={RoomId}", playerId, characterId, roomId);
             throw new UnauthorizedAccessException("이 채팅방에 메시지를 보낼 권한이 없습니다.");
         }
 
@@ -137,11 +137,11 @@ public class ChatService : IChatService
 
         var characterId = character.Id;
 
-        // 2. 권한 체크: 채팅방 접근 가능 여부
-        var canAccess = await CanAccessRoomAsync(characterId, roomId, cancellationToken);
+        // 2. 권한 체크: 채팅방 접근 가능 여부 (playerId 전달)
+        var canAccess = await CanAccessRoomAsync(playerId, roomId, cancellationToken);
         if (!canAccess)
         {
-            _logger.LogWarning("메시지 조회 실패: 권한 없음. CharacterId={CharacterId}, RoomId={RoomId}", characterId, roomId);
+            _logger.LogWarning("메시지 조회 실패: 권한 없음. PlayerId={PlayerId}, CharacterId={CharacterId}, RoomId={RoomId}", playerId, characterId, roomId);
             throw new UnauthorizedAccessException("이 채팅방의 메시지를 조회할 권한이 없습니다.");
         }
 
