@@ -197,6 +197,14 @@ public class ChatHub : Hub
                 content,
                 Context.ConnectionAborted);
 
+            // 디버깅: messageDto 내용 확인
+            _logger.LogInformation(
+                "SendMessage: Broadcasting message. MessageId={MessageId}, SenderId={SenderId}, SenderName={SenderName}, Content={Content}",
+                messageDto.Id,
+                messageDto.Sender?.Id,
+                messageDto.Sender?.Name,
+                messageDto.Content);
+
             // 같은 방의 모든 클라이언트에게 브로드캐스트
             await Clients.Group(roomId).SendAsync("ReceiveMessage", messageDto);
 

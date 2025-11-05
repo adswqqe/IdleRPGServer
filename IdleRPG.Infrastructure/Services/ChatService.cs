@@ -55,7 +55,7 @@ public class ChatService : IChatService
             throw new ArgumentException($"메시지는 최대 500자까지 입력 가능합니다. (현재: {content.Length}자)", nameof(content));
         }
 
-        // 2. Player.Id → Character.Id 변환
+        // 2. Player.Id → Character.Id 변환 (Sender 정보로 사용할 예정)
         var characters = await _unitOfWork.Characters.GetByPlayerIdAsync(playerId);
         var character = characters.FirstOrDefault();
 
@@ -66,6 +66,8 @@ public class ChatService : IChatService
         }
 
         var characterId = character.Id;
+        _logger.LogInformation("메시지 전송: Character 정보 확인. CharacterId={CharacterId}, Level={Level}",
+            character.Id, character.Level);
 
         // 3. 쿨다운 체크 (1초) - Character.Id 기반
         var cacheKey = $"chat:cooldown:{characterId}";
@@ -103,16 +105,14 @@ public class ChatService : IChatService
         // 7. 쿨다운 캐시 설정 (5초 TTL)
         _cache.Set(cacheKey, true, TimeSpan.FromSeconds(5));
 
-        // 8. Entity → DTO 변환 (Sender 정보 포함)
-        var messageWithSender = await _unitOfWork.ChatMessages.GetByIdAsync(message.Id, cancellationToken);
-        if (messageWithSender == null)
-        {
-            throw new InvalidOperationException("메시지를 저장했으나 다시 조회할 수 없습니다.");
-        }
+        // 8. Entity → DTO 변환 (이미 조회한 character 정보 사용)
+        // GetByIdAsync 재호출 대신, 이미 조회한 character를 message.Sender에 할당
+        message.Sender = character;
 
-        // TODO(human): Entity → DTO 변환 로직
-        // messageWithSender.Sender에서 필요한 정보를 추출하여 ChatMessageDto를 생성하세요.
-        return MapToDto(messageWithSender);
+        _logger.LogInformation("메시지 DTO 변환 시작. MessageId={MessageId}, SenderId={SenderId}",
+            message.Id, message.SenderId);
+
+        return MapToDto(message);
     }
 
     /// <summary>
@@ -347,6 +347,13 @@ public class ChatService : IChatService
     /// </summary>
     private ChatMessageDto MapToDto(ChatMessage message)
     {
+        if (message.Sender == null)
+        {
+            _logger.LogError("MapToDto: Sender is null. MessageId={MessageId}, SenderId={SenderId}",
+                message.Id, message.SenderId);
+            throw new InvalidOperationException($"메시지의 Sender 정보를 불러올 수 없습니다. MessageId={message.Id}");
+        }
+
         return new ChatMessageDto
         {
             Id = message.Id,
