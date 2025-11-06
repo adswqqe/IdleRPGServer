@@ -102,9 +102,9 @@
 
 ## 🔧 Milestone 2: Infrastructure Layer
 
-### 2.1 Create IPvpSeasonRepository Interface ⏱️ 30분
-- [ ] Create `IdleRPG.Domain/Repositories/IPvpSeasonRepository.cs`
-- [ ] Define methods:
+### 2.1 Create IPvpSeasonRepository Interface ⏱️ 30분 ✅
+- [x] Create `IdleRPG.Domain/Repositories/IPvpSeasonRepository.cs`
+- [x] Define methods:
   - `Task<PvpSeason?> GetByIdAsync(int id, CancellationToken cancellationToken = default)`
   - `Task<PvpSeason?> GetActiveSeasonAsync(CancellationToken cancellationToken = default)`
   - `Task<PvpSeason?> GetBySeasonNumberAsync(int seasonNumber, CancellationToken cancellationToken = default)`
@@ -116,21 +116,21 @@
 
 ---
 
-### 2.2 Create PvpSeasonRepository Implementation ⏱️ 45분
-- [ ] Create `IdleRPG.Infrastructure/Repositories/PvpSeasonRepository.cs`
-- [ ] Implement IPvpSeasonRepository
-- [ ] Implement GetActiveSeasonAsync: `WHERE IsActive = true` (단일 레코드)
-- [ ] Implement GetBySeasonNumberAsync: `WHERE SeasonNumber = ?`
-- [ ] Add AsNoTracking() for read queries
+### 2.2 Create PvpSeasonRepository Implementation ⏱️ 45분 ✅
+- [x] Create `IdleRPG.Infrastructure/Repositories/PvpSeasonRepository.cs`
+- [x] Implement IPvpSeasonRepository
+- [x] Implement GetActiveSeasonAsync: `WHERE IsActive = true` (단일 레코드)
+- [x] Implement GetBySeasonNumberAsync: `WHERE SeasonNumber = ?`
+- [x] Add AsNoTracking() for read queries
 
 **Requirements**: [US-4]
 **Design Reference**: [Infrastructure Layer - Repositories]
 
 ---
 
-### 2.3 Create IPvpRankingRepository Interface ⏱️ 45분
-- [ ] Create `IdleRPG.Domain/Repositories/IPvpRankingRepository.cs`
-- [ ] Define methods:
+### 2.3 Create IPvpRankingRepository Interface ⏱️ 45분 ✅
+- [x] Create `IdleRPG.Domain/Repositories/IPvpRankingRepository.cs`
+- [x] Define methods:
   - `Task<PvpRanking?> GetByIdAsync(int seasonId, Guid characterId, CancellationToken cancellationToken = default)`
   - `Task<List<PvpRanking>> GetTopRankingsAsync(int seasonId, int count, CancellationToken cancellationToken = default)`
   - `Task<List<PvpRanking>> GetRankingsAroundAsync(int seasonId, int rating, int range, CancellationToken cancellationToken = default)`
@@ -143,13 +143,13 @@
 
 ---
 
-### 2.4 Create PvpRankingRepository Implementation ⏱️ 1시간
-- [ ] Create `IdleRPG.Infrastructure/Repositories/PvpRankingRepository.cs`
-- [ ] Implement IPvpRankingRepository
-- [ ] Implement GetTopRankingsAsync: `WHERE SeasonId = ? ORDER BY Rating DESC LIMIT ?`
-- [ ] Implement GetRankingsAroundAsync: 레이팅 기준 ±range 조회
-- [ ] Implement GetByTierAsync: `WHERE SeasonId = ? AND Tier = ? ORDER BY Rating DESC` (페이징)
-- [ ] Add Include() for Character navigation property (N+1 방지)
+### 2.4 Create PvpRankingRepository Implementation ⏱️ 1시간 ✅
+- [x] Create `IdleRPG.Infrastructure/Repositories/PvpRankingRepository.cs`
+- [x] Implement IPvpRankingRepository
+- [x] Implement GetTopRankingsAsync: `WHERE SeasonId = ? ORDER BY Rating DESC LIMIT ?`
+- [x] Implement GetRankingsAroundAsync: 레이팅 기준 ±range 조회
+- [x] Implement GetByTierAsync: `WHERE SeasonId = ? AND Tier = ? ORDER BY Rating DESC` (페이징)
+- [x] Add Include() for Character navigation property (N+1 방지)
 
 **Requirements**: [US-2]
 **Design Reference**: [Infrastructure Layer - Repositories]

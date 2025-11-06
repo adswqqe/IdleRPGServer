@@ -113,3 +113,94 @@
   - 최소 레이팅 0 보장 (50 vs 1500, 패배 시 0으로 클램핑)
 
 ---
+
+## 2025-11-06 17:28
+
+### Task Completed
+- [x] 2.1 Create IPvpSeasonRepository Interface
+
+### Files Changed
+- IdleRPG.Domain/Repositories/IPvpSeasonRepository.cs (new file, 52 lines)
+
+### Key Decisions
+- **Repository 인터페이스 위치**: Domain Layer에 정의 (의존성 역전 원칙 DIP)
+- **메서드 시그니처**: CancellationToken 기본 매개변수로 추가 (비동기 취소 지원)
+- **Nullable 반환**: 단일 엔티티 조회는 `PvpSeason?` 반환 (없을 수 있음)
+- **5개 메서드 정의**: GetByIdAsync, GetActiveSeasonAsync, GetBySeasonNumberAsync, AddAsync, UpdateAsync
+
+### Notes
+- GetActiveSeasonAsync: IsActive = true 조회 (시스템 전체 최대 1개)
+- GetBySeasonNumberAsync: SeasonNumber 유니크 제약 활용
+- IRepository<T> 제네릭 인터페이스는 상속하지 않음 (PvpSeason은 마스터 데이터, 특화 메서드만 필요)
+- 구현은 Task 2.2 (PvpSeasonRepository)에서 진행 예정
+
+---
+
+## 2025-11-06 17:33
+
+### Task Completed
+- [x] 2.2 Create PvpSeasonRepository Implementation
+
+### Files Changed
+- IdleRPG.Infrastructure/Repositories/PvpSeasonRepository.cs (new file, 68 lines)
+
+### Key Decisions
+- **AsNoTracking() 사용**: 모든 읽기 쿼리에 적용 (변경 추적 비활성화, 성능 최적화)
+- **FirstOrDefaultAsync() 사용**: 단일 레코드 조회, 없으면 null 반환
+- **CancellationToken 전달**: EF Core 메서드에 cancellationToken 전달 (HTTP 요청 취소 시 쿼리도 취소)
+- **UpdateAsync 패턴**: _context.Update() 호출 후 await Task.CompletedTask (명시적 비동기 시그니처 유지)
+
+### Notes
+- GameDBContext 의존성 주입 (생성자 주입)
+- GetActiveSeasonAsync: `WHERE IsActive = true` 쿼리 (인덱스 활용 예정)
+- GetBySeasonNumberAsync: `WHERE SeasonNumber = ?` 쿼리 (Unique 인덱스 활용 예정)
+- AddAsync/UpdateAsync는 DbContext.SaveChangesAsync() 호출 안 함 (UnitOfWork 패턴, Application Layer에서 트랜잭션 관리)
+
+---
+
+## 2025-11-06 17:35
+
+### Task Completed
+- [x] 2.3 Create IPvpRankingRepository Interface
+
+### Files Changed
+- IdleRPG.Domain/Repositories/IPvpRankingRepository.cs (new file, 73 lines)
+
+### Key Decisions
+- **복합키 조회**: GetByIdAsync는 (seasonId, characterId) 두 매개변수 사용
+- **6개 메서드 정의**: GetByIdAsync, GetTopRankingsAsync, GetRankingsAroundAsync, GetByTierAsync, AddAsync, UpdateAsync
+- **페이징 지원**: GetByTierAsync는 page/pageSize로 대용량 데이터 처리
+- **List 반환**: 다중 레코드 조회는 `List<PvpRanking>` 반환 (빈 리스트 가능)
+
+### Notes
+- GetTopRankingsAsync: Redis 캐싱 미스 시 PostgreSQL Fallback 용도
+- GetRankingsAroundAsync: 특정 레이팅 기준 ±range등 조회 (내 주변 랭킹)
+- GetByTierAsync: 티어별 필터링 + 페이징 (PostgreSQL 전용, Redis 사용 안 함)
+- 복합키 특성상 GetByIdAsync는 두 매개변수 필수 (SeasonId, CharacterId)
+- 구현은 Task 2.4 (PvpRankingRepository)에서 진행 예정
+
+---
+
+## 2025-11-06 17:37
+
+### Task Completed
+- [x] 2.4 Create PvpRankingRepository Implementation
+
+### Files Changed
+- IdleRPG.Infrastructure/Repositories/PvpRankingRepository.cs (new file, 105 lines)
+
+### Key Decisions
+- **복합키 FindAsync 사용**: `FindAsync(new object[] { seasonId, characterId })` 패턴
+- **Include(Character) 적용**: 모든 읽기 쿼리에 Character 포함 (N+1 문제 방지)
+- **GetRankingsAroundAsync 로직**: 레이팅 범위 ±(range * 10) 계산 (range=10 → ±100 레이팅)
+- **페이징 계산**: `Skip((page - 1) * pageSize).Take(pageSize)` (1-based 페이지)
+
+### Notes
+- GetByIdAsync: FindAsync는 Primary Key 기반 최적화 쿼리 (캐싱 활용)
+- GetTopRankingsAsync: `OrderByDescending(Rating).Take(count)` + AsNoTracking()
+- GetRankingsAroundAsync: 레이팅 범위 필터링 + Take(range * 2)로 ±range등 조회
+- GetByTierAsync: Tier 필터링 + Skip/Take 페이징
+- 모든 읽기 쿼리에 Include(Character) 추가 (캐릭터 이름 조회 필요)
+- 복합 인덱스 `IX_PvpRanking_SeasonId_Rating_DESC` 활용 예정 (쿼리 성능 최적화)
+
+---
