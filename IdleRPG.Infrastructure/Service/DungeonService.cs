@@ -24,7 +24,7 @@ namespace IdleRPG.Infrastructure.Service
     ///
     /// [Week 3 설계 변경사항]
     /// - DungeonStage는 모든 난이도 공통 (Difficulty 속성 없음)
-    /// - 난이도는 CharacterDungeonProgress에서만 관리
+    /// - 난이도는 CharacterBattleProgress에서만 관리
     /// - DifficultyMultiplier로 난이도별 보상 계산
     /// </summary>
     public class DungeonService : IDungeonService
@@ -60,7 +60,7 @@ namespace IdleRPG.Infrastructure.Service
                 throw new InvalidOperationException("캐릭터를 찾을 수 없습니다");
 
             // 2. 던전 진행 상황 로드 (없으면 새로 생성)
-            var progress = await _unitOfWork.CharacterDungeonProgresses.GetOrCreateByCharacterIdAsync(characterId);
+            var progress = await _unitOfWork.CharacterBattleProgresses.GetOrCreateByCharacterIdAsync(characterId);
 
             // 3. 모든 던전 스테이지 조회
             var allStages = await _unitOfWork.DungeonStages.GetAllAsync();
@@ -116,7 +116,7 @@ namespace IdleRPG.Infrastructure.Service
                 throw new InvalidOperationException("캐릭터를 찾을 수 없습니다");
 
             // 진행 상황 조회 (없으면 새로 생성)
-            var progress = await _unitOfWork.CharacterDungeonProgresses.GetOrCreateByCharacterIdAsync(characterId);
+            var progress = await _unitOfWork.CharacterBattleProgresses.GetOrCreateByCharacterIdAsync(characterId);
 
             return new CharacterMainBattleProgressDto
             {
@@ -170,7 +170,7 @@ namespace IdleRPG.Infrastructure.Service
                 }
 
                 // 4. 진행도 로드 (없으면 자동 생성)
-                var progress = await _unitOfWork.CharacterDungeonProgresses.GetOrCreateByCharacterIdAsync(characterId);
+                var progress = await _unitOfWork.CharacterBattleProgresses.GetOrCreateByCharacterIdAsync(characterId);
 
                 // 5. 레벨 검증
                 if (character.Level < stage.RequiredLevel)
@@ -297,7 +297,7 @@ namespace IdleRPG.Infrastructure.Service
         /// <summary>
         /// 스테이지 도전 가능 여부 판단 (서버 검증 로직)
         /// </summary>
-        private bool IsStageAvailable(Character character, DungeonStage stage, CharacterDungeonProgress progress, DungeonDifficultyEnum difficulty)
+        private bool IsStageAvailable(Character character, DungeonStage stage, CharacterBattleProgress progress, DungeonDifficultyEnum difficulty)
         {
             // 레벨 체크
             if (character.Level < stage.RequiredLevel)
@@ -559,7 +559,7 @@ namespace IdleRPG.Infrastructure.Service
 
             // Hard도 클리어했으면 Nightmare 허용
             // (현재 로직: Hard 클리어 = Normal 클리어와 동일하게 취급)
-            // TODO: Hard 진행도를 별도 추적하려면 CharacterDungeonProgress 확장 필요
+            // TODO: Hard 진행도를 별도 추적하려면 CharacterBattleProgress 확장 필요
             if (highestCleared >= currentStageId)
             {
                 allowed.Add(DungeonDifficultyEnum.Nightmare);

@@ -27,7 +27,7 @@ namespace IdleRPG.Infrastructure.UnitOfWork
         private ILootTableRepository? _lootTables;
         private IUserDungeonDailyRepository? _userDungeonDailies;
         private IDungeonStageRepository? _dungeonStages;
-        private ICharacterDungeonProgressRepository? _characterDungeonProgresses;
+        private ICharacterBattleProgressRepository? _characterBattleProgresses;
         private ISkillTemplateRepository? _skillTemplates;
         private ICharacterSkillRepository? _characterSkills;
         private IPetRepository? _pets;
@@ -252,17 +252,17 @@ namespace IdleRPG.Infrastructure.UnitOfWork
         }
 
         /// <summary>
-        /// 캐릭터 던전 진행도 Repository (Lazy 초기화) - Week 3
+        /// 캐릭터 전투 진행도 Repository (Lazy 초기화) - Week 3
         /// </summary>
-        public ICharacterDungeonProgressRepository CharacterDungeonProgresses
+        public ICharacterBattleProgressRepository CharacterBattleProgresses
         {
             get
             {
-                if (_characterDungeonProgresses == null)
+                if (_characterBattleProgresses == null)
                 {
-                    _characterDungeonProgresses = new CharacterDungeonProgressRepository(_context);
+                    _characterBattleProgresses = new CharacterBattleProgressRepository(_context);
                 }
-                return _characterDungeonProgresses;
+                return _characterBattleProgresses;
             }
         }
 

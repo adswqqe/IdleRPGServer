@@ -29,9 +29,9 @@ public class GameDBContext : DbContext
     public DbSet<DungeonRunHistory> DungeonRunHistories { get; set; }
     public DbSet<UserDungeonDaily> UserDungeonDailies { get; set; }
 
-    // Dungeon System - New Stage-based approach (Week 3)
+    // Battle System - Stage-based approach (Week 3)
     public DbSet<DungeonStage> DungeonStages { get; set; }
-    public DbSet<CharacterDungeonProgress> CharacterDungeonProgresses { get; set; }
+    public DbSet<CharacterBattleProgress> CharacterBattleProgresses { get; set; }
 
     // Skill System
     public DbSet<CharacterSkill> CharacterSkills { get; set; }

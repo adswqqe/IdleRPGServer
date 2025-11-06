@@ -5,15 +5,15 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 namespace IdleRPG.Infrastructure.Data.Configurations;
 
 /// <summary>
-/// CharacterDungeonProgress 엔티티에 대한 EF Core 구성입니다.
+/// CharacterBattleProgress 엔티티에 대한 EF Core 구성입니다.
 /// 테이블 매핑, 인덱스, 관계를 정의합니다.
 /// </summary>
-public class CharacterDungeonProgressConfiguration : IEntityTypeConfiguration<CharacterDungeonProgress>
+public class CharacterBattleProgressConfiguration : IEntityTypeConfiguration<CharacterBattleProgress>
 {
-    public void Configure(EntityTypeBuilder<CharacterDungeonProgress> builder)
+    public void Configure(EntityTypeBuilder<CharacterBattleProgress> builder)
     {
         // 테이블 이름
-        builder.ToTable("CharacterDungeonProgresses");
+        builder.ToTable("CharacterBattleProgresses");
 
         // 기본 키
         builder.HasKey(p => p.Id);
@@ -46,6 +46,6 @@ public class CharacterDungeonProgressConfiguration : IEntityTypeConfiguration<Ch
         // 고유 인덱스: 캐릭터당 하나의 진행 상황 레코드
         builder.HasIndex(p => p.CharacterId)
             .IsUnique()
-            .HasDatabaseName("IX_CharacterDungeonProgresses_CharacterId_Unique");
+            .HasDatabaseName("IX_CharacterBattleProgresses_CharacterId_Unique");
     }
 }

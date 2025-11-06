@@ -22,7 +22,7 @@ public class StageServiceTests
 {
     private readonly Mock<IUnitOfWork> _mockUnitOfWork;
     private readonly Mock<IDungeonStageRepository> _mockDungeonStageRepository;
-    private readonly Mock<ICharacterDungeonProgressRepository> _mockCharacterDungeonProgressRepository;
+    private readonly Mock<ICharacterBattleProgressRepository> _mockCharacterBattleProgressRepository;
     private readonly Mock<ICharacterRepository> _mockCharacterRepository;
     private readonly Mock<ICombatService> _mockCombatService;
     private readonly Mock<IBattleLogService> _mockBattleLogService;
@@ -35,7 +35,7 @@ public class StageServiceTests
     {
         _mockUnitOfWork = new Mock<IUnitOfWork>();
         _mockDungeonStageRepository = new Mock<IDungeonStageRepository>();
-        _mockCharacterDungeonProgressRepository = new Mock<ICharacterDungeonProgressRepository>();
+        _mockCharacterBattleProgressRepository = new Mock<ICharacterBattleProgressRepository>();
         _mockCharacterRepository = new Mock<ICharacterRepository>();
         _mockCombatService = new Mock<ICombatService>();
         _mockBattleLogService = new Mock<IBattleLogService>();
@@ -44,7 +44,7 @@ public class StageServiceTests
         _mockLogger = new Mock<ILogger<StageService>>();
 
         _mockUnitOfWork.Setup(u => u.DungeonStages).Returns(_mockDungeonStageRepository.Object);
-        _mockUnitOfWork.Setup(u => u.CharacterDungeonProgresses).Returns(_mockCharacterDungeonProgressRepository.Object);
+        _mockUnitOfWork.Setup(u => u.CharacterBattleProgresses).Returns(_mockCharacterBattleProgressRepository.Object);
         _mockUnitOfWork.Setup(u => u.Characters).Returns(_mockCharacterRepository.Object);
 
         _service = new StageService(
@@ -104,9 +104,9 @@ public class StageServiceTests
         };
     }
 
-    private CharacterDungeonProgress CreateTestProgress(Guid characterId, int normalCleared, int hardCleared, int nightmareCleared)
+    private CharacterBattleProgress CreateTestProgress(Guid characterId, int normalCleared, int hardCleared, int nightmareCleared)
     {
-        return new CharacterDungeonProgress
+        return new CharacterBattleProgress
         {
             Id = Guid.NewGuid(),
             CharacterId = characterId,
@@ -162,7 +162,7 @@ public class StageServiceTests
             .Setup(r => r.GetByIdWithMonsterAsync(1))
             .ReturnsAsync(stage);
 
-        _mockCharacterDungeonProgressRepository
+        _mockCharacterBattleProgressRepository
             .Setup(r => r.GetOrCreateByCharacterIdAsync(characterId))
             .ReturnsAsync(progress);
 
@@ -275,7 +275,7 @@ public class StageServiceTests
             .Setup(r => r.GetByIdWithMonsterAsync(5))
             .ReturnsAsync(stage);
 
-        _mockCharacterDungeonProgressRepository
+        _mockCharacterBattleProgressRepository
             .Setup(r => r.GetOrCreateByCharacterIdAsync(characterId))
             .ReturnsAsync(progress);
 
@@ -345,7 +345,7 @@ public class StageServiceTests
             .Setup(r => r.GetByIdWithMonsterAsync(5))
             .ReturnsAsync(stage);
 
-        _mockCharacterDungeonProgressRepository
+        _mockCharacterBattleProgressRepository
             .Setup(r => r.GetOrCreateByCharacterIdAsync(characterId))
             .ReturnsAsync(progress);
 
@@ -409,7 +409,7 @@ public class StageServiceTests
             .Setup(r => r.GetByIdWithMonsterAsync(3))
             .ReturnsAsync(stage);
 
-        _mockCharacterDungeonProgressRepository
+        _mockCharacterBattleProgressRepository
             .Setup(r => r.GetOrCreateByCharacterIdAsync(characterId))
             .ReturnsAsync(progress);
 
@@ -525,7 +525,7 @@ public class StageServiceTests
             .Setup(r => r.GetByIdWithMonsterAsync(7))
             .ReturnsAsync(stage);
 
-        _mockCharacterDungeonProgressRepository
+        _mockCharacterBattleProgressRepository
             .Setup(r => r.GetOrCreateByCharacterIdAsync(characterId))
             .ReturnsAsync(progress);
 

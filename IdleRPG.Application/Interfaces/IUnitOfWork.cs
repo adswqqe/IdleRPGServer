@@ -78,9 +78,9 @@ namespace IdleRPG.Application.Interfaces
         IDungeonStageRepository DungeonStages { get; }
 
         /// <summary>
-        /// 캐릭터 던전 진행도 Repository (Week 3 - New Stage-based Dungeon System)
+        /// 캐릭터 전투 진행도 Repository (Week 3 - New Stage-based Battle System)
         /// </summary>
-        ICharacterDungeonProgressRepository CharacterDungeonProgresses { get; }
+        ICharacterBattleProgressRepository CharacterBattleProgresses { get; }
 
         /// <summary>
         /// 스킬 템플릿 Repository (Week 3 - Skill Gacha System)

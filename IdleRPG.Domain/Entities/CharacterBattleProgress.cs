@@ -1,11 +1,11 @@
 namespace IdleRPG.Domain.Entities;
 
 /// <summary>
-/// 캐릭터의 모든 난이도별 던전 진행 상황을 추적합니다.
+/// 캐릭터의 모든 난이도별 전투 스테이지 진행 상황을 추적합니다.
 /// 각 난이도별로 최고 클리어한 스테이지를 별도 필드로 추적합니다.
 /// Gemini의 "3필드" 개선 방식 - 단순하면서도 유연합니다.
 /// </summary>
-public class CharacterDungeonProgress
+public class CharacterBattleProgress
 {
     /// <summary>
     /// 기본 키

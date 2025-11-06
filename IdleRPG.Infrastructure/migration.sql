@@ -1079,11 +1079,11 @@ BEGIN
     END IF;
 END $EF$;
 
--- 2. CREATE TABLE CharacterDungeonProgresses
+-- 2. CREATE TABLE CharacterBattleProgresses
 DO $EF$
 BEGIN
     IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20251018112141_AddDungeonStageSystem') THEN
-    CREATE TABLE "CharacterDungeonProgresses" (
+    CREATE TABLE "CharacterBattleProgresses" (
         "Id" UUID PRIMARY KEY,
         "CharacterId" UUID NOT NULL,
         "HighestStageClearedNormal" INT NOT NULL DEFAULT 0,
@@ -1091,7 +1091,7 @@ BEGIN
         "HighestStageClearedNightmare" INT NOT NULL DEFAULT 0,
         "CreatedAt" TIMESTAMP WITH TIME ZONE NOT NULL,
         "UpdatedAt" TIMESTAMP WITH TIME ZONE NOT NULL,
-        CONSTRAINT "FK_CharacterDungeonProgresses_Characters_CharacterId" FOREIGN KEY ("CharacterId")
+        CONSTRAINT "FK_CharacterBattleProgresses_Characters_CharacterId" FOREIGN KEY ("CharacterId")
             REFERENCES "Characters"("Id") ON DELETE CASCADE
     );
     END IF;
@@ -1121,7 +1121,7 @@ END $EF$;
 DO $EF$
 BEGIN
     IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20251018112141_AddDungeonStageSystem') THEN
-    CREATE UNIQUE INDEX "IX_CharacterDungeonProgresses_CharacterId_Unique" ON "CharacterDungeonProgresses" ("CharacterId");
+    CREATE UNIQUE INDEX "IX_CharacterBattleProgresses_CharacterId_Unique" ON "CharacterBattleProgresses" ("CharacterId");
     CREATE INDEX "IX_DungeonStages_MonsterId" ON "DungeonStages" ("MonsterId");
     CREATE INDEX "IX_DungeonStages_RequiredLevel" ON "DungeonStages" ("RequiredLevel");
     END IF;

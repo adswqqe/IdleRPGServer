@@ -66,7 +66,7 @@ namespace IdleRPG.Infrastructure.Service
                 throw new InvalidOperationException("캐릭터를 찾을 수 없습니다");
 
             // 2. 스테이지 진행 상황 로드 (없으면 새로 생성)
-            var progress = await _unitOfWork.CharacterDungeonProgresses.GetOrCreateByCharacterIdAsync(characterId);
+            var progress = await _unitOfWork.CharacterBattleProgresses.GetOrCreateByCharacterIdAsync(characterId);
 
             // 3. 모든 스테이지 조회
             var allStages = await _unitOfWork.DungeonStages.GetAllAsync();
@@ -121,7 +121,7 @@ namespace IdleRPG.Infrastructure.Service
                 throw new InvalidOperationException("캐릭터를 찾을 수 없습니다");
 
             // 진행 상황 조회 (없으면 새로 생성)
-            var progress = await _unitOfWork.CharacterDungeonProgresses.GetOrCreateByCharacterIdAsync(characterId);
+            var progress = await _unitOfWork.CharacterBattleProgresses.GetOrCreateByCharacterIdAsync(characterId);
 
             return new CharacterMainBattleProgressDto
             {
@@ -175,7 +175,7 @@ namespace IdleRPG.Infrastructure.Service
                 }
 
                 // 4. 진행도 로드 (없으면 자동 생성)
-                var progress = await _unitOfWork.CharacterDungeonProgresses.GetOrCreateByCharacterIdAsync(characterId);
+                var progress = await _unitOfWork.CharacterBattleProgresses.GetOrCreateByCharacterIdAsync(characterId);
 
                 // 5. 레벨 검증
                 if (character.Level < stage.RequiredLevel)
@@ -307,7 +307,7 @@ namespace IdleRPG.Infrastructure.Service
         /// <summary>
         /// 스테이지 도전 가능 여부 판단 (서버 검증 로직)
         /// </summary>
-        private bool IsStageAvailable(Character character, DungeonStage stage, CharacterDungeonProgress progress, DungeonDifficultyEnum difficulty)
+        private bool IsStageAvailable(Character character, DungeonStage stage, CharacterBattleProgress progress, DungeonDifficultyEnum difficulty)
         {
             // 레벨 체크
             if (character.Level < stage.RequiredLevel)
