@@ -1176,5 +1176,57 @@ BEGIN
     END IF;
 END $EF$;
 
+-- ============================================
+-- Migration: Rename CharacterDungeonProgresses to CharacterBattleProgresses
+-- Date: 2025-11-06
+-- Description: 테이블 이름을 CharacterDungeonProgresses에서 CharacterBattleProgresses로 변경
+-- ============================================
+
+-- 1. RENAME TABLE (기존 데이터 보존)
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20251106000000_RenameCharacterDungeonProgressesToBattleProgresses') THEN
+        -- 테이블 이름 변경 (기존 데이터 유지)
+        IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'CharacterDungeonProgresses') THEN
+            ALTER TABLE "CharacterDungeonProgresses" RENAME TO "CharacterBattleProgresses";
+        END IF;
+    END IF;
+END $EF$;
+
+-- 2. RENAME INDEX
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20251106000000_RenameCharacterDungeonProgressesToBattleProgresses') THEN
+        -- 인덱스 이름 변경
+        IF EXISTS (SELECT 1 FROM pg_indexes WHERE indexname = 'IX_CharacterDungeonProgresses_CharacterId_Unique') THEN
+            ALTER INDEX "IX_CharacterDungeonProgresses_CharacterId_Unique"
+            RENAME TO "IX_CharacterBattleProgresses_CharacterId_Unique";
+        END IF;
+    END IF;
+END $EF$;
+
+-- 3. RENAME FOREIGN KEY CONSTRAINT
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20251106000000_RenameCharacterDungeonProgressesToBattleProgresses') THEN
+        -- Foreign Key Constraint 이름 변경
+        IF EXISTS (SELECT 1 FROM information_schema.table_constraints
+                   WHERE constraint_name = 'FK_CharacterDungeonProgresses_Characters_CharacterId') THEN
+            ALTER TABLE "CharacterBattleProgresses"
+            RENAME CONSTRAINT "FK_CharacterDungeonProgresses_Characters_CharacterId"
+            TO "FK_CharacterBattleProgresses_Characters_CharacterId";
+        END IF;
+    END IF;
+END $EF$;
+
+-- 4. INSERT Migration History
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20251106000000_RenameCharacterDungeonProgressesToBattleProgresses') THEN
+    INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
+    VALUES ('20251106000000_RenameCharacterDungeonProgressesToBattleProgresses', '9.0.9');
+    END IF;
+END $EF$;
+
 COMMIT;
 
