@@ -81,17 +81,17 @@
 
 ---
 
-### 1.6 Create EloRatingService Domain Service ⏱️ 1시간
-- [ ] Create `IdleRPG.Domain/Services/EloRatingService.cs`
-- [ ] Implement `(int, int) CalculateNewRatings(int winnerRating, int loserRating, int kFactor = 32)` method
+### 1.6 Create EloRatingService Domain Service ⏱️ 1시간 ✅
+- [x] Create `IdleRPG.Domain/Services/EloRatingService.cs`
+- [x] Implement `(int, int) CalculateNewRatings(int winnerRating, int loserRating, int kFactor = 32)` method
   - 승자/패자 기대 승률 계산 (ELO 표준 알고리즘)
   - 레이팅 변화 계산
   - 최소값 0 보장 (음수 방지)
-- [ ] Add input validation (레이팅 >= 0)
-- [ ] Add XML documentation
-- [ ] **🎓 TODO(human)**: K-Factor 관리 전략 결정
+- [x] Add input validation (레이팅 >= 0)
+- [x] Add XML documentation
+- [x] **🎓 TODO(human)**: K-Factor 관리 전략 결정
   - 하드코딩 32 vs Configuration (appsettings.json) vs Database 테이블
-  - 권장: 하드코딩 → Configuration (MVP는 하드코딩, Phase 2에서 Configuration 도입)
+  - **결정: Option A (하드코딩 32) 채택** - MVP 단순성 우선, Phase 2에서 Configuration 도입
 
 **Requirements**: [US-1]
 **Design Reference**: [Business Logic - ELO 레이팅 계산]

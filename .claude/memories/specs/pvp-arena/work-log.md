@@ -86,3 +86,30 @@
 - 향후 무승부(Draw) 추가 시 Enum 확장 필요 (WinnerId Nullable 변경 동반)
 
 ---
+
+## 2025-11-06 17:22
+
+### Task Completed
+- [x] 1.6 Create EloRatingService Domain Service
+
+### Files Changed
+- IdleRPG.Domain/Services/EloRatingService.cs (new file, 98 lines)
+
+### Key Decisions
+- **K-Factor 관리 전략: Option A (하드코딩 32) 채택**
+  - Reasoning: MVP 단계에서 K-Factor 변경 계획 없음, 단순성 및 테스트 용이성 우선
+  - Future Plan: Phase 2에서 appsettings.json Configuration으로 이동 예정
+- **Domain Service 패턴**: 외부 의존성 없는 순수 비즈니스 로직 (Repository, Infrastructure 의존 금지)
+- **ELO 표준 알고리즘 구현**: 기대 승률 계산 → 레이팅 변화 계산 → 최소값 0 보장
+
+### Notes
+- CalculateNewRatings() 메서드: (winnerNewRating, loserNewRating) 튜플 반환
+- Input Validation: 레이팅 음수 검증, K-Factor 양수 검증
+- CalculateExpectedScore() private 메서드: ELO 표준 공식 `1 / (1 + 10^((R_B - R_A) / 400))`
+- 단위 테스트 시나리오:
+  - 동점 매칭 (1500 vs 1500) → 승자 +16, 패자 -16
+  - 고랭커 vs 저랭커 (2000 vs 1000) → 승자 +3, 패자 -29
+  - 저랭커 vs 고랭커 (1000 vs 2000) → 승자 +29, 패자 -3
+  - 최소 레이팅 0 보장 (50 vs 1500, 패배 시 0으로 클램핑)
+
+---
