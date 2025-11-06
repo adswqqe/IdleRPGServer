@@ -28,53 +28,53 @@
 
 ## 🏗️ Milestone 1: Domain Layer
 
-### 1.1 Create PvpSeason Entity ⏱️ 30분
-- [ ] Create `IdleRPG.Domain/Entities/PvpSeason.cs`
-- [ ] Add properties: Id (int), SeasonNumber, StartDate, EndDate, IsActive, CreatedAt, UpdatedAt
-- [ ] Implement BaseEntity inheritance (CreatedAt, UpdatedAt)
-- [ ] Add validation: StartDate < EndDate
+### 1.1 Create PvpSeason Entity ⏱️ 30분 ✅
+- [x] Create `IdleRPG.Domain/Entities/PvpSeason.cs`
+- [x] Add properties: Id (int), SeasonNumber, StartDate, EndDate, IsActive, CreatedAt, UpdatedAt
+- [x] Implement BaseEntity inheritance (CreatedAt, UpdatedAt)
+- [x] Add validation: StartDate < EndDate
 
 **Requirements**: [US-4]
 **Design Reference**: [Data Model - PvpSeason]
 
 ---
 
-### 1.2 Create PvpRanking Entity ⏱️ 45분
-- [ ] Create `IdleRPG.Domain/Entities/PvpRanking.cs`
-- [ ] Add properties: SeasonId, CharacterId (복합키), Rating, Wins, Losses, WinStreak, Tier, IsRewardClaimed, LastMatchAt, UpdatedAt
-- [ ] Add computed property: `public PvpTier Tier { get; }` (Rating 기반 계산)
-- [ ] Add navigation properties: Character, PvpSeason
+### 1.2 Create PvpRanking Entity ⏱️ 45분 ✅
+- [x] Create `IdleRPG.Domain/Entities/PvpRanking.cs`
+- [x] Add properties: SeasonId, CharacterId (복합키), Rating, Wins, Losses, WinStreak, Tier, IsRewardClaimed, LastMatchAt, UpdatedAt
+- [x] Add computed property: `public PvpTier Tier { get; }` (Rating 기반 계산)
+- [x] Add navigation properties: Character, PvpSeason
 
 **Requirements**: [US-2, US-4]
 **Design Reference**: [Data Model - PvpRanking]
 
 ---
 
-### 1.3 Create PvpMatch Entity ⏱️ 30분
-- [ ] Create `IdleRPG.Domain/Entities/PvpMatch.cs`
-- [ ] Add properties: Id (Guid), SeasonId, AttackerId, DefenderId, WinnerId, AttackerRatingBefore, AttackerRatingAfter, DefenderRatingBefore, DefenderRatingAfter, CreatedAt
-- [ ] Add navigation properties: Attacker (Character), Defender (Character), Winner (Character), PvpSeason
-- [ ] Add validation: AttackerId != DefenderId
+### 1.3 Create PvpMatch Entity ⏱️ 30분 ✅
+- [x] Create `IdleRPG.Domain/Entities/PvpMatch.cs`
+- [x] Add properties: Id (Guid), SeasonId, AttackerId, DefenderId, WinnerId, AttackerRatingBefore, AttackerRatingAfter, DefenderRatingBefore, DefenderRatingAfter, CreatedAt
+- [x] Add navigation properties: Attacker (Character), Defender (Character), Winner (Character), PvpSeason
+- [x] Add validation: AttackerId != DefenderId
 
 **Requirements**: [US-1, US-3]
 **Design Reference**: [Data Model - PvpMatch]
 
 ---
 
-### 1.4 Create PvpTier Enum ⏱️ 15분
-- [ ] Create `IdleRPG.Domain/Enums/PvpTier.cs`
-- [ ] Define enum values: Bronze, Silver, Gold, Platinum, Diamond
-- [ ] Add XML documentation comments
+### 1.4 Create PvpTier Enum ⏱️ 15분 ✅
+- [x] Create `IdleRPG.Domain/Enums/PvpTier.cs`
+- [x] Define enum values: Bronze, Silver, Gold, Platinum, Diamond
+- [x] Add XML documentation comments
 
 **Requirements**: [US-2]
 **Design Reference**: [Domain Layer - Enums]
 
 ---
 
-### 1.5 Create PvpMatchResult Enum ⏱️ 15분
-- [ ] Create `IdleRPG.Domain/Enums/PvpMatchResult.cs`
-- [ ] Define enum values: Victory, Defeat
-- [ ] Add XML documentation comments
+### 1.5 Create PvpMatchResult Enum ⏱️ 15분 ✅
+- [x] Create `IdleRPG.Domain/Enums/PvpMatchResult.cs`
+- [x] Define enum values: Victory, Defeat
+- [x] Add XML documentation comments
 
 **Requirements**: [US-1]
 **Design Reference**: [Domain Layer - Enums]
