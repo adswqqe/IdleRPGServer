@@ -11,14 +11,14 @@
 
 ## 📊 Progress Overview
 
-**전체 진행률**: 24/33 (72.7%)
+**전체 진행률**: 26/33 (78.8%)
 
 | Milestone | 작업 수 | 완료 | 진행률 |
 |-----------|---------|------|--------|
 | Domain Layer | 6 | 6 | 100% |
 | Infrastructure Layer | 9 | 9 | 100% |
 | Application Layer | 7 | 7 | 100% |
-| API Layer | 5 | 2 | 40% |
+| API Layer | 5 | 4 | 80% |
 | Database | 3 | 0 | 0% |
 | Testing & Documentation | 3 | 0 | 0% |
 
@@ -420,30 +420,30 @@
 
 ---
 
-### 4.3 Create PvpController - Match Endpoints ⏱️ 1.5시간
-- [ ] Create `IdleRPG.API/Controllers/PvpController.cs`
-- [ ] Add [ApiController], [Route("api/pvp")], [Authorize] attributes
-- [ ] Inject IPvpService dependency
-- [ ] Implement `POST /api/pvp/matches` endpoint:
+### 4.3 Create PvpController - Match Endpoints ⏱️ 1.5시간 ✅
+- [x] Create `IdleRPG.API/Controllers/PvpController.cs`
+- [x] Add [ApiController], [Route("api/pvp")], [Authorize] attributes
+- [x] Inject IPvpService dependency
+- [x] Implement `POST /api/pvp/matches` endpoint:
   - Extract userId from JWT claims
   - Validate PvpMatchRequestDto
   - Call PvpService.StartMatchAsync
   - Return 201 Created with PvpMatchResponseDto
   - Handle exceptions: 400 (CharacterId 소유권 없음), 404 (활성 시즌 없음)
-- [ ] Implement `GET /api/pvp/matches/history` endpoint:
+- [x] Implement `GET /api/pvp/matches/history` endpoint:
   - Query parameters: characterId, seasonId, page, pageSize
   - Validate query parameters
   - Call PvpMatchRepository.GetMatchHistoryAsync
   - Return 200 OK with pagination metadata
-- [ ] Add Swagger XML comments
+- [x] Add Swagger XML comments
 
 **Requirements**: [US-1, US-3]
 **Design Reference**: [API Design - Endpoints 1, 3]
 
 ---
 
-### 4.4 Create PvpController - Ranking Endpoints ⏱️ 1.5시간
-- [ ] Add `GET /api/pvp/rankings` endpoint to PvpController:
+### 4.4 Create PvpController - Ranking Endpoints ⏱️ 1.5시간 ✅
+- [x] Add `GET /api/pvp/rankings` endpoint to PvpController:
   - Query parameters: seasonId, top, nearMe, range, tier, page, pageSize
   - Validate query parameters
   - Top N 조회: Redis 시도 → PostgreSQL Fallback
@@ -452,8 +452,8 @@
   - Character 이름 조회 (N+1 방지)
   - Return 200 OK with PvpRankingDto list
   - Handle exceptions: 404 (시즌 없음), 401 (nearMe 시 인증 필요)
-- [ ] Add Swagger XML comments
-- [ ] **🎓 TODO(human)**: Redis vs PostgreSQL 전략 근거 작성
+- [x] Add Swagger XML comments
+- [x] **🎓 TODO(human)**: Redis vs PostgreSQL 전략 근거 작성
   - Top N은 Redis 우선, 티어별 필터링은 PostgreSQL
   - Redis 장애 시 PostgreSQL Fallback (성능 저하 허용)
 

@@ -24,8 +24,12 @@ namespace IdleRPG.Infrastructure.Repositories
         /// </summary>
         public async Task<PvpRanking?> GetByIdAsync(int seasonId, Guid characterId, CancellationToken cancellationToken = default)
         {
-            // EF Core FindAsync는 복합키 지원
-            return await _context.PvpRankings.FindAsync(new object[] { seasonId, characterId }, cancellationToken);
+            // FindAsync는 Include 불가 → FirstOrDefaultAsync 사용
+            return await _context.PvpRankings
+                .AsNoTracking()
+                .Include(pr => pr.Character)
+                    .ThenInclude(c => c.Player) // Player.UserName 조회
+                .FirstOrDefaultAsync(pr => pr.SeasonId == seasonId && pr.CharacterId == characterId, cancellationToken);
         }
 
         /// <summary>
@@ -39,7 +43,8 @@ namespace IdleRPG.Infrastructure.Repositories
                 .Where(pr => pr.SeasonId == seasonId)
                 .OrderByDescending(pr => pr.Rating)
                 .Take(count)
-                .Include(pr => pr.Character) // N+1 방지 (캐릭터 이름 조회)
+                .Include(pr => pr.Character)
+                    .ThenInclude(c => c.Player) // N+1 방지 (Player.UserName 조회)
                 .ToListAsync(cancellationToken);
         }
 
@@ -57,7 +62,8 @@ namespace IdleRPG.Infrastructure.Repositories
                 .Where(pr => pr.SeasonId == seasonId && pr.Rating >= minRating && pr.Rating <= maxRating)
                 .OrderByDescending(pr => pr.Rating)
                 .Take(range * 2) // ±range등 조회
-                .Include(pr => pr.Character) // N+1 방지
+                .Include(pr => pr.Character)
+                    .ThenInclude(c => c.Player) // N+1 방지 (Player.UserName 조회)
                 .ToListAsync(cancellationToken);
         }
 
@@ -74,7 +80,8 @@ namespace IdleRPG.Infrastructure.Repositories
                 .OrderByDescending(pr => pr.Rating)
                 .Skip(skip)
                 .Take(pageSize)
-                .Include(pr => pr.Character) // N+1 방지
+                .Include(pr => pr.Character)
+                    .ThenInclude(c => c.Player) // N+1 방지 (Player.UserName 조회)
                 .ToListAsync(cancellationToken);
         }
 

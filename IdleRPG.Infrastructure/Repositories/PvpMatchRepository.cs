@@ -62,8 +62,11 @@ namespace IdleRPG.Infrastructure.Repositories
                 .OrderByDescending(pm => pm.CreatedAt)
                 .Skip(skip)
                 .Take(pageSize)
-                .Include(pm => pm.Attacker) // N+1 방지 (캐릭터 이름 조회)
-                .Include(pm => pm.Defender) // N+1 방지
+                .Include(pm => pm.Attacker)
+                    .ThenInclude(c => c.Player) // N+1 방지 (Player.UserName 조회)
+                .Include(pm => pm.Defender)
+                    .ThenInclude(c => c.Player) // N+1 방지 (Player.UserName 조회)
+                .Include(pm => pm.Season) // Season.SeasonNumber 조회
                 .ToListAsync(cancellationToken);
 
             return (matches, totalCount);

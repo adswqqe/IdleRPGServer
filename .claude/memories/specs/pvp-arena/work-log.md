@@ -4,6 +4,78 @@
 
 ---
 
+## 2025-11-07 16:00
+
+### Task Completed
+- [x] 4.4 Create PvpController - Ranking Endpoints
+
+### Files Changed
+- IdleRPG.API/Controllers/PvpController.cs (modified - GetRankings 엔드포인트 추가, 250+ lines 추가)
+- IdleRPG.Infrastructure/Repositories/PvpRankingRepository.cs (modified - ThenInclude Player 추가)
+
+### Key Decisions
+- **3가지 조회 모드 구현**:
+  1. Top N (top 파라미터): Redis 우선 → PostgreSQL Fallback
+  2. 내 주변 (nearMe=true, range): Redis 우선 → PostgreSQL Fallback, 인증 필수
+  3. 티어별 (tier): PostgreSQL 직접 조회 (Redis는 복잡한 필터링 불가)
+- **Redis Fallback 전략**:
+  - **Top N**: Redis GetTopRankingsAsync → null이면 PostgreSQL GetTopRankingsAsync
+  - **내 주변**: Redis GetRankingsAroundMeAsync + GetMyRankAsync → null이면 PostgreSQL GetRankingsAroundAsync (내 레이팅 기준)
+  - **티어별**: PostgreSQL 직접 (Redis는 Enum 필터링 불가)
+  - **Fallback 정책**: Graceful Degradation (Redis 장애 시 PostgreSQL로 대체, 성능 저하 허용)
+- **Rank 계산 전략**:
+  - Redis 성공 시: Rating DESC 정렬 순서로 1, 2, 3... 부여
+  - PostgreSQL Fallback 시: Rating DESC 정렬 후 1, 2, 3... 부여 (근사값)
+  - 티어별 조회: 페이지 오프셋 고려 (startRank = (page-1) * pageSize + 1)
+- **N+1 문제 해결**: PvpRankingRepository에 ThenInclude(c => c.Player) 추가
+  - GetByIdAsync: FindAsync → FirstOrDefaultAsync 변경 (Include 지원)
+  - 모든 조회 메서드: Character.Player.UserName 조회 가능
+- **AllowAnonymous 적용**: Top N, 티어별 조회는 Public, nearMe만 인증 필요
+
+### Notes
+- **Redis vs PostgreSQL 전략 근거 (Swagger 주석에 명시)**:
+  - Top N: Redis Sorted Set (O(log N + count), 고속)
+  - 내 주변: Redis ZREVRANK + ZREVRANGE (O(log N + 2*range))
+  - 티어별: PostgreSQL Generated Column (복잡한 필터링, 페이징 필요)
+- **GetUserCharacterIdAsync**: GetByPlayerIdAsync 사용 → FirstOrDefault()로 첫 번째 캐릭터 조회
+- **Redis 장애 시 로깅**: LogWarning으로 Fallback 기록 (Redis miss 추적)
+- **Helper 메서드 분리**: GetTopNRankingsAsync, GetRankingsAroundMeAsync, GetRankingsByTierAsync, CreateRankingDto
+
+---
+
+## 2025-11-07 15:45
+
+### Task Completed
+- [x] 4.3 Create PvpController - Match Endpoints
+
+### Files Changed
+- IdleRPG.API/Controllers/PvpController.cs (new file, 160 lines)
+- IdleRPG.Infrastructure/Repositories/PvpMatchRepository.cs (modified - ThenInclude 추가)
+
+### Key Decisions
+- **BaseController 상속**: GetCurrentUserId() 공통 메서드 재사용
+- **예외 처리 전략**:
+  - UnauthorizedAccessException → 400 Bad Request (CharacterId 소유권 없음)
+  - InvalidOperationException → 404 Not Found (활성 시즌 없음)
+  - KeyNotFoundException → 404 Not Found (리소스 없음)
+- **DTO 변환 로직**: Controller에서 Repository 결과를 PvpMatchHistoryDto로 변환
+  - isAttacker 계산: m.AttackerId == request.CharacterId
+  - isVictory 계산: m.WinnerId == request.CharacterId
+  - 레이팅 변화량 계산: MyRatingAfter - MyRatingBefore
+- **N+1 문제 해결**: PvpMatchRepository에 ThenInclude(c => c.Player) 추가
+  - Attacker.Player, Defender.Player 조회 (UserName 표시용)
+  - Season 조회 (SeasonNumber 표시용)
+- **Pagination 응답 구조**: totalCount, page, pageSize, totalPages 포함
+
+### Notes
+- **Character.Name 없음**: Player.UserName 사용 (프로젝트 구조)
+- **PvpMatch.Season**: 네비게이션 프로퍼티 이름이 PvpSeason이 아닌 Season
+- **CreatedAtAction**: StartMatch에서 201 Created 응답 시 GetMatchHistory 링크 반환
+- **Swagger 주석**: 모든 엔드포인트에 상세한 XML 문서화 주석 작성 (remarks, response codes)
+- **로깅**: 중요 이벤트(매치 시작, 에러)에 대한 구조화된 로그 작성
+
+---
+
 ## 2025-11-07 15:32
 
 ### Task Completed
