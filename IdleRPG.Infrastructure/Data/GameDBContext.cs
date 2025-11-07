@@ -48,6 +48,11 @@ public class GameDBContext : DbContext
     public DbSet<ChatRoomParticipant> ChatRoomParticipants { get; set; }
     public DbSet<ChatMessage> ChatMessages { get; set; }
 
+    // PVP Arena System
+    public DbSet<PvpSeason> PvpSeasons { get; set; }
+    public DbSet<PvpRanking> PvpRankings { get; set; }
+    public DbSet<PvpMatch> PvpMatches { get; set; }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);

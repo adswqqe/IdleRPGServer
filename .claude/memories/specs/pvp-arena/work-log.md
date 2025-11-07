@@ -104,9 +104,11 @@
 
 ### Task Completed
 - [x] 2.9 Create PvpMatch EF Core Configuration
+- [x] 추가: GameDBContext에 PVP Arena DbSet 등록
 
 ### Files Changed
 - IdleRPG.Infrastructure/Configurations/PvpMatchConfiguration.cs (new file, 106 lines)
+- IdleRPG.Infrastructure/Data/GameDBContext.cs (modified: DbSet 3개 추가)
 
 ### Key Decisions
 - **다중 FK 관계 (4개)**: SeasonId, AttackerId, DefenderId, WinnerId
@@ -120,6 +122,9 @@
   - `IX_PvpMatch_AttackerId_CreatedAt`: 공격자 히스토리 조회 (WHERE AttackerId = ? ORDER BY CreatedAt DESC)
   - `IX_PvpMatch_DefenderId_CreatedAt`: 방어자 히스토리 조회 (WHERE DefenderId = ? ORDER BY CreatedAt DESC)
   - Repository의 GetMatchHistoryAsync는 OR 조건으로 양쪽 인덱스 활용
+- **GameDBContext 업데이트**:
+  - DbSet<PvpSeason>, DbSet<PvpRanking>, DbSet<PvpMatch> 추가
+  - ApplyConfigurationsFromAssembly()가 자동으로 3개 Configuration 적용
 
 ### Notes
 - **PvpMatch vs PvpRanking 차이점**:
@@ -127,6 +132,7 @@
   - PvpRanking: Mutable 집계 데이터, CharacterId → Cascade (개인정보 삭제)
 - **다중 FK 처리**: 같은 엔티티(Character)에 대한 3개의 관계를 WithMany()로 구분
 - **인덱스 컬럼 순서**: 필터링 컬럼(CharacterId) → 정렬 컬럼(CreatedAt)
-- **학습 포인트**: 히스토리 데이터의 OnDelete 정책, 다중 FK 설정, 복합 인덱스 설계
+- **Configuration 자동 적용**: OnModelCreating의 ApplyConfigurationsFromAssembly()가 새 Configuration 자동 인식
+- **학습 포인트**: 히스토리 데이터의 OnDelete 정책, 다중 FK 설정, 복합 인덱스 설계, DbSet 등록 필수성
 
 ---
