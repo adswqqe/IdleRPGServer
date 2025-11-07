@@ -4,6 +4,65 @@
 
 ---
 
+## 2025-11-07 15:32
+
+### Task Completed
+- [x] 4.2 Create PVP Request Validators
+
+### Files Changed
+- IdleRPG.Application/Validators/PvpMatchRequestValidator.cs (new file)
+- IdleRPG.Application/Validators/GetRankingsRequestValidator.cs (new file)
+- IdleRPG.Application/Validators/GetMatchHistoryRequestValidator.cs (new file)
+- IdleRPG.Application/DTOs/Pvp/GetRankingsRequest.cs (new file, 추가 생성)
+- IdleRPG.Application/DTOs/Pvp/GetMatchHistoryRequest.cs (new file, 추가 생성)
+
+### Key Decisions
+- **Query Parameter용 Request DTO 생성**: ASP.NET Core 모범 사례에 따라 FromQuery 바인딩을 위한 DTO 추가 생성
+- **FluentValidation 통합**: AbstractValidator<T> 상속으로 선언적 검증 규칙 작성
+- **조건부 검증 패턴 적용**: When(x => x.HasValue)로 nullable 필드 처리
+- **BeValidGuid 재사용**: PvpMatchRequestValidator와 GetMatchHistoryRequestValidator에서 공통 검증 로직 사용 (Guid.Empty 체크)
+- **검증 범위 결정**:
+  - Top: 1~1000 (대규모 랭킹 조회 지원)
+  - Range: 1~50 (내 주변 랭킹 조회)
+  - PageSize: 1~50 (히스토리), 1~100 (랭킹)
+
+### Notes
+- GetRankingsRequest와 GetMatchHistoryRequest는 Task 4.2에 명시되지 않았지만 Validator 작성을 위해 필수 생성
+- 모든 Validator에 명확한 에러 메시지 작성 (WithMessage())
+- PvpTier Enum 검증: IsInEnum() 사용
+- Validators 폴더 신규 생성 (프로젝트 최초 Validator)
+
+---
+
+## 2025-11-07 15:29
+
+### Task Completed
+- [x] 4.1 Create PVP Request/Response DTOs
+
+### Files Changed
+- IdleRPG.Application/DTOs/Pvp/PvpMatchRequestDto.cs (new file)
+- IdleRPG.Application/DTOs/Pvp/PvpMatchResponseDto.cs (이미 완성)
+- IdleRPG.Application/DTOs/Pvp/MatchOpponentDto.cs (이미 완성, = OpponentDto)
+- IdleRPG.Application/DTOs/Pvp/PvpRankingDto.cs (new file)
+- IdleRPG.Application/DTOs/Pvp/PvpMatchHistoryDto.cs (new file)
+- IdleRPG.Application/DTOs/Pvp/PvpSeasonDto.cs (new file)
+- IdleRPG.Application/DTOs/Pvp/SeasonRewardDto.cs (이미 완성)
+
+### Key Decisions
+- **DTO 7개 모두 완성**: Request 1개, Response 6개
+- **XML 문서화 주석 전체 작성**: Swagger UI 자동 생성 및 클라이언트 개발 가이드 제공
+- **WinRate 계산 로직 명시**: (Wins / (Wins + Losses)) * 100, 전적 없으면 0
+- **DaysRemaining 계산 로직 명시**: (EndDate - DateTime.UtcNow).Days, 음수면 시즌 종료됨
+- **PvpMatchResponseDto에 CombatLog 포함**: 향후 리플레이 시스템 확장 고려 (Phase 3)
+
+### Notes
+- PvpMatchResponseDto와 SeasonRewardDto는 이미 완성되어 있었음 (3.7 Task에서 생성)
+- MatchOpponentDto는 OpponentDto 역할 (이름만 다름, Task 명세와 일치)
+- 모든 DTO에 example 값 추가 (Swagger UI 문서 품질 향상)
+- 복잡한 타입(Dictionary, Enum)에 대한 remarks 상세 설명 추가
+
+---
+
 ## 2025-11-07 11:37
 
 ### Task Completed
@@ -349,5 +408,61 @@
   - 트랜잭션 경계 설정 (Service 계층)
   - EF Core Change Tracker 동작 방식 (AddAsync는 메모리 작업)
   - YAGNI 원칙 (필요 없는 AddRangeAsync 추가하지 않음)
+
+---
+
+## 2025-11-07 14:59
+
+### Task Completed
+- [x] 3.7 Create IPvpService Interface & Implementation
+
+### Files Changed
+- IdleRPG.Application/Services/IPvpService.cs (new file, 96 lines)
+- IdleRPG.Application/Services/PvpService.cs (new file, 312 lines)
+- IdleRPG.Application/DTOs/Pvp/PvpMatchResponseDto.cs (new file, 83 lines)
+
+### Key Decisions
+- **TODO(human) 해소 - 트랜잭션 경계 설정 근거**:
+  - **Service 계층에서 UnitOfWork로 트랜잭션 관리 채택**
+  - **근거**: 여러 Repository 작업(PvpMatch 생성, PvpRanking 업데이트 x2, Character 보상)을 하나의 원자적 단위로 묶어야 함
+  - **Redis는 트랜잭션 외부**: Best Effort, Redis 실패가 전체 매치를 롤백시키면 안 됨 (Graceful Degradation)
+  - **PostgreSQL이 Source of Truth**: Redis는 성능 최적화용 캐시, 실패해도 PostgreSQL에서 조회 가능
+- **전투 시뮬레이션 방식**:
+  - CombatService 재사용 불가 (Character vs Monster 전용)
+  - **간단한 전투력 비교 로직 구현**: 공격력 + 방어력 + HP/10 + 랜덤(±10%)
+  - Phase 2에서 CombatService와 통합 예정
+- **NPC 봇 처리**:
+  - DefenderId: NPC 봇은 Guid.Empty 저장
+  - 전투력: 레이팅 = 전투력 (간단한 공식)
+  - 랭킹 업데이트: IsBot = false인 경우만 상대 랭킹 업데이트
+- **보상 계산 (AI 제공)**:
+  - 승리: Gold 100 + Crystal 10 + Experience 50
+  - 패배: Gold 50 + Experience 25
+- **에러 처리**:
+  - UnauthorizedAccessException: CharacterId 소유권 없음
+  - InvalidOperationException: 활성 시즌 없음
+  - KeyNotFoundException: 캐릭터 또는 상대 정보 없음
+
+### Notes
+- **Service 오케스트레이션**: PvpService는 Facade 패턴으로 여러 서비스 조율
+  - PvpMatchmakingService: 상대 찾기
+  - EloRatingService: 레이팅 계산
+  - UnitOfWork: 트랜잭션 관리
+  - RedisCacheService: 랭킹 갱신
+- **Application Layer 배치**: 비즈니스 흐름 오케스트레이션은 Application Layer
+- **트랜잭션 흐름**:
+  1. PvpMatch 생성 (매치 기록)
+  2. PvpRanking 업데이트 (공격자/방어자, IsBot = false만)
+  3. Character 보상 지급 (승리/패배 차등)
+  4. SaveChangesAsync() 커밋
+  5. Redis 갱신 (트랜잭션 외부, Best Effort)
+- **CombatLog**: 간단한 전투 로그 생성 (향후 리플레이 시스템 확장 가능)
+- **상대 랭킹 조회**: NPC 봇이 아닌 경우에만 DB에서 조회 및 업데이트
+- **학습 포인트**:
+  - Service 오케스트레이션 패턴
+  - 트랜잭션 경계 설정 (여러 Repository 작업을 하나로)
+  - Best Effort 전략 (Redis 실패 허용)
+  - 에러 처리 및 로깅
+  - DTO 설계 (PvpMatchResponseDto)
 
 ---

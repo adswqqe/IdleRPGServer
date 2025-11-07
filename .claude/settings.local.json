@@ -278,7 +278,8 @@
       "Bash('│ • 개발 표준: .claude/memories/_system/api-standards.md                  │' )",
       "Bash('│ • Kiro 워크플로우 가이드: .claude/memories/kiro-system-templates/...   │' )",
       "Bash('│ • 완료된 스펙: .claude/memories/specs/ (4개 완료)                       │' )",
-      "Bash('마지막 업데이트: 2025-11-01')"
+      "Bash('마지막 업데이트: 2025-11-01')",
+      "Bash(findstr:*)"
     ]
   },
   "enableAllProjectMcpServers": true,

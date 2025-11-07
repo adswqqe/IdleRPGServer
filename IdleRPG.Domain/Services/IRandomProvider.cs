@@ -11,5 +11,13 @@ namespace IdleRPG.Domain.Services
         /// <param name="maxValue">최대값 (exclusive)</param>
         /// <returns>생성된 난수</returns>
         int Next(int maxValue);
+
+        /// <summary>
+        /// minValue부터 maxValue-1까지의 난수를 반환합니다.
+        /// </summary>
+        /// <param name="minValue">최소값 (inclusive)</param>
+        /// <param name="maxValue">최대값 (exclusive)</param>
+        /// <returns>생성된 난수</returns>
+        int Next(int minValue, int maxValue);
     }
 }

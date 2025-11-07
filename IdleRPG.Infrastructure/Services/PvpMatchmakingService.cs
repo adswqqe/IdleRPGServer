@@ -115,12 +115,12 @@ public class PvpMatchmakingService : IPvpMatchmakingService
             }
 
             _logger.LogInformation("매칭 성공: 실제 플레이어. Opponent={OpponentName}, Rating={Rating}",
-                opponentCharacter.Name, selectedRanking.Rating);
+                opponentCharacter.Player.UserName, selectedRanking.Rating);
 
             return new MatchOpponentDto
             {
                 CharacterId = opponentCharacter.Id,
-                Name = opponentCharacter.Name,
+                Name = opponentCharacter.Player.UserName,
                 Rating = selectedRanking.Rating,
                 IsBot = false
             };

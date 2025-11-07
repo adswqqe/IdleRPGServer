@@ -11,14 +11,14 @@
 
 ## 📊 Progress Overview
 
-**전체 진행률**: 21/33 (63.6%)
+**전체 진행률**: 24/33 (72.7%)
 
 | Milestone | 작업 수 | 완료 | 진행률 |
 |-----------|---------|------|--------|
 | Domain Layer | 6 | 6 | 100% |
 | Infrastructure Layer | 9 | 9 | 100% |
-| Application Layer | 7 | 6 | 85.7% |
-| API Layer | 5 | 0 | 0% |
+| Application Layer | 7 | 7 | 100% |
+| API Layer | 5 | 2 | 40% |
 | Database | 3 | 0 | 0% |
 | Testing & Documentation | 3 | 0 | 0% |
 
@@ -347,15 +347,16 @@
 
 ---
 
-### 3.7 Create IPvpService Interface & Implementation ⏱️ 2시간
-- [ ] Create `IdleRPG.Application/Services/IPvpService.cs` (interface)
-- [ ] Create `IdleRPG.Application/Services/PvpService.cs` (implementation)
-- [ ] Inject dependencies: IPvpMatchmakingService, IPvpSeasonRepository, IPvpMatchRepository, IPvpRankingRepository, ICharacterRepository, ICombatService, EloRatingService, IRedisCacheService
-- [ ] Implement `StartMatchAsync(Guid characterId, Guid userId, CancellationToken cancellationToken)`:
+### 3.7 Create IPvpService Interface & Implementation ⏱️ 2시간 ✅
+- [x] Create `IdleRPG.Application/Services/IPvpService.cs` (interface)
+- [x] Create `IdleRPG.Application/Services/PvpService.cs` (implementation)
+- [x] Create `IdleRPG.Application/DTOs/Pvp/PvpMatchResponseDto.cs` (DTO)
+- [x] Inject dependencies: IPvpMatchmakingService, UnitOfWork, EloRatingService, IRedisCacheService
+- [x] Implement `StartMatchAsync(Guid characterId, Guid userId, CancellationToken cancellationToken)`:
   - CharacterId 소유권 검증 (userId와 Character.OwnerId 일치)
   - 현재 활성 시즌 조회
   - 매칭 실행 (PvpMatchmakingService)
-  - 전투 시뮬레이션 (CombatService.SimulateCombatAsync 재사용)
+  - 전투 시뮬레이션 (간단한 전투력 비교, Phase 2에서 CombatService 통합)
   - 레이팅 계산 (EloRatingService)
   - **트랜잭션 시작** (UnitOfWork):
     - PvpMatch 생성
@@ -364,11 +365,12 @@
     - 트랜잭션 커밋
   - **Redis 랭킹 갱신** (트랜잭션 외부, Best Effort)
   - 응답 DTO 생성 및 반환
-- [ ] Add error handling: UnauthorizedAccessException, InvalidOperationException, NotFoundException
-- [ ] Add logging
-- [ ] **🎓 TODO(human)**: 트랜잭션 경계 설정 근거 작성
-  - Service에서 UnitOfWork vs Repository에서 개별 트랜잭션
-  - 권장: Service (여러 Repository 호출을 하나의 트랜잭션으로 묶음)
+- [x] Add error handling: UnauthorizedAccessException, InvalidOperationException, KeyNotFoundException
+- [x] Add logging
+- [x] **🎓 TODO(human)**: 트랜잭션 경계 설정 근거 (인터페이스 XML 주석에 명시)
+  - **최종 결정: Service 계층에서 UnitOfWork로 트랜잭션 관리**
+  - **근거**: 여러 Repository 작업(PvpMatch 생성, PvpRanking 업데이트, Character 보상)을 하나의 원자적 단위로 묶어야 함
+  - **Redis는 트랜잭션 외부**: Best Effort, Graceful Degradation
 
 **Requirements**: [US-1]
 **Design Reference**: [Service Layer - PvpService]
@@ -379,37 +381,37 @@
 
 ## 🌐 Milestone 4: API Layer
 
-### 4.1 Create PVP Request/Response DTOs ⏱️ 1시간
-- [ ] Create `IdleRPG.Application/DTOs/Pvp/PvpMatchRequestDto.cs`
+### 4.1 Create PVP Request/Response DTOs ⏱️ 1시간 ✅
+- [x] Create `IdleRPG.Application/DTOs/Pvp/PvpMatchRequestDto.cs`
   - Properties: CharacterId (Guid)
-- [ ] Create `IdleRPG.Application/DTOs/Pvp/PvpMatchResponseDto.cs`
+- [x] Create `IdleRPG.Application/DTOs/Pvp/PvpMatchResponseDto.cs`
   - Properties: MatchId, Opponent (OpponentDto), Result, MyRatingBefore, MyRatingAfter, OpponentRatingChange, Rewards, CombatLog
-- [ ] Create `IdleRPG.Application/DTOs/Pvp/OpponentDto.cs`
+- [x] Create `IdleRPG.Application/DTOs/Pvp/OpponentDto.cs`
   - Properties: CharacterId, Name, Rating, IsBot
-- [ ] Create `IdleRPG.Application/DTOs/Pvp/PvpRankingDto.cs`
+- [x] Create `IdleRPG.Application/DTOs/Pvp/PvpRankingDto.cs`
   - Properties: Rank, CharacterId, CharacterName, Rating, Wins, Losses, WinRate, Tier
-- [ ] Create `IdleRPG.Application/DTOs/Pvp/PvpMatchHistoryDto.cs`
+- [x] Create `IdleRPG.Application/DTOs/Pvp/PvpMatchHistoryDto.cs`
   - Properties: MatchId, SeasonNumber, OpponentCharacterId, OpponentName, Result, MyRatingChange, OpponentRatingChange, CreatedAt
-- [ ] Create `IdleRPG.Application/DTOs/Pvp/PvpSeasonDto.cs`
+- [x] Create `IdleRPG.Application/DTOs/Pvp/PvpSeasonDto.cs`
   - Properties: SeasonId, SeasonNumber, StartDate, EndDate, DaysRemaining, IsActive
-- [ ] Create `IdleRPG.Application/DTOs/Pvp/SeasonRewardDto.cs`
+- [x] Create `IdleRPG.Application/DTOs/Pvp/SeasonRewardDto.cs`
   - Properties: SeasonNumber, Tier, FinalRating, FinalRank, Rewards, AlreadyClaimed
-- [ ] Add XML documentation to all DTOs
+- [x] Add XML documentation to all DTOs
 
 **Requirements**: [US-1, US-2, US-3, US-4]
 **Design Reference**: [API Design - DTOs]
 
 ---
 
-### 4.2 Create PVP Request Validators ⏱️ 45분
-- [ ] Create `IdleRPG.Application/Validators/PvpMatchRequestValidator.cs`
+### 4.2 Create PVP Request Validators ⏱️ 45분 ✅
+- [x] Create `IdleRPG.Application/Validators/PvpMatchRequestValidator.cs`
   - RuleFor(x => x.CharacterId).NotEmpty().Must(BeValidGuid)
-- [ ] Create `IdleRPG.Application/Validators/GetRankingsRequestValidator.cs`
+- [x] Create `IdleRPG.Application/Validators/GetRankingsRequestValidator.cs`
   - RuleFor(x => x.SeasonId).GreaterThan(0).When(x => x.SeasonId.HasValue)
   - RuleFor(x => x.Top).InclusiveBetween(1, 1000).When(x => x.Top.HasValue)
   - RuleFor(x => x.Range).InclusiveBetween(1, 50).When(x => x.Range.HasValue)
   - RuleFor(x => x.Tier).IsInEnum().When(x => x.Tier.HasValue)
-- [ ] Create `IdleRPG.Application/Validators/GetMatchHistoryRequestValidator.cs`
+- [x] Create `IdleRPG.Application/Validators/GetMatchHistoryRequestValidator.cs`
   - RuleFor(x => x.CharacterId).NotEmpty().Must(BeValidGuid)
   - RuleFor(x => x.PageSize).InclusiveBetween(1, 50)
 

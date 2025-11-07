@@ -1,8 +1,10 @@
 using IdleRPG.Application.DTOs.Pvp;
 using IdleRPG.Application.Interfaces;
-using IdleRPG.Domain.Entities;
 using IdleRPG.Domain.Enums;
 using Microsoft.Extensions.Logging;
+using CharacterEntity = IdleRPG.Domain.Entities.Character;
+using PvpSeason = IdleRPG.Domain.Entities.PvpSeason;
+using PvpRanking = IdleRPG.Domain.Entities.PvpRanking;
 
 namespace IdleRPG.Application.Services;
 
@@ -72,7 +74,7 @@ public class PvpSeasonService : IPvpSeasonService
         int finalRank = await GetFinalRankAsync(seasonId, characterId, cancellationToken);
 
         // 6. 트랜잭션: Character 보상 지급 + PvpRanking 업데이트
-        var character = await _unitOfWork.Characters.GetByIdAsync(characterId, cancellationToken);
+        var character = await _unitOfWork.Characters.GetByIdAsync(characterId);
         if (character == null)
         {
             _logger.LogWarning("Character not found: CharacterId={CharacterId}", characterId);
@@ -172,41 +174,37 @@ public class PvpSeasonService : IPvpSeasonService
         await _unitOfWork.PvpSeasons.AddAsync(newSeason, cancellationToken);
 
         // 5. Soft Reset 적용 (새 레이팅 = (기존 레이팅 + 1000) / 2)
-        // TODO(human): Soft Reset 로직 구현
-        // 이전 시즌의 모든 PvpRanking을 조회하고, 각 플레이어의 새 시즌 PvpRanking을 생성하여
-        // Soft Reset 공식을 적용하세요.
-        //
-        // 가이드:
-        // - activeSeason이 null이 아닌 경우에만 Soft Reset 적용
-        // - 이전 시즌 랭킹 조회: await _unitOfWork.PvpRankings.GetTopRankingsAsync(activeSeason.Id, int.MaxValue, cancellationToken)
         if (activeSeason != null)
         {
-            var beSeason = await _unitOfWork.PvpRankings.GetTopRankingsAsync(activeSeason.Id, int.MaxValue, cancellationToken);
+            var previousSeasonRankings = await _unitOfWork.PvpRankings
+                .GetTopRankingsAsync(activeSeason.Id, int.MaxValue, cancellationToken);
 
-            foreach (var pvpRanking in beSeason)
+            foreach (var oldRanking in previousSeasonRankings)
             {
-                var newRanking = new PvpRanking()
+                var newRanking = new PvpRanking
                 {
                     SeasonId = newSeason.Id,
-                    CharacterId = pvpRanking.CharacterId,
-                    Rating = (pvpRanking.Rating + 1000) / 2,
+                    CharacterId = oldRanking.CharacterId,
+                    Rating = (oldRanking.Rating + 1000) / 2,
                     Wins = 0,
                     Losses = 0,
                     WinStreak = 0,
                     IsRewardClaimed = false,
                     UpdatedAt = DateTime.UtcNow
                 };
-                await _unitOfWork.PvpRankings.AddAsync(new PvpRanking(), cancellationToken);
-            }ㅠ
-        } 
-        // - 각 랭킹마다 새 PvpRanking 생성:
-        //   - SeasonId = newSeason.Id
-        //   - CharacterId = 기존 랭킹의 CharacterId
-        //   - Rating = (기존 Rating + 1000) / 2
-        //   - Wins, Losses, WinStreak = 0 (초기화)
-        //   - IsRewardClaimed = false
-        //   - UpdatedAt = DateTime.UtcNow
-        // - 생성한 랭킹을 await _unitOfWork.PvpRankings.AddAsync()로 추가
+
+                await _unitOfWork.PvpRankings.AddAsync(newRanking, cancellationToken);
+            }
+
+            _logger.LogInformation(
+                "Soft Reset applied: {Count} players migrated from Season {OldSeasonNumber} to Season {NewSeasonNumber}",
+                previousSeasonRankings.Count, activeSeason.SeasonNumber, seasonNumber);
+        }
+        else
+        {
+            _logger.LogInformation(
+                "First season created. Players will start with initial rating 1000 upon first match.");
+        }
 
         // 6. 트랜잭션 커밋
         await _unitOfWork.SaveChangesAsync(cancellationToken);
@@ -257,7 +255,7 @@ public class PvpSeasonService : IPvpSeasonService
     /// <summary>
     /// 보상을 캐릭터에 지급
     /// </summary>
-    private void ApplyRewardToCharacter(Character character, string rewardName, int amount)
+    private void ApplyRewardToCharacter(CharacterEntity character, string rewardName, int amount)
     {
         switch (rewardName)
         {

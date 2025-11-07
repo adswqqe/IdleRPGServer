@@ -1,5 +1,5 @@
 using IdleRPG.Application.DTOs.Pvp;
-using IdleRPG.Domain.Entities;
+using PvpSeason = IdleRPG.Domain.Entities.PvpSeason;
 
 namespace IdleRPG.Application.Services;
 

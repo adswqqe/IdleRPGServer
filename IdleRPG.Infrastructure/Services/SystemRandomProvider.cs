@@ -11,5 +11,10 @@ namespace IdleRPG.Infrastructure.Services
         {
             return Random.Shared.Next(maxValue);
         }
+
+        public int Next(int minValue, int maxValue)
+        {
+            return Random.Shared.Next(minValue, maxValue);
+        }
     }
 }
