@@ -136,3 +136,218 @@
 - **학습 포인트**: 히스토리 데이터의 OnDelete 정책, 다중 FK 설정, 복합 인덱스 설계, DbSet 등록 필수성
 
 ---
+
+## 2025-11-07 14:25
+
+### Task Completed
+- [x] 3.1 Create IRedisCacheService Interface
+
+### Files Changed
+- IdleRPG.Application/Services/IRedisCacheService.cs (new file, 95 lines)
+
+### Key Decisions
+- **Redis Sorted Set 활용**: Key = "pvp:ranking:season:{seasonId}", Score = Rating, Member = CharacterId
+- **Write-Through 전략**: PostgreSQL 업데이트 성공 후 Redis 갱신 (트랜잭션 외부, Best Effort)
+- **Fallback 설계**: Redis 장애 시 null 반환 → Controller에서 PostgreSQL 직접 조회
+- **메서드 5개 정의**:
+  1. `UpdateRankingCacheAsync`: ZADD (레이팅 갱신, O(log N))
+  2. `GetTopRankingsAsync`: ZREVRANGE (Top N 조회, O(log N + count))
+  3. `GetMyRankAsync`: ZREVRANK (내 순위 조회, O(log N), 1-based)
+  4. `GetRankingsAroundMeAsync`: ZREVRANK + ZREVRANGE (내 주변 ±range 조회)
+  5. `ClearRankingCacheAsync`: DEL (시즌 종료 시 캐시 초기화, O(1))
+- **반환 타입**: Dictionary<Guid, int>? (실패/데이터 없음 시 null)
+
+### Notes
+- Redis 명령어 시간 복잡도를 XML 주석에 명시 (성능 예측 가능)
+- GetMyRankAsync는 0-based → 1-based 변환 필요 (1등 = 1)
+- GetRankingsAroundMeAsync는 2번의 Redis 명령 실행 (ZREVRANK → ZREVRANGE)
+- Redis 예외는 상위 계층(Infrastructure)에서 처리, Application은 인터페이스만 의존 (DIP)
+- **학습 포인트**: Redis Sorted Set 자료구조, Write-Through 캐싱 전략, Fallback 설계
+
+---
+
+## 2025-11-07 14:35
+
+### Task Completed
+- [x] 3.2 Create RedisCacheService Implementation
+
+### Files Changed
+- IdleRPG.Infrastructure/Services/RedisCacheService.cs (new file, 213 lines)
+- IdleRPG.Infrastructure/IdleRPG.Infrastructure.csproj (modified: StackExchange.Redis 2.9.32 추가)
+
+### Key Decisions
+- **TODO(human) 해소 - Best Effort 전략 채택**:
+  - **Rollback 전략 (기각)**: Redis 실패 시 PostgreSQL 트랜잭션 롤백 → 전체 매치 실패, 가용성 저하
+  - **Best Effort 전략 (채택)**: Redis 실패 시 로깅만 하고 계속 진행 → 성능만 저하, 시스템 계속 작동
+  - **근거**: PostgreSQL이 Source of Truth, Redis는 캐시 (성능 최적화용)
+  - **Graceful Degradation**: Redis 장애 시에도 PostgreSQL Fallback으로 시스템 가용성 유지
+- **IConnectionMultiplexer DI**: Singleton으로 등록 (StackExchange.Redis 권장)
+- **GetRankingKey() 헬퍼**: Key 형식 통일 (`pvp:ranking:season:{seasonId}`)
+- **0-based → 1-based 변환**: GetMyRankAsync에서 rank.Value + 1 (1등 = 1)
+- **GetRankingsAroundMeAsync 2단계**:
+  1. ZREVRANK로 내 순위 조회 (없으면 null 반환)
+  2. ZREVRANGE로 내 순위 ± range 조회 (startRank = Max(0, myRank - range))
+- **에러 처리 일관성**: 모든 메서드에서 RedisException catch → LogWarning + null/throw
+
+### Notes
+- **StackExchange.Redis 2.9.32 설치**: NuGet 패키지 추가 완료
+- **SortedSetRangeByRankWithScoresAsync**: ZREVRANGE WITHSCORES 명령 (레이팅 값도 함께 조회)
+- **Order.Descending**: Redis ZREVRANGE (높은 Score → 낮은 Score, 레이팅 내림차순)
+- **Guid.TryParse**: Redis에 저장된 characterId 문자열을 Guid로 파싱 (실패 시 무시)
+- **UpdateRankingCacheAsync throw**: 트랜잭션 외부에서 호출되므로 예외를 throw (상위에서 처리)
+- **ClearRankingCacheAsync throw**: 시즌 관리 로직에서 Redis 장애 인지 필요
+- **로깅 레벨**: Debug (성공), Warning (실패), Information (중요 작업)
+- **학습 포인트**: Best Effort 전략, Graceful Degradation, Redis Sorted Set 명령어, 0-based/1-based 변환
+
+---
+
+## 2025-11-07 14:50
+
+### Task Completed
+- [x] 3.3 Create IPvpMatchmakingService Interface
+
+### Files Changed
+- IdleRPG.Application/Services/IPvpMatchmakingService.cs (new file, 55 lines)
+- IdleRPG.Application/DTOs/Pvp/MatchOpponentDto.cs (new file, 42 lines)
+
+### Key Decisions
+- **매칭 범위**: ±200 레이팅 (Design 문서 준수)
+- **후보 제한**: 최대 100명 (성능 고려)
+- **NPC 봇 생성 조건**: 후보 없을 시 (타임아웃 대응)
+- **NPC 봇 스펙**:
+  - CharacterId: Guid.Empty (봇 식별용)
+  - Name: "Bot_1234" 형식 (Random(1000, 9999))
+  - Rating: 내 레이팅 ± Random(-100, 100)
+  - IsBot: true
+- **첫 매칭 처리**: 초기 레이팅 1000으로 PvpRanking 자동 생성
+- **MatchOpponentDto 4개 필드**: CharacterId, Name, Rating, IsBot
+
+### Notes
+- Application Service 채택 (Repository 의존, 외부 데이터 조회 필요)
+- XML 문서화 주석에 매칭 프로세스, NPC 봇 생성 규칙, 성능 목표 명시
+- MatchOpponentDto는 Pvp 폴더에 생성 (DTO 조직화)
+- IsBot 플래그로 실제 플레이어와 NPC 봇 구분
+- 매칭 타임아웃 30초는 구현 단계에서 처리 (3.4에서)
+- **학습 포인트**: Application Service vs Domain Service 구분, 매칭 알고리즘 설계
+
+---
+
+## 2025-11-07 15:05
+
+### Task Completed
+- [x] 3.4 Create PvpMatchmakingService Implementation
+
+### Files Changed
+- IdleRPG.Infrastructure/Services/PvpMatchmakingService.cs (new file, 176 lines)
+
+### Key Decisions
+- **TODO(human) 해소 - 즉시 NPC 봇 생성 전략 채택**:
+  - **동기 대기 30초 (기각)**: HTTP 타임아웃 위험, 사용자 대기 시간 길어짐
+  - **즉시 NPC 봇 생성 (채택)**: 후보 없으면 즉시 봇 반환, 대기 0초, 사용자 경험 우선
+  - **근거**: MVP 단순화, HTTP 타임아웃 회피, 항상 매칭 성공 보장
+  - **Phase 3 개선 계획**: Redis Queue + 백그라운드 워커로 비동기 매칭 도입
+- **상수 정의**: InitialRating(1000), MatchingRange(200), MaxCandidates(100), BotRatingVariance(100)
+- **첫 매칭 처리**: PvpRanking 없으면 초기 레이팅 1000 생성 후 SaveChanges
+- **후보 조회 로직**: GetRankingsAroundAsync(seasonId, myRating, ±200) → 자기 자신 제외 → 최대 100명
+- **랜덤 선택**: _randomProvider.Next(candidates.Count)
+- **NPC 봇 생성 헬퍼**: CreateNpcBot(myRating) 메서드 분리
+  - 레이팅: myRating + Random(-100, 100), 최소 0 보장
+  - 이름: "Bot_" + Random(1000, 9999)
+  - CharacterId: Guid.Empty (봇 식별용)
+
+### Notes
+- **Infrastructure Layer 배치**: 기존 프로젝트 패턴 준수 (Application Service 구현체)
+- **UnitOfWork 패턴**: IUnitOfWork로 Repository 접근 (트랜잭션 관리)
+- **IRandomProvider 활용**: 테스트 가능성 확보 (Mock 가능)
+- **자기 자신 제외**: candidates.Where(r => r.CharacterId != characterId)
+- **안전장치**: 후보 캐릭터 정보 없으면 NPC 봇으로 대체 (이론적으로 발생하지 않지만)
+- **로깅**: Debug (후보 조회), Information (매칭 성공/봇 생성), Warning (에러)
+- **에러 처리**: 캐릭터 없으면 KeyNotFoundException
+- **학습 포인트**: 동기 vs 비동기 매칭 전략, MVP 단순화 원칙, 사용자 경험 우선 설계
+
+---
+
+## 2025-11-07 14:31
+
+### Task Completed
+- [x] 3.5 Create IPvpSeasonService Interface
+
+### Files Changed
+- IdleRPG.Application/DTOs/Pvp/SeasonRewardDto.cs (new file, 63 lines)
+- IdleRPG.Application/Services/IPvpSeasonService.cs (new file, 75 lines)
+
+### Key Decisions
+- **시즌 보상 지급 메서드**: ClaimSeasonRewardAsync
+  - 시즌 종료 확인 (IsActive = false) 필수
+  - 중복 수령 방지 (IsRewardClaimed = false)
+  - 티어별 차등 보상 (Bronze: Crystal 100 ~ Diamond: Crystal 2000 + 신화 상자)
+  - 트랜잭션: Character 보상 지급 + PvpRanking.IsRewardClaimed = true
+- **새 시즌 시작 메서드**: StartNewSeasonAsync
+  - 기존 활성 시즌 비활성화
+  - Soft Reset 적용: 새 레이팅 = (기존 레이팅 + 1000) / 2
+  - Redis 랭킹 캐시 초기화
+  - 트랜잭션: 기존 시즌 비활성화 + 새 시즌 생성 + 전체 PvpRanking Soft Reset
+- **SeasonRewardDto 설계**:
+  - SeasonNumber, Tier, FinalRating, FinalRank 포함
+  - Rewards는 Dictionary<string, int> (아이템 이름 → 수량)
+  - AlreadyClaimed 플래그로 중복 수령 여부 표시
+
+### Notes
+- XML 문서화 주석에 비즈니스 규칙, 트랜잭션 경계, 예외 타입 상세 명시
+- 티어별 보상 테이블은 AI가 제공 (학습자는 게임 밸런스 고민 없이 구조 학습 집중)
+- Soft Reset 공식 예시 명시 (2000점 → 1500점, 800점 → 900점)
+- StartNewSeasonAsync는 관리자/스케줄러가 호출 (사용자 직접 호출 아님)
+- ClaimSeasonRewardAsync는 사용자가 보상 수령 버튼 클릭 시 호출
+- **학습 포인트**: Application Service Interface 설계, 트랜잭션 경계 명시, 비즈니스 규칙 문서화
+
+---
+
+## 2025-11-07 14:52
+
+### Task Completed
+- [x] 3.6 Create PvpSeasonService Implementation
+
+### Files Changed
+- IdleRPG.Application/Services/PvpSeasonService.cs (new file, 270 lines)
+
+### Key Decisions
+- **TODO(human) 해소 - Soft Reset vs Hard Reset 전략**:
+  - **Soft Reset 채택**: 새 레이팅 = (기존 레이팅 + 1000) / 2
+  - **근거**: 고랭커 유지로 플레이어 경험 개선, 시즌마다 완전 초기화는 동기 저하 우려
+  - **예시**: 2000점 → 1500점, 800점 → 900점
+- **ClaimSeasonRewardAsync 구현**:
+  - 시즌 종료 확인 (IsActive = false)
+  - 중복 수령 방지 (IsRewardClaimed = false)
+  - 티어별 보상 계산 헬퍼 메서드 분리 (CalculateTierRewards)
+  - 트랜잭션: Character 보상 지급 + PvpRanking.IsRewardClaimed = true
+  - Redis → PostgreSQL Fallback으로 최종 순위 조회 (GetFinalRankAsync)
+- **StartNewSeasonAsync 구현**:
+  - 기존 활성 시즌 비활성화
+  - 새 시즌 생성
+  - 첫 시즌 vs 이후 시즌 분기:
+    - 첫 시즌 (activeSeason == null): Soft Reset 없음, 플레이어가 첫 매치 시 초기 레이팅 1000 생성
+    - 이후 시즌: foreach로 모든 플레이어 랭킹 복사 + Soft Reset 적용
+  - Redis 캐시 초기화 (Best Effort)
+- **foreach + AddAsync vs AddRangeAsync 선택**:
+  - **foreach 채택**: Repository에 AddRangeAsync 추가하지 않음 (YAGNI 원칙)
+  - **성능 문제 없음**: AddAsync는 메모리 작업, SaveChangesAsync가 일괄 INSERT
+- **학습자 버그 발견 및 수정**:
+  - `await _unitOfWork.PvpRankings.AddAsync(new PvpRanking(), ...)` → `AddAsync(newRanking, ...)`
+  - 변수명 개선: `beSeason` → `previousSeasonRankings`
+  - 로깅 추가: Soft Reset 플레이어 수, 첫 시즌 안내
+
+### Notes
+- **Application Layer 배치**: Clean Architecture에서 Application Service 구현체는 Application Layer에 배치
+  - Infrastructure Layer는 외부 시스템 연동 (RedisCacheService, PvpMatchmakingService)
+  - Application Layer는 비즈니스 흐름 오케스트레이션 (PvpSeasonService)
+- **트랜잭션 경계**: Service 계층에서 UnitOfWork로 여러 Repository 작업을 단일 트랜잭션으로 관리
+- **장비 상자 보상**: 현재 시스템 미구현으로 로그만 기록 (TODO 주석 추가)
+- **Redis 장애 처리**: Best Effort 전략 (실패 시 로그만, 트랜잭션은 계속 진행)
+- **학습 포인트**:
+  - foreach 루프로 컬렉션 순회
+  - 조건부 로직 (첫 시즌 vs 이후 시즌)
+  - 트랜잭션 경계 설정 (Service 계층)
+  - EF Core Change Tracker 동작 방식 (AddAsync는 메모리 작업)
+  - YAGNI 원칙 (필요 없는 AddRangeAsync 추가하지 않음)
+
+---

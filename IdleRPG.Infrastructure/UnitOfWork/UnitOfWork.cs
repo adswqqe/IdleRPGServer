@@ -35,6 +35,9 @@ namespace IdleRPG.Infrastructure.UnitOfWork
         private IEquippedPetsRepository? _equippedPets;
         private IChatRoomRepository? _chatRooms;
         private IChatMessageRepository? _chatMessages;
+        private IPvpSeasonRepository? _pvpSeasons;
+        private IPvpRankingRepository? _pvpRankings;
+        private IPvpMatchRepository? _pvpMatches;
 
         public UnitOfWork(GameDBContext context)
         {
@@ -368,6 +371,51 @@ namespace IdleRPG.Infrastructure.UnitOfWork
                     _chatMessages = new ChatMessageRepository(_context);
                 }
                 return _chatMessages;
+            }
+        }
+
+        /// <summary>
+        /// PVP 시즌 Repository (Lazy 초기화) - PVP Arena System
+        /// </summary>
+        public IPvpSeasonRepository PvpSeasons
+        {
+            get
+            {
+                if (_pvpSeasons == null)
+                {
+                    _pvpSeasons = new PvpSeasonRepository(_context);
+                }
+                return _pvpSeasons;
+            }
+        }
+
+        /// <summary>
+        /// PVP 랭킹 Repository (Lazy 초기화) - PVP Arena System
+        /// </summary>
+        public IPvpRankingRepository PvpRankings
+        {
+            get
+            {
+                if (_pvpRankings == null)
+                {
+                    _pvpRankings = new PvpRankingRepository(_context);
+                }
+                return _pvpRankings;
+            }
+        }
+
+        /// <summary>
+        /// PVP 매치 Repository (Lazy 초기화) - PVP Arena System
+        /// </summary>
+        public IPvpMatchRepository PvpMatches
+        {
+            get
+            {
+                if (_pvpMatches == null)
+                {
+                    _pvpMatches = new PvpMatchRepository(_context);
+                }
+                return _pvpMatches;
             }
         }
 

@@ -118,6 +118,21 @@ namespace IdleRPG.Application.Interfaces
         IChatMessageRepository ChatMessages { get; }
 
         /// <summary>
+        /// PVP 시즌 Repository (PVP Arena System)
+        /// </summary>
+        IPvpSeasonRepository PvpSeasons { get; }
+
+        /// <summary>
+        /// PVP 랭킹 Repository (PVP Arena System)
+        /// </summary>
+        IPvpRankingRepository PvpRankings { get; }
+
+        /// <summary>
+        /// PVP 매치 Repository (PVP Arena System)
+        /// </summary>
+        IPvpMatchRepository PvpMatches { get; }
+
+        /// <summary>
         /// 변경사항을 데이터베이스에 저장 (트랜잭션 커밋)
         /// </summary>
         /// <returns>영향받은 행 수</returns>

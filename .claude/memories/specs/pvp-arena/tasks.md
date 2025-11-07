@@ -11,13 +11,13 @@
 
 ## 📊 Progress Overview
 
-**전체 진행률**: 0/33 (0%)
+**전체 진행률**: 21/33 (63.6%)
 
 | Milestone | 작업 수 | 완료 | 진행률 |
 |-----------|---------|------|--------|
-| Domain Layer | 6 | 0 | 0% |
-| Infrastructure Layer | 9 | 0 | 0% |
-| Application Layer | 7 | 0 | 0% |
+| Domain Layer | 6 | 6 | 100% |
+| Infrastructure Layer | 9 | 9 | 100% |
+| Application Layer | 7 | 6 | 85.7% |
 | API Layer | 5 | 0 | 0% |
 | Database | 3 | 0 | 0% |
 | Testing & Documentation | 3 | 0 | 0% |
@@ -241,9 +241,9 @@
 
 ## 📦 Milestone 3: Application Layer
 
-### 3.1 Create IRedisCacheService Interface ⏱️ 30분
-- [ ] Create `IdleRPG.Application/Services/IRedisCacheService.cs`
-- [ ] Define methods:
+### 3.1 Create IRedisCacheService Interface ⏱️ 30분 ✅
+- [x] Create `IdleRPG.Application/Services/IRedisCacheService.cs`
+- [x] Define methods:
   - `Task UpdateRankingCacheAsync(int seasonId, Guid characterId, int rating, CancellationToken cancellationToken = default)`
   - `Task<Dictionary<Guid, int>?> GetTopRankingsAsync(int seasonId, int count, CancellationToken cancellationToken = default)`
   - `Task<int?> GetMyRankAsync(int seasonId, Guid characterId, CancellationToken cancellationToken = default)`
@@ -255,18 +255,20 @@
 
 ---
 
-### 3.2 Create RedisCacheService Implementation ⏱️ 1.5시간
-- [ ] Create `IdleRPG.Infrastructure/Services/RedisCacheService.cs`
-- [ ] Implement IRedisCacheService
-- [ ] Use Redis Sorted Set: Key = `pvp:ranking:season:{seasonId}`
-- [ ] Implement UpdateRankingCacheAsync: ZADD (Write-Through)
-- [ ] Implement GetTopRankingsAsync: ZREVRANGE (O(log N + count))
-- [ ] Implement GetMyRankAsync: ZREVRANK
-- [ ] Implement GetRankingsAroundMeAsync: ZREVRANGE with offset
-- [ ] Add error handling (RedisException → log + return null)
-- [ ] **🎓 TODO(human)**: Redis 장애 시 처리 전략
-  - Rollback vs Best Effort (PostgreSQL이 Source of Truth)
-  - 권장: Best Effort (Redis는 캐시, 장애 시 PostgreSQL Fallback)
+### 3.2 Create RedisCacheService Implementation ⏱️ 1.5시간 ✅
+- [x] Create `IdleRPG.Infrastructure/Services/RedisCacheService.cs`
+- [x] Implement IRedisCacheService
+- [x] Use Redis Sorted Set: Key = `pvp:ranking:season:{seasonId}`
+- [x] Implement UpdateRankingCacheAsync: ZADD (Write-Through)
+- [x] Implement GetTopRankingsAsync: ZREVRANGE (O(log N + count))
+- [x] Implement GetMyRankAsync: ZREVRANK
+- [x] Implement GetRankingsAroundMeAsync: ZREVRANGE with offset
+- [x] Add error handling (RedisException → log + return null)
+- [x] **🎓 TODO(human)**: Redis 장애 시 처리 전략
+  - **최종 결정: Best Effort 전략 채택**
+  - **근거**: PostgreSQL이 Source of Truth, Redis는 성능 최적화용 캐시
+  - **동작**: Redis 실패 시 null 반환 → Controller에서 PostgreSQL Fallback
+  - **장점**: 가용성 우선 (Graceful Degradation), 시스템 계속 작동 (성능만 저하)
 
 **Requirements**: [US-2]
 **Design Reference**: [Infrastructure Layer - Redis Caching]
@@ -275,29 +277,32 @@
 
 ---
 
-### 3.3 Create IPvpMatchmakingService Interface ⏱️ 30분
-- [ ] Create `IdleRPG.Application/Services/IPvpMatchmakingService.cs`
-- [ ] Define method:
+### 3.3 Create IPvpMatchmakingService Interface ⏱️ 30분 ✅
+- [x] Create `IdleRPG.Application/Services/IPvpMatchmakingService.cs`
+- [x] Define method:
   - `Task<MatchOpponentDto> FindOpponentAsync(Guid characterId, int seasonId, CancellationToken cancellationToken = default)`
+- [x] Create `IdleRPG.Application/DTOs/Pvp/MatchOpponentDto.cs`
 
 **Requirements**: [US-1]
 **Design Reference**: [Service Layer - PvpMatchmakingService]
 
 ---
 
-### 3.4 Create PvpMatchmakingService Implementation ⏱️ 1.5시간
-- [ ] Create `IdleRPG.Application/Services/PvpMatchmakingService.cs`
-- [ ] Implement IPvpMatchmakingService
-- [ ] Inject IPvpRankingRepository, ICharacterRepository
-- [ ] Implement FindOpponentAsync:
+### 3.4 Create PvpMatchmakingService Implementation ⏱️ 1.5시간 ✅
+- [x] Create `IdleRPG.Infrastructure/Services/PvpMatchmakingService.cs`
+- [x] Implement IPvpMatchmakingService
+- [x] Inject IUnitOfWork, IRandomProvider
+- [x] Implement FindOpponentAsync:
   - 내 레이팅 조회 (없으면 초기 레이팅 1000 생성)
   - ±200 레이팅 범위 내 후보 조회 (최대 100명)
   - 후보 있으면 Random.Next() 선택
   - 후보 없으면 NPC 봇 생성 (레이팅: 내 레이팅 ± Random(-100, 100), 이름: "Bot_" + Random(1000, 9999))
-- [ ] Return MatchOpponentDto (CharacterId, Name, Rating, IsBot)
-- [ ] **🎓 TODO(human)**: 매칭 타임아웃 처리 전략
-  - 동기 대기 (30초) vs 비동기 큐 (Redis Queue)
-  - 권장: 동기 대기 (MVP 단순화, Phase 3에서 비동기 큐 도입)
+- [x] Return MatchOpponentDto (CharacterId, Name, Rating, IsBot)
+- [x] **🎓 TODO(human)**: 매칭 타임아웃 처리 전략
+  - **최종 결정: 즉시 NPC 봇 생성 (동기 처리) 채택**
+  - **근거**: MVP 단순화, HTTP 타임아웃 위험 회피, 사용자 경험 우선
+  - **동작**: 후보 없으면 즉시 NPC 봇 반환 (대기 시간 0초)
+  - **Phase 3 개선**: Redis Queue + 백그라운드 워커로 비동기 매칭 도입
 
 **Requirements**: [US-1]
 **Design Reference**: [Business Logic - 매칭 알고리즘]
@@ -306,9 +311,9 @@
 
 ---
 
-### 3.5 Create IPvpSeasonService Interface ⏱️ 30분
-- [ ] Create `IdleRPG.Application/Services/IPvpSeasonService.cs`
-- [ ] Define methods:
+### 3.5 Create IPvpSeasonService Interface ⏱️ 30분 ✅
+- [x] Create `IdleRPG.Application/Services/IPvpSeasonService.cs`
+- [x] Define methods:
   - `Task<SeasonRewardDto> ClaimSeasonRewardAsync(int seasonId, Guid characterId, CancellationToken cancellationToken = default)`
   - `Task<PvpSeason> StartNewSeasonAsync(int seasonNumber, DateTime startDate, DateTime endDate, CancellationToken cancellationToken = default)`
 
@@ -317,23 +322,23 @@
 
 ---
 
-### 3.6 Create PvpSeasonService Implementation ⏱️ 1.5시간
-- [ ] Create `IdleRPG.Application/Services/PvpSeasonService.cs`
-- [ ] Implement IPvpSeasonService
-- [ ] Inject IPvpSeasonRepository, IPvpRankingRepository, ICharacterRepository, IRedisCacheService
-- [ ] Implement ClaimSeasonRewardAsync:
+### 3.6 Create PvpSeasonService Implementation ⏱️ 1.5시간 ✅
+- [x] Create `IdleRPG.Application/Services/PvpSeasonService.cs`
+- [x] Implement IPvpSeasonService
+- [x] Inject IPvpSeasonRepository, IPvpRankingRepository, ICharacterRepository, IRedisCacheService
+- [x] Implement ClaimSeasonRewardAsync:
   - SeasonId 검증 및 시즌 종료 확인 (IsActive = false)
   - PvpRanking 조회 (SeasonId, CharacterId)
   - 중복 수령 방지 (IsRewardClaimed = false)
   - 티어별 보상 계산 (Bronze: Crystal 100, Silver: 300, Gold: 500 + 전설 장비 상자 1개, Platinum: 1000 + 전설 3개, Diamond: 2000 + 신화 1개)
   - 트랜잭션: Character 보상 지급, PvpRanking.IsRewardClaimed = true
-- [ ] Implement StartNewSeasonAsync:
+- [x] Implement StartNewSeasonAsync:
   - 기존 활성 시즌 비활성화 (IsActive = false)
   - 새 시즌 생성
   - Soft Reset 적용 (새 레이팅 = (기존 레이팅 + 1000) / 2)
   - Redis 캐시 초기화
-- [ ] **🎓 TODO(human)**: Soft Reset vs Hard Reset 전략
-  - 권장: Soft Reset (고랭커 유지, 플레이어 경험 개선)
+- [x] **🎓 TODO(human)**: Soft Reset vs Hard Reset 전략
+  - **최종 결정: Soft Reset 채택** (고랭커 유지, 플레이어 경험 개선)
 
 **Requirements**: [US-4]
 **Design Reference**: [Service Layer - PvpSeasonService]
