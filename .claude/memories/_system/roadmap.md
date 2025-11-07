@@ -27,14 +27,14 @@
 ## Phase 2: Expansion (Week 4-5) - 핵심 게임플레이
 
 **시스템**: 8-10
-**진행률**: **2/3 (67%)** 🚀
+**진행률**: **2.67/3 (89%)** 🚀
 
 **완료 시스템**:
 - ✅ 8. 펫 시스템
 - ✅ 9. 실시간 채팅 (SignalR)
 
-**다음 작업**:
-- 📋 10. PVP 아레나
+**진행 중 시스템**:
+- ◐ 10. PVP 아레나 (67% - 22/33 작업 완료)
 
 ---
 
@@ -69,11 +69,11 @@
 ## 전체 진행률
 
 **완료된 시스템**: 9개 / 20개 (45%)
-**진행 중 시스템**: 0개
+**진행 중 시스템**: 1개 (PVP Arena - 67%)
 
 **Phase 별**:
 - Phase 1 (MVP): 7/7 = 100% ✅
-- Phase 2 (핵심): 2/3 = 67% 🚀
+- Phase 2 (핵심): 2.67/3 = 89% 🚀
 - Phase 3 (소셜): 0/5 = 0%
 - Phase 4 (운영): 0/5 = 0%
 
@@ -129,9 +129,15 @@
   - ✅ Spec 문서: Requirements, Design, Tasks (27/31, 87%), Work-Log
 - **Phase 2 진행률: 67% (2/3)** 🚀
 
-### 📋 Week 4-5 목표
-- 시스템 9: 실시간 채팅 (SignalR 학습)
-- 시스템 10: PVP 아레나
+### ◐ Week 4-5 진행 중
+- ✅ 시스템 9: 실시간 채팅 (SignalR) - 완료
+- ◐ 시스템 10: PVP 아레나 (67% - 22/33 작업)
+  - ✅ Domain Layer (6/6 완료)
+  - ✅ Infrastructure Layer (9/9 완료)
+  - ✅ Application Layer (7/7 완료)
+  - ○ API Layer (0/5 대기)
+  - ○ Database Migration (0/3 대기)
+  - ○ Testing & Documentation (0/3 대기)
 
 ### 📋 Week 6-7 목표
 - 시스템 11-15: 소셜 기능
@@ -170,11 +176,11 @@
 - ✅ `.claude/memories/specs/realtime-chat/` (Requirements, Design, Tasks 87%, 구현, Unity 문서 완료 - 2025-11-01)
 
 **진행 중 Specs**:
-- (없음)
+- ◐ `.claude/memories/specs/pvp-arena/` (Tasks 22/33, 67% - Application Layer까지 완료)
 
 **다음 Spec**:
-- 📋 PVP Arena (시스템 10번)
+- 📋 Friend System (시스템 11번)
 
 ---
 
-**최종 업데이트**: 2025-11-01
+**최종 업데이트**: 2025-11-07
