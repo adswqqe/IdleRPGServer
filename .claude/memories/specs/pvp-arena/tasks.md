@@ -156,9 +156,9 @@
 
 ---
 
-### 2.5 Create IPvpMatchRepository Interface ⏱️ 30분
-- [ ] Create `IdleRPG.Domain/Repositories/IPvpMatchRepository.cs`
-- [ ] Define methods:
+### 2.5 Create IPvpMatchRepository Interface ⏱️ 30분 ✅
+- [x] Create `IdleRPG.Domain/Repositories/IPvpMatchRepository.cs`
+- [x] Define methods:
   - `Task<PvpMatch?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)`
   - `Task<(List<PvpMatch> matches, int totalCount)> GetMatchHistoryAsync(Guid characterId, int? seasonId, int page, int pageSize, CancellationToken cancellationToken = default)`
   - `Task AddAsync(PvpMatch match, CancellationToken cancellationToken = default)`
@@ -168,25 +168,25 @@
 
 ---
 
-### 2.6 Create PvpMatchRepository Implementation ⏱️ 1시간
-- [ ] Create `IdleRPG.Infrastructure/Repositories/PvpMatchRepository.cs`
-- [ ] Implement IPvpMatchRepository
-- [ ] Implement GetMatchHistoryAsync: `WHERE (AttackerId = ? OR DefenderId = ?) AND (SeasonId = ? OR ? IS NULL) ORDER BY CreatedAt DESC` (페이징)
-- [ ] Add Include() for Character navigation properties (Attacker, Defender)
-- [ ] Return totalCount for pagination
+### 2.6 Create PvpMatchRepository Implementation ⏱️ 1시간 ✅
+- [x] Create `IdleRPG.Infrastructure/Repositories/PvpMatchRepository.cs`
+- [x] Implement IPvpMatchRepository
+- [x] Implement GetMatchHistoryAsync: `WHERE (AttackerId = ? OR DefenderId = ?) AND (SeasonId = ? OR ? IS NULL) ORDER BY CreatedAt DESC` (페이징)
+- [x] Add Include() for Character navigation properties (Attacker, Defender)
+- [x] Return totalCount for pagination
 
 **Requirements**: [US-3]
 **Design Reference**: [Infrastructure Layer - Repositories]
 
 ---
 
-### 2.7 Create PvpSeason EF Core Configuration ⏱️ 30분
-- [ ] Create `IdleRPG.Infrastructure/Configurations/PvpSeasonConfiguration.cs`
-- [ ] Implement IEntityTypeConfiguration<PvpSeason>
-- [ ] Configure table name: "PvpSeason"
-- [ ] Configure primary key: Id (int, auto-increment)
-- [ ] Configure properties: SeasonNumber (required, unique), StartDate/EndDate (required), IsActive (default false)
-- [ ] Configure indexes:
+### 2.7 Create PvpSeason EF Core Configuration ⏱️ 30분 ✅
+- [x] Create `IdleRPG.Infrastructure/Configurations/PvpSeasonConfiguration.cs`
+- [x] Implement IEntityTypeConfiguration<PvpSeason>
+- [x] Configure table name: "PvpSeason"
+- [x] Configure primary key: Id (int, auto-increment)
+- [x] Configure properties: SeasonNumber (required, unique), StartDate/EndDate (required), IsActive (default false)
+- [x] Configure indexes:
   - `IX_PvpSeason_IsActive`
   - `IX_PvpSeason_SeasonNumber` (unique)
 
@@ -195,20 +195,21 @@
 
 ---
 
-### 2.8 Create PvpRanking EF Core Configuration ⏱️ 45분
-- [ ] Create `IdleRPG.Infrastructure/Configurations/PvpRankingConfiguration.cs`
-- [ ] Implement IEntityTypeConfiguration<PvpRanking>
-- [ ] Configure table name: "PvpRanking"
-- [ ] Configure composite primary key: `HasKey(pr => new { pr.SeasonId, pr.CharacterId })`
-- [ ] Configure Tier enum: `Property(pr => pr.Tier).HasConversion<string>().ValueGeneratedOnAddOrUpdate()`
-- [ ] Configure relationships:
+### 2.8 Create PvpRanking EF Core Configuration ⏱️ 45분 ✅
+- [x] Create `IdleRPG.Infrastructure/Configurations/PvpRankingConfiguration.cs`
+- [x] Implement IEntityTypeConfiguration<PvpRanking>
+- [x] Configure table name: "PvpRanking"
+- [x] Configure composite primary key: `HasKey(pr => new { pr.SeasonId, pr.CharacterId })`
+- [x] Configure Tier enum: `Property(pr => pr.Tier).HasConversion<string>().ValueGeneratedOnAddOrUpdate()`
+- [x] Configure relationships:
   - `HasOne(PvpSeason).WithMany().HasForeignKey(pr => pr.SeasonId).OnDelete(DeleteBehavior.Restrict)`
   - `HasOne(Character).WithMany().HasForeignKey(pr => pr.CharacterId).OnDelete(DeleteBehavior.Cascade)`
-- [ ] Configure indexes:
+- [x] Configure indexes:
   - `IX_PvpRanking_SeasonId_Rating_DESC` (복합 인덱스, DESC)
-- [ ] **🎓 TODO(human)**: Cascade Delete vs Restrict 전략 근거 작성
-  - PvpRanking.SeasonId → Restrict (시즌 기록 보존)
-  - PvpRanking.CharacterId → Cascade (캐릭터 종속 데이터, GDPR 준수)
+- [x] **🎓 TODO(human)**: Cascade Delete vs Restrict 전략 근거 작성
+  - **최종 결정 (재검토 후 수정)**:
+  - PvpRanking.SeasonId → **Restrict** (시즌은 히스토리 마스터 데이터, 과거 랭킹 기록 보존)
+  - PvpRanking.CharacterId → **Cascade** (GDPR 준수, 개인정보 완전 삭제)
 
 **Requirements**: [US-2]
 **Design Reference**: [Data Model - EF Core Configuration]
@@ -217,18 +218,18 @@
 
 ---
 
-### 2.9 Create PvpMatch EF Core Configuration ⏱️ 45분
-- [ ] Create `IdleRPG.Infrastructure/Configurations/PvpMatchConfiguration.cs`
-- [ ] Implement IEntityTypeConfiguration<PvpMatch>
-- [ ] Configure table name: "PvpMatch"
-- [ ] Configure primary key: Id (Guid)
-- [ ] Configure properties: 모든 Rating 필드 required
-- [ ] Configure relationships (다중 FK):
+### 2.9 Create PvpMatch EF Core Configuration ⏱️ 45분 ✅
+- [x] Create `IdleRPG.Infrastructure/Configurations/PvpMatchConfiguration.cs`
+- [x] Implement IEntityTypeConfiguration<PvpMatch>
+- [x] Configure table name: "PvpMatch"
+- [x] Configure primary key: Id (Guid)
+- [x] Configure properties: 모든 Rating 필드 required
+- [x] Configure relationships (다중 FK):
   - `HasOne(Character).WithMany().HasForeignKey(pm => pm.AttackerId).OnDelete(DeleteBehavior.Restrict)`
   - `HasOne(Character).WithMany().HasForeignKey(pm => pm.DefenderId).OnDelete(DeleteBehavior.Restrict)`
   - `HasOne(Character).WithMany().HasForeignKey(pm => pm.WinnerId).OnDelete(DeleteBehavior.Restrict)`
   - `HasOne(PvpSeason).WithMany().HasForeignKey(pm => pm.SeasonId).OnDelete(DeleteBehavior.Restrict)`
-- [ ] Configure indexes:
+- [x] Configure indexes:
   - `IX_PvpMatch_AttackerId_CreatedAt` (복합)
   - `IX_PvpMatch_DefenderId_CreatedAt` (복합)
   - `IX_PvpMatch_SeasonId`
@@ -646,7 +647,9 @@
 - Redis 장애 처리: Best Effort (PostgreSQL이 Source of Truth)
 - 매칭 타임아웃: 동기 대기 (30초), Phase 3에서 비동기 큐 도입
 - Soft Reset 채택: (기존 레이팅 + 1000) / 2
-- Cascade Delete: PvpRanking.CharacterId → Cascade, PvpMatch.CharacterId → Restrict
+- **OnDelete 정책 (재검토 후 수정)**:
+  - PvpRanking.SeasonId → Restrict (히스토리 마스터 데이터 보존)
+  - PvpRanking.CharacterId → Cascade (GDPR 준수, 개인정보 완전 삭제)
 
 ### Future Improvements
 <!-- 나중에 개선할 사항 -->
