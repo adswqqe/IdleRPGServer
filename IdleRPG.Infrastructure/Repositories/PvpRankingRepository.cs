@@ -33,6 +33,20 @@ namespace IdleRPG.Infrastructure.Repositories
         }
 
         /// <summary>
+        /// 여러 캐릭터의 랭킹 벌크 조회 (N+1 쿼리 방지)
+        /// Redis에서 가져온 CharacterId 목록으로 DB 조회 시 사용
+        /// </summary>
+        public async Task<List<PvpRanking>> GetByCharacterIdsAsync(int seasonId, IEnumerable<Guid> characterIds, CancellationToken cancellationToken = default)
+        {
+            return await _context.PvpRankings
+                .AsNoTracking()
+                .Where(pr => pr.SeasonId == seasonId && characterIds.Contains(pr.CharacterId))
+                .Include(pr => pr.Character)
+                    .ThenInclude(c => c.Player) // N+1 방지 (Player.UserName 조회)
+                .ToListAsync(cancellationToken);
+        }
+
+        /// <summary>
         /// Top N 랭킹 조회 (레이팅 내림차순)
         /// Redis 캐싱 미스 시 PostgreSQL Fallback 용도
         /// </summary>

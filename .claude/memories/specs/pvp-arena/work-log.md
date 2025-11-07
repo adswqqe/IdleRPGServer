@@ -4,6 +4,39 @@
 
 ---
 
+## 2025-11-07 17:23
+
+### Task Completed
+- [x] 4.5 Create PvpController - Season Endpoints
+
+### Files Changed
+- IdleRPG.API/Controllers/PvpController.cs (modified - 2개 엔드포인트 추가, +140 lines)
+
+### Key Decisions
+- **2개 엔드포인트 구현**:
+  1. **GET /api/pvp/seasons/current** (Public, AllowAnonymous)
+     - 현재 활성 시즌 조회
+     - DaysRemaining 계산: (EndDate - DateTime.UtcNow).TotalDays
+     - 404: 활성 시즌 없음
+  2. **POST /api/pvp/seasons/{seasonId}/rewards** (인증 필수)
+     - 시즌 보상 수령
+     - PvpSeasonService.ClaimSeasonRewardAsync 호출
+     - 400: 시즌 진행 중, 이미 수령함
+     - 404: 시즌 없음, 랭킹 없음
+- **IPvpSeasonService 의존성 추가**: PvpController에 주입
+- **GetUserCharacterIdAsync 재사용**: ClaimSeasonReward에서 첫 번째 캐릭터 조회
+- **예외 처리 전략**:
+  - InvalidOperationException → 400 (시즌 진행 중, 중복 수령)
+  - KeyNotFoundException → 404 (시즌 없음, 랭킹 없음)
+
+### Notes
+- **DaysRemaining 계산**: TotalDays를 int로 캐스팅 (소수점 버림)
+- **AllowAnonymous**: 현재 시즌 조회는 Public (리더보드 표시 등에 사용)
+- **Swagger 주석**: 티어별 보상 상세 명시 (Bronze: 100, Gold: 500 + 전설 상자 등)
+- **API Layer 100% 완료**: 5개 엔드포인트 모두 구현 완료 🎉
+
+---
+
 ## 2025-11-07 16:00
 
 ### Task Completed

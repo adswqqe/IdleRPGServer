@@ -213,6 +213,132 @@ public class RedisCacheService : IRedisCacheService
     }
 
     /// <summary>
+    /// 분산 락을 획득합니다 (Cache Warm-up 동시 실행 방지).
+    /// </summary>
+    public async Task<bool> AcquireLockAsync(string lockKey, string lockToken, TimeSpan ttl, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var db = _redis.GetDatabase();
+
+            // SET lock:key token NX EX ttl (원자적)
+            // NX: 키가 없을 때만 설정
+            // EX: TTL 만료 시 자동 삭제
+            var acquired = await db.StringSetAsync(
+                key: lockKey,
+                value: lockToken,
+                expiry: ttl,
+                when: When.NotExists);
+
+            if (acquired)
+            {
+                _logger.LogInformation("분산 락 획득 성공: LockKey={LockKey}, Token={Token}, TTL={TTL}초",
+                    lockKey, lockToken, ttl.TotalSeconds);
+            }
+            else
+            {
+                _logger.LogDebug("분산 락 획득 실패 (다른 서버 보유): LockKey={LockKey}", lockKey);
+            }
+
+            return acquired;
+        }
+        catch (RedisException ex)
+        {
+            _logger.LogError(ex, "Redis 분산 락 획득 중 오류: LockKey={LockKey}, Error={Error}", lockKey, ex.Message);
+            throw;
+        }
+    }
+
+    /// <summary>
+    /// 분산 락을 안전하게 해제합니다 (Lua Script로 소유권 검증).
+    /// </summary>
+    public async Task<bool> ReleaseLockAsync(string lockKey, string lockToken, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var db = _redis.GetDatabase();
+
+            // Lua Script: GET + 비교 + DEL (원자적 실행)
+            // KEYS[1] = lockKey
+            // ARGV[1] = lockToken
+            var unlockScript = @"
+                if redis.call('get', KEYS[1]) == ARGV[1] then
+                    return redis.call('del', KEYS[1])
+                else
+                    return 0
+                end
+            ";
+
+            var result = await db.ScriptEvaluateAsync(
+                script: unlockScript,
+                keys: new RedisKey[] { lockKey },
+                values: new RedisValue[] { lockToken });
+
+            var released = (int)result == 1;
+
+            if (released)
+            {
+                _logger.LogInformation("분산 락 해제 성공: LockKey={LockKey}, Token={Token}", lockKey, lockToken);
+            }
+            else
+            {
+                _logger.LogWarning("분산 락 해제 실패 (만료되었거나 다른 서버의 락): LockKey={LockKey}, Token={Token}",
+                    lockKey, lockToken);
+            }
+
+            return released;
+        }
+        catch (RedisException ex)
+        {
+            _logger.LogError(ex, "Redis 분산 락 해제 중 오류: LockKey={LockKey}, Error={Error}", lockKey, ex.Message);
+            throw;
+        }
+    }
+
+    /// <summary>
+    /// 여러 랭킹을 Transaction으로 일괄 저장합니다 (All-or-Nothing).
+    /// </summary>
+    public async Task<bool> UpdateRankingCacheBatchAsync(int seasonId, IEnumerable<(Guid CharacterId, int Rating)> rankings, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var db = _redis.GetDatabase();
+            var key = GetRankingKey(seasonId);
+            var transaction = db.CreateTransaction();
+
+            // Transaction에 모든 ZADD 명령 추가
+            var tasks = new List<Task<bool>>();
+            foreach (var (characterId, rating) in rankings)
+            {
+                tasks.Add(transaction.SortedSetAddAsync(key, characterId.ToString(), rating));
+            }
+
+            // Transaction 실행 (All-or-Nothing)
+            var committed = await transaction.ExecuteAsync();
+
+            if (committed)
+            {
+                // 모든 Task 완료 대기
+                await Task.WhenAll(tasks);
+
+                _logger.LogInformation("Redis 랭킹 일괄 저장 성공: SeasonId={SeasonId}, Count={Count}",
+                    seasonId, tasks.Count);
+            }
+            else
+            {
+                _logger.LogWarning("Redis Transaction 실패 (충돌 감지): SeasonId={SeasonId}", seasonId);
+            }
+
+            return committed;
+        }
+        catch (RedisException ex)
+        {
+            _logger.LogError(ex, "Redis 랭킹 일괄 저장 중 오류: SeasonId={SeasonId}, Error={Error}", seasonId, ex.Message);
+            throw;
+        }
+    }
+
+    /// <summary>
     /// Redis Key 생성 헬퍼 메서드
     /// </summary>
     private static string GetRankingKey(int seasonId) => $"pvp:ranking:season:{seasonId}";

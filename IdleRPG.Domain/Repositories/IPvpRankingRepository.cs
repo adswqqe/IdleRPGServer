@@ -19,6 +19,16 @@ namespace IdleRPG.Domain.Repositories
         Task<PvpRanking?> GetByIdAsync(int seasonId, Guid characterId, CancellationToken cancellationToken = default);
 
         /// <summary>
+        /// 여러 캐릭터의 랭킹 벌크 조회 (N+1 쿼리 방지)
+        /// Redis에서 가져온 CharacterId 목록으로 DB 조회 시 사용
+        /// </summary>
+        /// <param name="seasonId">시즌 ID</param>
+        /// <param name="characterIds">캐릭터 ID 목록</param>
+        /// <param name="cancellationToken">취소 토큰</param>
+        /// <returns>랭킹 리스트 (존재하는 것만 반환)</returns>
+        Task<List<PvpRanking>> GetByCharacterIdsAsync(int seasonId, IEnumerable<Guid> characterIds, CancellationToken cancellationToken = default);
+
+        /// <summary>
         /// Top N 랭킹 조회 (레이팅 내림차순)
         /// Redis 캐싱 미스 시 PostgreSQL Fallback 용도
         /// </summary>

@@ -11,14 +11,14 @@
 
 ## 📊 Progress Overview
 
-**전체 진행률**: 26/33 (78.8%)
+**전체 진행률**: 27/33 (81.8%)
 
 | Milestone | 작업 수 | 완료 | 진행률 |
 |-----------|---------|------|--------|
 | Domain Layer | 6 | 6 | 100% |
 | Infrastructure Layer | 9 | 9 | 100% |
 | Application Layer | 7 | 7 | 100% |
-| API Layer | 5 | 4 | 80% |
+| API Layer | 5 | 5 | 100% |
 | Database | 3 | 0 | 0% |
 | Testing & Documentation | 3 | 0 | 0% |
 
@@ -464,19 +464,19 @@
 
 ---
 
-### 4.5 Create PvpController - Season Endpoints ⏱️ 1시간
-- [ ] Add `GET /api/pvp/seasons/current` endpoint to PvpController:
+### 4.5 Create PvpController - Season Endpoints ⏱️ 1시간 ✅
+- [x] Add `GET /api/pvp/seasons/current` endpoint to PvpController:
   - No authentication required (Public)
   - Call PvpSeasonRepository.GetActiveSeasonAsync
   - Calculate DaysRemaining
   - Return 200 OK with PvpSeasonDto
   - Handle exception: 404 (활성 시즌 없음)
-- [ ] Add `POST /api/pvp/seasons/{seasonId}/rewards` endpoint to PvpController:
+- [x] Add `POST /api/pvp/seasons/{seasonId}/rewards` endpoint to PvpController:
   - Extract userId from JWT, CharacterId 조회
   - Call PvpSeasonService.ClaimSeasonRewardAsync
   - Return 200 OK with SeasonRewardDto
   - Handle exceptions: 400 (시즌 진행 중, 이미 수령함), 404 (시즌 없음, 랭킹 없음)
-- [ ] Add Swagger XML comments
+- [x] Add Swagger XML comments
 
 **Requirements**: [US-4]
 **Design Reference**: [API Design - Endpoints 4, 5]
