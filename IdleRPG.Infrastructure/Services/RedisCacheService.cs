@@ -250,6 +250,54 @@ public class RedisCacheService : IRedisCacheService
     }
 
     /// <summary>
+    /// 분산 락의 TTL을 연장합니다 (Heartbeat 패턴, Lua Script로 소유권 검증).
+    /// </summary>
+    public async Task<bool> ExtendLockAsync(string lockKey, string lockToken, TimeSpan ttl, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var db = _redis.GetDatabase();
+
+            // Lua Script: GET + 비교 + EXPIRE (원자적 실행)
+            // KEYS[1] = lockKey
+            // ARGV[1] = lockToken
+            // ARGV[2] = ttl (초 단위)
+            var extendScript = @"
+                if redis.call('get', KEYS[1]) == ARGV[1] then
+                    return redis.call('expire', KEYS[1], ARGV[2])
+                else
+                    return 0
+                end
+            ";
+
+            var result = await db.ScriptEvaluateAsync(
+                script: extendScript,
+                keys: new RedisKey[] { lockKey },
+                values: new RedisValue[] { lockToken, (int)ttl.TotalSeconds });
+
+            var extended = (int)result == 1;
+
+            if (extended)
+            {
+                _logger.LogDebug("분산 락 TTL 연장 성공: LockKey={LockKey}, Token={Token}, TTL={TTL}초",
+                    lockKey, lockToken, ttl.TotalSeconds);
+            }
+            else
+            {
+                _logger.LogWarning("분산 락 TTL 연장 실패 (만료되었거나 다른 서버의 락): LockKey={LockKey}, Token={Token}",
+                    lockKey, lockToken);
+            }
+
+            return extended;
+        }
+        catch (RedisException ex)
+        {
+            _logger.LogError(ex, "Redis 분산 락 TTL 연장 중 오류: LockKey={LockKey}, Error={Error}", lockKey, ex.Message);
+            throw;
+        }
+    }
+
+    /// <summary>
     /// 분산 락을 안전하게 해제합니다 (Lua Script로 소유권 검증).
     /// </summary>
     public async Task<bool> ReleaseLockAsync(string lockKey, string lockToken, CancellationToken cancellationToken = default)

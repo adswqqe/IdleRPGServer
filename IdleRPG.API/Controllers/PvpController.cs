@@ -314,13 +314,37 @@ public class PvpController : BaseController
         // 2. PostgreSQL Fallback
         _logger.LogWarning("Redis miss: Falling back to PostgreSQL for Top {Count} rankings", count);
 
-        // 3. 분산 락 획득 (동시 Warm-up 방지)
+        // 3. 분산 락 획득 (동시 Warm-up 방지, 초기 TTL 10초)
         var lockKey = $"lock:warm-up:season:{seasonId}";
         var lockToken = Guid.NewGuid().ToString();
-        var lockAcquired = await _redisCacheService.AcquireLockAsync(lockKey, lockToken, TimeSpan.FromSeconds(30), HttpContext.RequestAborted);
+        var lockAcquired = await _redisCacheService.AcquireLockAsync(lockKey, lockToken, TimeSpan.FromSeconds(10), HttpContext.RequestAborted);
 
         if (lockAcquired)
         {
+            // Heartbeat Task 시작 (3초마다 TTL 10초 연장)
+            var cts = CancellationTokenSource.CreateLinkedTokenSource(HttpContext.RequestAborted);
+            var heartbeatTask = Task.Run(async () =>
+            {
+                while (!cts.Token.IsCancellationRequested)
+                {
+                    try
+                    {
+                        await Task.Delay(3000, cts.Token); // 3초 대기
+                        await _redisCacheService.ExtendLockAsync(lockKey, lockToken, TimeSpan.FromSeconds(10), cts.Token);
+                    }
+                    catch (OperationCanceledException)
+                    {
+                        // 정상 종료
+                        break;
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogWarning(ex, "Heartbeat 실패: LockKey={LockKey}", lockKey);
+                        break; // Redis 장애 시 Heartbeat 중단
+                    }
+                }
+            }, cts.Token);
+
             try
             {
                 // 이 서버만 Warm-up 수행
@@ -338,7 +362,18 @@ public class PvpController : BaseController
             }
             finally
             {
-                // 5. Lua Script로 안전하게 락 해제 (소유권 검증)
+                // 5. Heartbeat 중지 후 락 해제
+                cts.Cancel();
+                try
+                {
+                    await heartbeatTask; // Heartbeat 종료 대기
+                }
+                catch (OperationCanceledException)
+                {
+                    // 정상 종료
+                }
+
+                // 6. Lua Script로 안전하게 락 해제 (소유권 검증)
                 await _redisCacheService.ReleaseLockAsync(lockKey, lockToken, HttpContext.RequestAborted);
             }
         }
@@ -406,13 +441,37 @@ public class PvpController : BaseController
             return new List<PvpRankingDto>();
         }
 
-        // 3. 분산 락 획득 (동시 Warm-up 방지)
+        // 3. 분산 락 획득 (동시 Warm-up 방지, 초기 TTL 10초)
         var lockKey = $"lock:warm-up:around:season:{seasonId}:char:{characterId}";
         var lockToken = Guid.NewGuid().ToString();
-        var lockAcquired = await _redisCacheService.AcquireLockAsync(lockKey, lockToken, TimeSpan.FromSeconds(30), HttpContext.RequestAborted);
+        var lockAcquired = await _redisCacheService.AcquireLockAsync(lockKey, lockToken, TimeSpan.FromSeconds(10), HttpContext.RequestAborted);
 
         if (lockAcquired)
         {
+            // Heartbeat Task 시작 (3초마다 TTL 10초 연장)
+            var cts = CancellationTokenSource.CreateLinkedTokenSource(HttpContext.RequestAborted);
+            var heartbeatTask = Task.Run(async () =>
+            {
+                while (!cts.Token.IsCancellationRequested)
+                {
+                    try
+                    {
+                        await Task.Delay(3000, cts.Token); // 3초 대기
+                        await _redisCacheService.ExtendLockAsync(lockKey, lockToken, TimeSpan.FromSeconds(10), cts.Token);
+                    }
+                    catch (OperationCanceledException)
+                    {
+                        // 정상 종료
+                        break;
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogWarning(ex, "Heartbeat 실패: LockKey={LockKey}", lockKey);
+                        break; // Redis 장애 시 Heartbeat 중단
+                    }
+                }
+            }, cts.Token);
+
             try
             {
                 // 이 서버만 Warm-up 수행
@@ -433,7 +492,18 @@ public class PvpController : BaseController
             }
             finally
             {
-                // 5. Lua Script로 안전하게 락 해제 (소유권 검증)
+                // 5. Heartbeat 중지 후 락 해제
+                cts.Cancel();
+                try
+                {
+                    await heartbeatTask; // Heartbeat 종료 대기
+                }
+                catch (OperationCanceledException)
+                {
+                    // 정상 종료
+                }
+
+                // 6. Lua Script로 안전하게 락 해제 (소유권 검증)
                 await _redisCacheService.ReleaseLockAsync(lockKey, lockToken, HttpContext.RequestAborted);
             }
         }

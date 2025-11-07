@@ -107,6 +107,24 @@ public interface IRedisCacheService
     Task<bool> AcquireLockAsync(string lockKey, string lockToken, TimeSpan ttl, CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// 분산 락의 TTL을 연장합니다 (Heartbeat 패턴, Lua Script로 소유권 검증).
+    /// </summary>
+    /// <param name="lockKey">락 키</param>
+    /// <param name="lockToken">락 획득 시 사용한 토큰</param>
+    /// <param name="ttl">연장할 TTL (기본 10초)</param>
+    /// <param name="cancellationToken">작업 취소 토큰</param>
+    /// <returns>TTL 연장 성공 여부 (true: 성공, false: 이미 만료되었거나 다른 서버의 락)</returns>
+    /// <exception cref="RedisException">Redis 연결 실패 또는 명령 실행 실패</exception>
+    /// <remarks>
+    /// - Lua Script: GET + 비교 + EXPIRE (원자적 실행)
+    /// - 소유권 검증: 현재 락의 토큰이 내 토큰과 일치하는지 확인
+    /// - 다중 서버 환경: 서버 크래시 시 짧은 TTL (5-10초)로 빠른 복구
+    /// - 백그라운드 Task에서 주기적 호출 (작업 진행 중 락 유지)
+    /// - 시간 복잡도: O(1)
+    /// </remarks>
+    Task<bool> ExtendLockAsync(string lockKey, string lockToken, TimeSpan ttl, CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// 분산 락을 안전하게 해제합니다 (Lua Script로 소유권 검증).
     /// </summary>
     /// <param name="lockKey">락 키</param>
