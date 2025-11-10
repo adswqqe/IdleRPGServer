@@ -17,6 +17,7 @@ public class PvpService : IPvpService
     private readonly IPvpMatchmakingService _pvpMatchmakingService;
     private readonly EloRatingService _eloRatingService;
     private readonly IRedisCacheService _redisCacheService;
+    private readonly IRandomProvider _randomProvider;
     private readonly ILogger<PvpService> _logger;
 
     public PvpService(
@@ -24,12 +25,14 @@ public class PvpService : IPvpService
         IPvpMatchmakingService pvpMatchmakingService,
         EloRatingService eloRatingService,
         IRedisCacheService redisCacheService,
+        IRandomProvider randomProvider,
         ILogger<PvpService> logger)
     {
         _unitOfWork = unitOfWork;
         _pvpMatchmakingService = pvpMatchmakingService;
         _eloRatingService = eloRatingService;
         _redisCacheService = redisCacheService;
+        _randomProvider = randomProvider;
         _logger = logger;
     }
 
@@ -250,9 +253,8 @@ public class PvpService : IPvpService
         }
 
         // 랜덤 요소 추가 (±10%)
-        var random = new Random();
-        int myFinalPower = myPower + random.Next(-myPower / 10, myPower / 10);
-        int opponentFinalPower = opponentPower + random.Next(-opponentPower / 10, opponentPower / 10);
+        int myFinalPower = myPower + _randomProvider.Next(-myPower / 10, myPower / 10 + 1);
+        int opponentFinalPower = opponentPower + _randomProvider.Next(-opponentPower / 10, opponentPower / 10 + 1);
 
         combatLog.Add($"[Combat] {myCharacter.Player.UserName} ({myFinalPower}) vs {opponent.Name} ({opponentFinalPower})");
 

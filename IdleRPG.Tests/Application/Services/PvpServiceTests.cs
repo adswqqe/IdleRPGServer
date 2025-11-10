@@ -28,6 +28,7 @@ public class PvpServiceTests
     private readonly Mock<IPvpMatchmakingService> _mockMatchmakingService;
     private readonly EloRatingService _eloRatingService; // Mock 대신 실제 인스턴스
     private readonly Mock<IRedisCacheService> _mockRedisCacheService;
+    private readonly Mock<IRandomProvider> _mockRandomProvider;
     private readonly Mock<ILogger<PvpService>> _mockLogger;
     private readonly PvpService _pvpService;
 
@@ -44,6 +45,7 @@ public class PvpServiceTests
         _mockMatchmakingService = new Mock<IPvpMatchmakingService>();
         _eloRatingService = new EloRatingService(); // 실제 인스턴스 (순수 계산 로직)
         _mockRedisCacheService = new Mock<IRedisCacheService>();
+        _mockRandomProvider = new Mock<IRandomProvider>();
         _mockLogger = new Mock<ILogger<PvpService>>();
 
         // Repository Mocks
@@ -64,6 +66,7 @@ public class PvpServiceTests
             _mockMatchmakingService.Object,
             _eloRatingService,
             _mockRedisCacheService.Object,
+            _mockRandomProvider.Object,
             _mockLogger.Object);
     }
 

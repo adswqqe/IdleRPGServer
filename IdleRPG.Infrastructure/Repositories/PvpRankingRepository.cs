@@ -110,10 +110,10 @@ namespace IdleRPG.Infrastructure.Repositories
         /// <summary>
         /// 랭킹 정보 업데이트 (레이팅, 승패 횟수, 연승 등)
         /// </summary>
-        public async Task UpdateAsync(PvpRanking ranking, CancellationToken cancellationToken = default)
+        public Task UpdateAsync(PvpRanking ranking, CancellationToken cancellationToken = default)
         {
             _context.PvpRankings.Update(ranking);
-            await Task.CompletedTask;
+            return Task.CompletedTask;
         }
     }
 }
