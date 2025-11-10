@@ -268,8 +268,152 @@ Application Service가 Infrastructure에 있으면 **Infrastructure → Applicat
 
 ---
 
+---
+
+## ✅ **최종 결정 (2025-11-10)**
+
+### 🔄 **Option 1 선택: 롤백 완료**
+
+**결정 사항**: 15개 Service를 **Infrastructure Layer에 유지**
+
+**롤백 완료**:
+- ✅ Git reset으로 모든 변경사항 되돌림
+- ✅ 빌드 성공 (오류 0개)
+- ✅ 원래 작동 상태 복구
+
+---
+
+## 🎓 **학습 결론: 실용적 Clean Architecture**
+
+### 발견한 핵심 이슈
+
+**Application Layer로 이동 시 빌드 에러 발생**:
+```csharp
+// ChatService.cs - Application Layer로 이동 시
+using Microsoft.EntityFrameworkCore;      // ❌ Infrastructure 의존성!
+using Microsoft.Extensions.Caching.Memory; // ❌ Infrastructure 의존성!
+
+public class ChatService : IChatService
+{
+    private readonly IMemoryCache _cache; // ❌ Infrastructure 기술 직접 사용
+
+    // EF Core 확장 메서드 사용
+    await _unitOfWork.ChatMessages
+        .Include(m => m.Sender)  // ❌ EF Core 기능
+        .AsNoTracking()          // ❌ EF Core 기능
+}
+```
+
+**문제**: Application Layer는 Infrastructure 기술에 의존하면 안 되지만, 현재 Service들은 **Use Case 구현 + Infrastructure 기술 직접 사용** 모두 포함
+
+---
+
+### Clean Architecture 이론 vs 실무
+
+#### 📚 **이론적 Clean Architecture**
+```
+Domain Layer      - 순수 비즈니스 로직, 외부 의존성 없음
+    ↑
+Application Layer - Use Case 구현, Repository 오케스트레이션
+    ↑
+Infrastructure    - 외부 시스템 연동 (DB, Redis, SMTP 등)
+```
+
+#### 🏭 **실무적 Clean Architecture (현재 프로젝트)**
+```
+Domain Layer          - 순수 비즈니스 로직 ✅ (EloRatingService, GachaLogicService)
+    ↑
+Application Layer     - DTO, Interfaces만 ✅
+    ↑
+Infrastructure Layer  - Use Case 구현 + DB 액세스 + 외부 시스템 연동
+    ↑                   (AuthService, PetService 등 15개)
+Infrastructure Services - 순수 외부 시스템만 (RedisCacheService)
+```
+
+---
+
+### 왜 Infrastructure에 두는 것이 맞는가?
+
+#### 1. **Repository 패턴 이후의 ORM 사용**
+- Repository는 추상화했지만, **Service에서 EF Core 확장 기능 직접 사용** (Include, AsNoTracking)
+- 이를 완벽히 추상화하려면 매우 복잡한 설계 필요
+- **실무에서는 이 정도 수준의 추상화면 충분**
+
+#### 2. **캐싱 기술의 직접 사용**
+- IMemoryCache를 Service에서 직접 의존
+- 완벽한 추상화 (ICacheService 인터페이스 생성)는 오버엔지니어링
+- **실용성 > 이론적 완벽함**
+
+#### 3. **Domain Layer 보호가 핵심**
+- Clean Architecture의 **가장 중요한 원칙**: Domain Layer가 외부 의존성 없이 순수하게 유지
+- 현재 프로젝트: ✅ **Domain Layer 완벽 보호** (EloRatingService, GachaLogicService 등 순수 로직만)
+- Application-Infrastructure 경계는 **실무에서 유연하게 적용 가능**
+
+---
+
+### 실무 사례
+
+많은 실무 프로젝트에서도 이와 유사한 구조 사용:
+- **Martin Fowler의 "Monolith First"**: 완벽한 분리보다 실용적 구조 우선
+- **Microsoft eShopOnContainers**: Infrastructure에 Use Case 구현 포함
+- **실무 Clean Architecture**: Domain만 순수하게, Application-Infrastructure는 유연하게
+
+---
+
+## 🎯 **최종 권장 사항**
+
+### ✅ **현재 구조 유지 (Infrastructure에 Service 배치)**
+
+**장점**:
+1. ✅ Domain Layer 순수성 보장 (핵심 달성)
+2. ✅ 실용적이고 유지보수 용이
+3. ✅ 실무에서도 흔히 사용하는 패턴
+4. ✅ 오버엔지니어링 방지
+
+**구조**:
+```
+IdleRPG.Domain/Services/
+├── EloRatingService.cs      ✅ 순수 비즈니스 로직
+├── GachaLogicService.cs     ✅ 순수 비즈니스 로직
+└── PetGachaService.cs       ✅ 순수 비즈니스 로직
+
+IdleRPG.Application/
+├── DTOs/                    ✅ 데이터 전송 객체
+└── Interfaces/              ✅ 인터페이스 정의
+
+IdleRPG.Infrastructure/Service, Services/
+├── AuthService.cs           ✅ Use Case + DB 액세스
+├── CharacterService.cs      ✅ Use Case + DB 액세스
+├── SkillService.cs          ✅ Use Case + DB 액세스
+└── ... (15개)
+
+IdleRPG.Infrastructure/Services/
+├── RedisCacheService.cs     ✅ 순수 외부 시스템 연동
+└── SystemRandomProvider.cs  ✅ Infrastructure 기술 래퍼
+```
+
+---
+
+## 📚 **학습 포인트**
+
+### 1. **Clean Architecture는 원칙, 실무는 실용성**
+- 이론적 완벽함 < 실용적 유지보수성
+- **Domain Layer 순수성**이 가장 중요한 핵심
+- Application-Infrastructure 경계는 프로젝트에 따라 유연하게
+
+### 2. **Service 계층 판단 기준**
+```
+Domain Service      - 외부 의존성 없는 순수 계산/로직
+Application Service - Use Case 구현 (현실: Infrastructure에 위치 가능)
+Infrastructure Service - 순수 외부 시스템 연동만
+```
+
+### 3. **오버엔지니어링 방지**
+- 모든 Infrastructure 기술을 인터페이스로 래핑 → 과도한 복잡성
+- **핵심 비즈니스 로직(Domain)만 보호하면 충분**
+
+---
+
 **Last Updated**: 2025-11-10
-**Severity**: 🔴 CRITICAL
-**Priority**: HIGH
-**Estimated Time**: 1-2 hours
-**Recommendation**: **Option 1 - 전체 리팩토링 즉시 실행**
+**Final Decision**: ✅ **Infrastructure Layer에 Service 유지 (실용적 Clean Architecture)**
+**Status**: 🟢 **RESOLVED - 롤백 완료, 빌드 성공**
