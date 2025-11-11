@@ -1228,5 +1228,154 @@ BEGIN
     END IF;
 END $EF$;
 
+-- ============================================
+-- Migration: Add PVP Arena System
+-- Date: 2025-11-08
+-- Description: PVP 매칭, 랭킹, 시즌 시스템 (Redis 캐싱, ELO 레이팅)
+-- ============================================
+
+-- 1. CREATE TABLE PvpSeason (시즌 마스터 데이터)
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20251108000000_AddPvpArenaSystem') THEN
+    CREATE TABLE "PvpSeasons" (
+        "Id" SERIAL PRIMARY KEY,
+        "SeasonNumber" INT NOT NULL,
+        "StartDate" TIMESTAMP WITH TIME ZONE NOT NULL,
+        "EndDate" TIMESTAMP WITH TIME ZONE NOT NULL,
+        "IsActive" BOOLEAN NOT NULL DEFAULT FALSE,
+        "CreatedAt" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        "UpdatedAt" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        CONSTRAINT "CK_PvpSeasons_DateRange" CHECK ("StartDate" < "EndDate"),
+        CONSTRAINT "UK_PvpSeasons_SeasonNumber" UNIQUE ("SeasonNumber")
+    );
+    END IF;
+END $EF$;
+
+-- 2. CREATE INDEX IX_PvpSeasons_IsActive
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20251108000000_AddPvpArenaSystem') THEN
+    CREATE INDEX "IX_PvpSeasons_IsActive" ON "PvpSeasons" ("IsActive");
+    END IF;
+END $EF$;
+
+-- 3. CREATE INDEX IX_PvpSeasons_SeasonNumber (Unique Index는 UK 제약으로 자동 생성되지만 명시)
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20251108000000_AddPvpArenaSystem') THEN
+    -- Note: Unique constraint UK_PvpSeasons_SeasonNumber already creates an index
+    END IF;
+END $EF$;
+
+-- 4. CREATE TABLE PvpRanking (시즌별 랭킹 정보, Composite PK)
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20251108000000_AddPvpArenaSystem') THEN
+    CREATE TABLE "PvpRankings" (
+        "SeasonId" INT NOT NULL,
+        "CharacterId" UUID NOT NULL,
+        "Rating" INT NOT NULL DEFAULT 1000,
+        "Wins" INT NOT NULL DEFAULT 0,
+        "Losses" INT NOT NULL DEFAULT 0,
+        "WinStreak" INT NOT NULL DEFAULT 0,
+        "Tier" VARCHAR(20) GENERATED ALWAYS AS (
+            CASE
+                WHEN "Rating" >= 2500 THEN 'Diamond'
+                WHEN "Rating" >= 2000 THEN 'Platinum'
+                WHEN "Rating" >= 1500 THEN 'Gold'
+                WHEN "Rating" >= 1000 THEN 'Silver'
+                ELSE 'Bronze'
+            END
+        ) STORED,
+        "IsRewardClaimed" BOOLEAN NOT NULL DEFAULT FALSE,
+        "LastMatchAt" TIMESTAMP WITH TIME ZONE,
+        "UpdatedAt" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        CONSTRAINT "PK_PvpRankings" PRIMARY KEY ("SeasonId", "CharacterId"),
+        CONSTRAINT "CK_PvpRankings_Rating" CHECK ("Rating" >= 0),
+        CONSTRAINT "CK_PvpRankings_Wins" CHECK ("Wins" >= 0),
+        CONSTRAINT "CK_PvpRankings_Losses" CHECK ("Losses" >= 0),
+        CONSTRAINT "CK_PvpRankings_WinStreak" CHECK ("WinStreak" >= 0),
+        CONSTRAINT "FK_PvpRankings_PvpSeasons_SeasonId" FOREIGN KEY ("SeasonId")
+            REFERENCES "PvpSeasons"("Id") ON DELETE RESTRICT,
+        CONSTRAINT "FK_PvpRankings_Characters_CharacterId" FOREIGN KEY ("CharacterId")
+            REFERENCES "Characters"("Id") ON DELETE CASCADE
+    );
+    END IF;
+END $EF$;
+
+-- 5. CREATE INDEX IX_PvpRankings_SeasonId_Rating_DESC (복합 인덱스, Top 100 조회 최적화)
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20251108000000_AddPvpArenaSystem') THEN
+    CREATE INDEX "IX_PvpRankings_SeasonId_Rating_DESC" ON "PvpRankings" ("SeasonId" ASC, "Rating" DESC);
+    END IF;
+END $EF$;
+
+-- 6. CREATE TABLE PvpMatch (매치 기록)
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20251108000000_AddPvpArenaSystem') THEN
+    CREATE TABLE "PvpMatches" (
+        "Id" UUID PRIMARY KEY,
+        "SeasonId" INT NOT NULL,
+        "AttackerId" UUID NOT NULL,
+        "DefenderId" UUID NOT NULL,
+        "WinnerId" UUID NOT NULL,
+        "AttackerRatingBefore" INT NOT NULL,
+        "AttackerRatingAfter" INT NOT NULL,
+        "DefenderRatingBefore" INT NOT NULL,
+        "DefenderRatingAfter" INT NOT NULL,
+        "CreatedAt" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        CONSTRAINT "CK_PvpMatches_AttackerDefenderDifferent" CHECK ("AttackerId" != "DefenderId"),
+        CONSTRAINT "CK_PvpMatches_Ratings" CHECK (
+            "AttackerRatingBefore" >= 0 AND "AttackerRatingAfter" >= 0 AND
+            "DefenderRatingBefore" >= 0 AND "DefenderRatingAfter" >= 0
+        ),
+        CONSTRAINT "FK_PvpMatches_PvpSeasons_SeasonId" FOREIGN KEY ("SeasonId")
+            REFERENCES "PvpSeasons"("Id") ON DELETE RESTRICT,
+        CONSTRAINT "FK_PvpMatches_Characters_AttackerId" FOREIGN KEY ("AttackerId")
+            REFERENCES "Characters"("Id") ON DELETE RESTRICT,
+        CONSTRAINT "FK_PvpMatches_Characters_DefenderId" FOREIGN KEY ("DefenderId")
+            REFERENCES "Characters"("Id") ON DELETE RESTRICT,
+        CONSTRAINT "FK_PvpMatches_Characters_WinnerId" FOREIGN KEY ("WinnerId")
+            REFERENCES "Characters"("Id") ON DELETE RESTRICT
+    );
+    END IF;
+END $EF$;
+
+-- 7. CREATE INDEX IX_PvpMatches_AttackerId_CreatedAt (공격자 전적 조회 최적화)
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20251108000000_AddPvpArenaSystem') THEN
+    CREATE INDEX "IX_PvpMatches_AttackerId_CreatedAt" ON "PvpMatches" ("AttackerId", "CreatedAt" DESC);
+    END IF;
+END $EF$;
+
+-- 8. CREATE INDEX IX_PvpMatches_DefenderId_CreatedAt (방어자 전적 조회 최적화)
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20251108000000_AddPvpArenaSystem') THEN
+    CREATE INDEX "IX_PvpMatches_DefenderId_CreatedAt" ON "PvpMatches" ("DefenderId", "CreatedAt" DESC);
+    END IF;
+END $EF$;
+
+-- 9. CREATE INDEX IX_PvpMatches_SeasonId (시즌별 필터링)
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20251108000000_AddPvpArenaSystem') THEN
+    CREATE INDEX "IX_PvpMatches_SeasonId" ON "PvpMatches" ("SeasonId");
+    END IF;
+END $EF$;
+
+-- 10. INSERT Migration History
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20251108000000_AddPvpArenaSystem') THEN
+    INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
+    VALUES ('20251108000000_AddPvpArenaSystem', '9.0.9');
+    END IF;
+END $EF$;
+
 COMMIT;
 

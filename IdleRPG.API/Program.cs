@@ -9,6 +9,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Text;
+using FluentValidation;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
@@ -110,10 +111,35 @@ builder.Services.AddCors(options =>
 builder.Services.AddScoped<IdleRPG.Domain.Services.GachaLogicService>();
 builder.Services.AddScoped<IdleRPG.Domain.Services.PetGachaService>();
 builder.Services.AddScoped<IdleRPG.Domain.Services.LootCalculator>();
+builder.Services.AddScoped<IdleRPG.Domain.Services.EloRatingService>(); // PVP Arena
 builder.Services.AddSingleton<IdleRPG.Domain.Services.IRandomProvider, IdleRPG.Infrastructure.Services.SystemRandomProvider>();
 
 // Unit of Work 등록 (모든 Repository를 내부에서 관리)
 builder.Services.AddScoped<IUnitOfWork, IdleRPG.Infrastructure.UnitOfWork.UnitOfWork>();
+
+// PVP Arena Repositories
+builder.Services.AddScoped<IdleRPG.Domain.Repositories.IPvpSeasonRepository, IdleRPG.Infrastructure.Repositories.PvpSeasonRepository>();
+builder.Services.AddScoped<IdleRPG.Domain.Repositories.IPvpRankingRepository, IdleRPG.Infrastructure.Repositories.PvpRankingRepository>();
+builder.Services.AddScoped<IdleRPG.Domain.Repositories.IPvpMatchRepository, IdleRPG.Infrastructure.Repositories.PvpMatchRepository>();
+
+// PVP Arena Application Services
+builder.Services.AddScoped<IdleRPG.Application.Services.IPvpService, IdleRPG.Application.Services.PvpService>();
+builder.Services.AddScoped<IdleRPG.Application.Services.IPvpSeasonService, IdleRPG.Application.Services.PvpSeasonService>();
+
+// PVP Arena Infrastructure Services
+builder.Services.AddScoped<IdleRPG.Application.Services.IPvpMatchmakingService, IdleRPG.Infrastructure.Services.PvpMatchmakingService>();
+builder.Services.AddScoped<IdleRPG.Application.Services.IRedisCacheService, IdleRPG.Infrastructure.Services.RedisCacheService>();
+
+// Redis 연결 (PVP 랭킹 캐시용, Singleton)
+builder.Services.AddSingleton<StackExchange.Redis.IConnectionMultiplexer>(sp =>
+{
+    var configuration = sp.GetRequiredService<IConfiguration>();
+    var connectionString = configuration.GetConnectionString("Redis") ?? "localhost:6379";
+    return StackExchange.Redis.ConnectionMultiplexer.Connect(connectionString);
+});
+
+// FluentValidation (PVP Arena Validators 포함)
+builder.Services.AddValidatorsFromAssemblyContaining<IdleRPG.Application.Validators.PvpMatchRequestValidator>();
 
 // 🔥 이 부분이 꼭 필요함!
 builder.Services.AddDbContext<GameDBContext>(options =>
@@ -192,6 +218,13 @@ using (var scope = app.Services.CreateScope())
 
         await petTemplateSeeder.SeedAsync();
 
+        // PVP 시즌 Seed Data 생성
+        var pvpSeasonSeeder = new IdleRPG.Infrastructure.Data.Seeders.PvpSeasonSeeder(
+            context,
+            services.GetRequiredService<ILogger<IdleRPG.Infrastructure.Data.Seeders.PvpSeasonSeeder>>());
+
+        await pvpSeasonSeeder.SeedAsync();
+
         logger.LogInformation("Seed Data 초기화 완료");
     }
     catch (Exception ex)
@@ -232,3 +265,6 @@ app.MapControllers();
 app.MapHub<IdleRPG.API.Hubs.ChatHub>("/chat").RequireAuthorization();
 
 app.Run();
+
+// ✅ WebApplicationFactory를 위한 public partial class 선언 (통합 테스트용)
+public partial class Program { }

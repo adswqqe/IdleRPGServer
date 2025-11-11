@@ -279,7 +279,8 @@
       "Bash('│ • Kiro 워크플로우 가이드: .claude/memories/kiro-system-templates/...   │' )",
       "Bash('│ • 완료된 스펙: .claude/memories/specs/ (4개 완료)                       │' )",
       "Bash('마지막 업데이트: 2025-11-01')",
-      "Bash(findstr:*)"
+      "Bash(findstr:*)",
+      "Bash(dotnet list:*)"
     ]
   },
   "enableAllProjectMcpServers": true,

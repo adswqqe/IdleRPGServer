@@ -59,10 +59,10 @@ namespace IdleRPG.Infrastructure.Repositories
         /// <summary>
         /// 시즌 정보 업데이트 (IsActive 토글, 시즌 종료 등)
         /// </summary>
-        public async Task UpdateAsync(PvpSeason season, CancellationToken cancellationToken = default)
+        public Task UpdateAsync(PvpSeason season, CancellationToken cancellationToken = default)
         {
             _context.PvpSeasons.Update(season);
-            await Task.CompletedTask;
+            return Task.CompletedTask;
         }
     }
 }

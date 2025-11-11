@@ -18,8 +18,8 @@ services:
       ASPNETCORE_ENVIRONMENT: "Production"
       ASPNETCORE_URLS: "http://+:5172"
       ConnectionStrings__DefaultConnection: "Host=${DB_HOST};Database=${DB_NAME};Username=${DB_USER};Password=${DB_PASSWORD};Port=${DB_PORT}"
+      ConnectionStrings__Redis: "redis:6379,password=${REDIS_PASSWORD}"
       Jwt__SecretKey: "${JWT_SECRET_KEY}"
-      Redis__Password: "${REDIS_PASSWORD}"
     env_file:
       - .env.production
     depends_on:
