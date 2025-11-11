@@ -46,11 +46,9 @@ namespace IdleRPG.Infrastructure.Configurations
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
                 .HasColumnType("timestamp without time zone");
 
-            // Tier Enum: String Conversion + ValueGeneratedOnAddOrUpdate
-            // Tier는 Rating 기반 계산 프로퍼티이므로, DB에 저장 시 Rating 변경마다 자동 갱신
-            builder.Property(pr => pr.Tier)
-                .HasConversion<string>()
-                .ValueGeneratedOnAddOrUpdate();
+            // Tier는 Rating 기반 계산 프로퍼티이므로 DB에 저장하지 않음
+            // 런타임에 Rating 값에서 자동 계산됨 (데이터 일관성 보장)
+            builder.Ignore(pr => pr.Tier);
 
             // TODO(human): Cascade Delete vs Restrict 전략 근거 작성
             //
