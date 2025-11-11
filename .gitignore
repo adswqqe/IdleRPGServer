@@ -57,6 +57,9 @@ nul
 nul*
 nuldocker-compose.prod.yml.BACKUP_WITH_SECRETS
 
+# Jenkinsfile backups
+Jenkinsfile.backup-*
+
 # Task files
 # tasks.json
 # tasks/ 

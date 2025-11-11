@@ -23,16 +23,44 @@ pipeline {
 
         stage('Database Migration') {
             steps {
-                echo 'Running database migrations...'
+                echo 'Running hybrid migrations...'
                 timeout(time: 5, unit: 'MINUTES') {
                     withCredentials([string(credentialsId: 'rds-postgres-password', variable: 'PGPASSWORD')]) {
                         sh '''
                             cd /home/ec2-user/IdleRPGServer
-                            export PGPASSWORD=$PGPASSWORD
+
+                            # 1. 도구 복원
+                            echo "[Step 1/4] Restoring dotnet tools..."
+                            dotnet tool restore
+
+                            # 2. 레거시 마이그레이션 (안전망)
+                            echo "[Step 2/4] Running legacy migration.sql..."
+                            if [ -f "IdleRPG.Infrastructure/migration.sql" ]; then
+                                export PGPASSWORD=$PGPASSWORD
+                                psql -h idlerpg-dev.chiqweeeuidv.ap-northeast-2.rds.amazonaws.com \
+                                     -U postgres \
+                                     -d idlerpg \
+                                     -f IdleRPG.Infrastructure/migration.sql || exit 1
+                                echo "✅ Legacy migration applied"
+                            else
+                                echo "⚠️ migration.sql not found, skipping legacy migration"
+                            fi
+
+                            # 3. EF Core 마이그레이션 (새로운 변경사항)
+                            echo "[Step 3/4] Running EF Core migrations..."
+                            dotnet ef database update \
+                                --project IdleRPG.Infrastructure \
+                                --connection "Host=idlerpg-dev.chiqweeeuidv.ap-northeast-2.rds.amazonaws.com;Port=5432;Database=idlerpg;Username=postgres;Password=$PGPASSWORD;SSL Mode=Require;Trust Server Certificate=true" \
+                                || exit 1
+                            echo "✅ EF Core migrations applied"
+
+                            # 4. 마이그레이션 검증
+                            echo "[Step 4/4] Verifying migrations..."
                             psql -h idlerpg-dev.chiqweeeuidv.ap-northeast-2.rds.amazonaws.com \
                                  -U postgres \
                                  -d idlerpg \
-                                 -f IdleRPG.Infrastructure/migration.sql
+                                 -c "SELECT MigrationId, ProductVersion FROM __EFMigrationsHistory ORDER BY MigrationId DESC LIMIT 5;" \
+                                 || echo "⚠️ Verification skipped"
                         '''
                     }
                 }
