@@ -1379,3 +1379,35 @@ END $EF$;
 
 COMMIT;
 
+-- ================================================================
+-- Migration: 20251111000000_RemovePvpRankingTierColumn
+-- Description: Remove Tier generated column from PvpRanking table
+--              Tier is now computed at application level (Rating-based)
+-- ================================================================
+
+START TRANSACTION;
+
+-- 1. DROP COLUMN Tier (Generated Column)
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20251111000000_RemovePvpRankingTierColumn') THEN
+        IF EXISTS (
+            SELECT 1 FROM information_schema.columns
+            WHERE table_name = 'PvpRankings' AND column_name = 'Tier'
+        ) THEN
+            ALTER TABLE "PvpRankings" DROP COLUMN "Tier";
+        END IF;
+    END IF;
+END $EF$;
+
+-- 2. INSERT Migration History
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20251111000000_RemovePvpRankingTierColumn') THEN
+    INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
+    VALUES ('20251111000000_RemovePvpRankingTierColumn', '9.0.9');
+    END IF;
+END $EF$;
+
+COMMIT;
+
