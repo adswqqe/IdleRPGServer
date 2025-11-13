@@ -28,7 +28,6 @@ pipeline {
                     withCredentials([string(credentialsId: 'rds-postgres-password', variable: 'PGPASSWORD')]) {
                         sh '''
                             cd /home/ec2-user/IdleRPGServer
-                            chmod +x scripts/migrate.sh
                             sudo -u ec2-user bash -l scripts/migrate.sh "$PGPASSWORD"
                         '''
                     }
