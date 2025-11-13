@@ -176,7 +176,7 @@ namespace IdleRPG.Infrastructure.Migrations
                     b.HasIndex("CharacterId", "SkillTemplateId")
                         .IsUnique();
 
-                    b.ToTable("CharacterSkills");
+                    b.ToTable("CharacterSkills", (string)null);
                 });
 
             modelBuilder.Entity("IdleRPG.Domain.Entities.DungeonDifficulty", b =>
@@ -839,7 +839,7 @@ namespace IdleRPG.Infrastructure.Migrations
                     b.HasIndex("UserName")
                         .IsUnique();
 
-                    b.ToTable("Players");
+                    b.ToTable("Players", (string)null);
                 });
 
             modelBuilder.Entity("IdleRPG.Domain.Entities.PlayerItem", b =>
@@ -905,7 +905,7 @@ namespace IdleRPG.Infrastructure.Migrations
                     b.HasIndex("Token")
                         .IsUnique();
 
-                    b.ToTable("RefreshTokens");
+                    b.ToTable("RefreshTokens", (string)null);
                 });
 
             modelBuilder.Entity("IdleRPG.Domain.Entities.SkillTemplate", b =>
@@ -1038,7 +1038,7 @@ namespace IdleRPG.Infrastructure.Migrations
 
                             b1.HasKey("CharacterId");
 
-                            b1.ToTable("Characters");
+                            b1.ToTable("Characters", (string)null);
 
                             b1.WithOwner()
                                 .HasForeignKey("CharacterId");

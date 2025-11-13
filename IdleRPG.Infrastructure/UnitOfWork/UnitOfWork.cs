@@ -2,6 +2,7 @@ using IdleRPG.Application.Interfaces;
 using IdleRPG.Domain.Repositories;
 using IdleRPG.Infrastructure.Data;
 using IdleRPG.Infrastructure.Repositories;
+using System.Transactions;
 
 namespace IdleRPG.Infrastructure.UnitOfWork
 {
