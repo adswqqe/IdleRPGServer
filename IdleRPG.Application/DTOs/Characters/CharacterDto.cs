@@ -14,7 +14,16 @@
         /// </summary>
         public long Experience { get; set; }
 
+        /// <summary>
+        /// 보유 골드
+        /// </summary>
         public long Gold { get; set; }
+
+        /// <summary>
+        /// 보유 크리스탈 (프리미엄 화폐)
+        /// </summary>
+        public long Crystal { get; set; }
+
         public DateTime LastLoginTime { get; set; }
 
         /// <summary>

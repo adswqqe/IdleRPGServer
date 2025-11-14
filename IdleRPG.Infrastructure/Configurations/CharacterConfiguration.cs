@@ -15,7 +15,7 @@ namespace IdleRPG.Infrastructure.Configurations
             builder.Property(c => c.Gold)
                 .IsRequired()
                 .HasDefaultValue(0);
-
+            
             // LastLoginTime 필드 설정
             builder.Property(c => c.LastLoginTime)
                 .IsRequired()

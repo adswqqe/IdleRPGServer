@@ -11,41 +11,55 @@ namespace IdleRPG.Infrastructure.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.AddColumn<Guid>(
-                name: "OwnerId",
+            migrationBuilder.CreateTable(
+                name: "Equipments",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    Name = table.Column<string>(type: "text", nullable: false),
+                    Slot = table.Column<int>(type: "integer", nullable: false),
+                    Rarity = table.Column<int>(type: "integer", nullable: false),
+                    OwnerId = table.Column<Guid>(type: "uuid", nullable: false),
+                    CharacterId = table.Column<Guid>(type: "uuid", nullable: true),
+                    EnhancementLevel = table.Column<int>(type: "integer", nullable: false),
+                    BaseAttack = table.Column<int>(type: "integer", nullable: false),
+                    BaseDefense = table.Column<int>(type: "integer", nullable: false),
+                    BaseHp = table.Column<int>(type: "integer", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Equipments", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Equipments_Characters_CharacterId",
+                        column: x => x.CharacterId,
+                        principalTable: "Characters",
+                        principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_Equipments_Characters_OwnerId",
+                        column: x => x.OwnerId,
+                        principalTable: "Characters",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Equipments_CharacterId",
                 table: "Equipments",
-                type: "uuid",
-                nullable: false,
-                defaultValue: new Guid("00000000-0000-0000-0000-000000000000"));
+                column: "CharacterId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Equipments_OwnerId",
                 table: "Equipments",
                 column: "OwnerId");
-
-            migrationBuilder.AddForeignKey(
-                name: "FK_Equipments_Characters_OwnerId",
-                table: "Equipments",
-                column: "OwnerId",
-                principalTable: "Characters",
-                principalColumn: "Id",
-                onDelete: ReferentialAction.Cascade);
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropForeignKey(
-                name: "FK_Equipments_Characters_OwnerId",
-                table: "Equipments");
-
-            migrationBuilder.DropIndex(
-                name: "IX_Equipments_OwnerId",
-                table: "Equipments");
-
-            migrationBuilder.DropColumn(
-                name: "OwnerId",
-                table: "Equipments");
+            migrationBuilder.DropTable(
+                name: "Equipments");
         }
     }
 }

@@ -22,7 +22,10 @@ namespace IdleRPG.Domain.Entities
         /// </summary>
         public long Gold { get; set; } = 0;
 
-        public long Crystal { get; set; } = 0;
+        /// <summary>
+        /// 캐릭터 보유 크리스탈 (프리미엄 화폐)
+        /// </summary>
+        public long Crystal { get; set; } = 100000;
 
         /// <summary>
         /// 스킬 가챠 천장 카운터 (100회)

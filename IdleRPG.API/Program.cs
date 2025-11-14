@@ -10,7 +10,19 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Text;
 using FluentValidation;
+
+// Npgsql DateTime 처리 설정 (UTC DateTime을 timestamp without time zone에 허용)
+AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
+
 var builder = WebApplication.CreateBuilder(args);
+
+// MiniProfiler 추가 (N+1 쿼리 감지)
+builder.Services.AddMiniProfiler(options =>
+{
+    options.RouteBasePath = "/profiler"; // UI 경로
+    options.PopupRenderPosition = StackExchange.Profiling.RenderPosition.BottomLeft;
+    options.ColorScheme = StackExchange.Profiling.ColorScheme.Auto;
+}).AddEntityFramework();
 
 builder.Services.AddControllers();
 // JWT 설정 바인딩
@@ -117,6 +129,9 @@ builder.Services.AddSingleton<IdleRPG.Domain.Services.IRandomProvider, IdleRPG.I
 // Unit of Work 등록 (모든 Repository를 내부에서 관리)
 builder.Services.AddScoped<IUnitOfWork, IdleRPG.Infrastructure.UnitOfWork.UnitOfWork>();
 
+// Character Repository (PvpController에서 사용)
+builder.Services.AddScoped<IdleRPG.Domain.Repositories.ICharacterRepository, IdleRPG.Infrastructure.Repositories.CharacterRepository>();
+
 // PVP Arena Repositories
 builder.Services.AddScoped<IdleRPG.Domain.Repositories.IPvpSeasonRepository, IdleRPG.Infrastructure.Repositories.PvpSeasonRepository>();
 builder.Services.AddScoped<IdleRPG.Domain.Repositories.IPvpRankingRepository, IdleRPG.Infrastructure.Repositories.PvpRankingRepository>();
@@ -141,9 +156,25 @@ builder.Services.AddSingleton<StackExchange.Redis.IConnectionMultiplexer>(sp =>
 // FluentValidation (PVP Arena Validators 포함)
 builder.Services.AddValidatorsFromAssemblyContaining<IdleRPG.Application.Validators.PvpMatchRequestValidator>();
 
-// 🔥 이 부분이 꼭 필요함!
-builder.Services.AddDbContext<GameDBContext>(options =>
-                                                 options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+// 🔥 이 부분이 꼭 필요함! (테스트 환경에서는 CustomWebApplicationFactory에서 In-Memory DB로 교체)
+if (builder.Environment.IsDevelopment() || builder.Environment.IsEnvironment("Testing"))
+{
+    Console.WriteLine($"[Program.cs] 현재 환경: {builder.Environment.EnvironmentName}");
+}
+
+if (!builder.Environment.IsEnvironment("Testing"))
+{
+    if (builder.Environment.IsDevelopment())
+    {
+        Console.WriteLine("[Program.cs] PostgreSQL DbContext 등록");
+    }
+    builder.Services.AddDbContext<GameDBContext>(options =>
+        options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+}
+else
+{
+    Console.WriteLine("[Program.cs] Testing 환경 감지 - PostgreSQL DbContext 등록 Skip");
+}
 
 // Loot System DI 등록 (순수 확률 계산 로직만)
 // LootCalculator는 나중에 Domain으로 이동 후 등록
@@ -235,6 +266,10 @@ using (var scope = app.Services.CreateScope())
 }
 
 // Configure the HTTP request pipeline.
+
+// MiniProfiler 미들웨어 (가장 먼저 실행되어야 정확한 측정)
+app.UseMiniProfiler();
+
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();

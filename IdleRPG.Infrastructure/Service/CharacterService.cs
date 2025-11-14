@@ -161,6 +161,7 @@ namespace IdleRPG.Infrastructure.Service
                 Level = character.Level,
                 Experience = character.Experience,
                 Gold = character.Gold,
+                Crystal = character.Crystal,
                 LastLoginTime = character.LastLoginTime,
                 UpdatedAt = character.UpdatedAt,
                 // 전투 스탯 (중첩 구조)

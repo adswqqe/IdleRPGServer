@@ -20,22 +20,22 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
 {
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
+        // 테스트 환경 설정 (Program.cs에서 감지)
+        builder.UseEnvironment("Testing");
+
         builder.ConfigureServices(services =>
         {
             // 1. 기존 GameDBContext 제거 (PostgreSQL Provider 포함)
-            var descriptorContext = services.SingleOrDefault(
-                d => d.ServiceType == typeof(DbContextOptions<GameDBContext>));
-            if (descriptorContext != null)
-            {
-                services.Remove(descriptorContext);
-            }
-
-            // DbContext 자체도 제거
-            var descriptorDbContext = services.SingleOrDefault(
-                d => d.ServiceType == typeof(GameDBContext));
+            var descriptorDbContext = services.SingleOrDefault(d => d.ServiceType == typeof(GameDBContext));
             if (descriptorDbContext != null)
             {
                 services.Remove(descriptorDbContext);
+            }
+
+            var descriptorOptions = services.SingleOrDefault(d => d.ServiceType == typeof(DbContextOptions<GameDBContext>));
+            if (descriptorOptions != null)
+            {
+                services.Remove(descriptorOptions);
             }
 
             // 2. In-Memory Database로 교체 (테스트용)
@@ -44,16 +44,11 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
                 options.UseInMemoryDatabase("InMemoryTestDb");
             });
 
-            // 3. Redis 연결 Mock 처리 (Redis 불필요 시 제거)
-            // 실제 Redis 대신 Mock 또는 Test Double 사용
-            // services.RemoveAll<IConnectionMultiplexer>();
-            // services.AddSingleton<IConnectionMultiplexer>(/* Mock 객체 */);
-
-            // 4. RedisCacheService Mock 처리 (실제 Redis 없이 테스트)
+            // 3. RedisCacheService Mock 처리 (실제 Redis 없이 테스트)
             services.RemoveAll<IRedisCacheService>();
             services.AddScoped<IRedisCacheService, FakeRedisCacheService>();
 
-            // 5. 데이터베이스 초기화
+            // 4. 데이터베이스 초기화 (모든 서비스 등록 후 실행)
             var sp = services.BuildServiceProvider();
             using var scope = sp.CreateScope();
             var scopedServices = scope.ServiceProvider;

@@ -1,0 +1,137 @@
+### IdleRPG API 자동화 테스트
+### Rider: 각 요청 옆의 ▶ 버튼 클릭으로 실행
+### 전체 실행: Rider → Tools → HTTP Client → Run All Requests in File
+
+@baseUrl = https://localhost:7122
+@username = testuser_{{$timestamp}}
+@password = Test123!
+@email = test_{{$timestamp}}@example.com
+
+### 👇 로그인 후 여기에 토큰 붙여넣기!
+@accessToken = YOUR_TOKEN_HERE
+
+### 👇 캐릭터 생성 후 여기에 ID 붙여넣기!
+@characterId = YOUR_CHARACTER_ID_HERE
+
+### 1. 회원가입
+# @name register
+POST {{baseUrl}}/api/auth/register
+Content-Type: application/json
+
+{
+  "username": "{{username}}",
+  "email": "{{email}}",
+  "password": "{{password}}",
+  "confirmPassword": "{{password}}"
+}
+
+### 2. 로그인
+# @name login
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "username": "{{username}}",
+  "password": "{{password}}"
+}
+
+> {%
+    client.global.set("accessToken", response.body.accessToken);
+    client.log("✅ 로그인 성공! 토큰 저장됨");
+%}
+
+### 3. 캐릭터 생성
+# @name createCharacter
+POST {{baseUrl}}/api/character/Create
+Content-Type: application/json
+Authorization: Bearer {{accessToken}}
+
+{
+  "name": "Hero_{{$timestamp}}"
+}
+
+> {%
+    client.global.set("characterId", response.body.id);
+    client.log("✅ 캐릭터 생성! ID: " + response.body.id);
+%}
+
+### 4. 캐릭터 조회 (N+1 확인!)
+# @name getCharacter
+GET {{baseUrl}}/api/character/{{characterId}}
+Authorization: Bearer {{accessToken}}
+
+> {%
+    client.log("📊 MiniProfiler 확인: https://localhost:7122/profiler/results-index");
+    client.log("👉 SQL 쿼리 개수를 확인하세요!");
+%}
+
+### 5. 스킬 가챠
+# @name skillGacha
+POST {{baseUrl}}/api/skills/gacha
+Content-Type: application/json
+Authorization: Bearer {{accessToken}}
+
+{
+  "characterId": "{{characterId}}"
+}
+
+### 6. 펫 가챠 (1회)
+# @name petGachaSingle
+POST {{baseUrl}}/api/pets/gacha
+Content-Type: application/json
+Authorization: Bearer {{accessToken}}
+
+{
+  "characterId": "{{characterId}}",
+  "count": 1
+}
+
+> {%
+    client.global.set("petId", response.body.pets[0].id);
+    client.log("✅ 펫 획득! ID: " + response.body.pets[0].id);
+%}
+
+### 7. 장착된 펫 조회 (N+1 확인!)
+# @name getEquippedPets
+GET {{baseUrl}}/api/pets/equipped/{{characterId}}
+Authorization: Bearer {{accessToken}}
+
+> {%
+    client.log("📊 MiniProfiler: 펫 조회 쿼리 개수 확인!");
+%}
+
+### 8. PVP 랭킹 조회 (N+1 확인!)
+# @name getPvpRankings
+GET {{baseUrl}}/api/pvp/rankings?seasonId=1&page=1&pageSize=20
+Authorization: Bearer {{accessToken}}
+
+> {%
+    client.log("📊 MiniProfiler: 랭킹 조회 쿼리 개수 확인!");
+%}
+
+### 9. 오프라인 보상 계산
+# @name calculateRewards
+GET {{baseUrl}}/api/reward/calculate/{{characterId}}
+Authorization: Bearer {{accessToken}}
+
+### 10. 오프라인 보상 수령
+# @name claimRewards
+POST {{baseUrl}}/api/reward/claim
+Content-Type: application/json
+Authorization: Bearer {{accessToken}}
+
+{
+  "characterId": "{{characterId}}"
+}
+
+###
+### ✅ 사용 방법
+### 1. Rider에서 이 파일 열기
+### 2. 각 요청 옆의 ▶ 버튼 클릭 (순서대로 실행)
+### 3. 또는 Ctrl+Enter로 현재 커서 위치의 요청 실행
+### 4. 전체 실행: Tools → HTTP Client → Run All Requests in File
+###
+### 📊 MiniProfiler 확인
+### https://localhost:7122/profiler/results-index
+### 각 요청 후 새로고침하여 SQL 쿼리 개수 확인!
+###
