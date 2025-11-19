@@ -123,15 +123,15 @@
 
 ## 📊 현재 상태
 
-**시작일**: [미시작]
-**마지막 업데이트**: [미시작]
+**시작일**: 2025-11-19
+**마지막 업데이트**: 2025-11-19
 
-**현재 진행 중인 Step**: 없음
-**완료한 Step**: 없음
-**현재 Git 태그**: [없음] (Step 완료 시 태그 생성)
-**다음 할 일**: Step 1 시작
+**현재 진행 중인 Step**: Step 2 (첫 번째 실전 Command)
+**완료한 Step**: Step 1 ✅
+**현재 Git 태그**: step-1-complete
+**다음 할 일**: Step 2 시작 (퀘스트 수락 기능, DB 없이 로직만)
 
-**총 진행률**: 0/7 Steps (0%)
+**총 진행률**: 1/7 Steps (14%) 🎯
 
 > 💡 **중요**: 각 Step 완료 시 반드시 Git 커밋 + 태그를 생성하세요!
 > 이는 컨텍스트 초기화 후 정확한 코드 상태 파악을 위한 필수 조건입니다.
@@ -165,7 +165,7 @@
 
 이 튜토리얼을 완료하면 다음을 **코드로 이해**하게 됩니다:
 
-- [ ] MediatR 기본 (Command/Query 패턴)
+- [x] MediatR 기본 (Command/Query 패턴) ✅ Step 1 완료
 - [ ] CQRS 구조 (읽기/쓰기 분리)
 - [ ] Pipeline Behavior (횡단 관심사 자동화)
 - [ ] FluentValidation (검증 로직 분리)
@@ -176,18 +176,18 @@
 
 ## ✅ 진행 체크리스트
 
-### **Step 1: MediatR Hello World** ⏱️ 15분
+### **Step 1: MediatR Hello World** ⏱️ 15분 ✅ **완료!**
 
 **목표**: MediatR가 동작하는지 확인
 
 **작업 체크리스트**:
-- [ ] MediatR NuGet 패키지 설치 (2개)
-- [ ] `IdleRPG.Application/AssemblyMarker.cs` 생성
-- [ ] `Program.cs`에 MediatR 등록
-- [ ] `PingCommand.cs` 작성
-- [ ] `PingCommandHandler.cs` 작성
-- [ ] `PingController.cs` 작성
-- [ ] Swagger에서 `POST /api/ping` 테스트 성공
+- [x] MediatR NuGet 패키지 설치 (2개)
+- [x] `IdleRPG.Application/AssemblyMarker.cs` 생성
+- [x] `Program.cs`에 MediatR 등록
+- [x] `PingCommand.cs` 작성
+- [x] `PingCommandHandler.cs` 작성
+- [x] `PingController.cs` 작성
+- [x] Swagger에서 `POST /api/ping` 테스트 성공
 
 **생성할 파일**:
 ```
@@ -220,8 +220,8 @@ dotnet add package MediatR.Extensions.Microsoft.DependencyInjection --version 11
 4. 응답: `{ "message": "Pong! MediatR is working! 🎉" }`
 
 **✅ 완료 조건**:
-1. [ ] "Pong!" 메시지 응답 확인
-2. [ ] 모든 변경사항 Git 커밋
+1. [x] "Pong!" 메시지 응답 확인
+2. [x] 모든 변경사항 Git 커밋
    ```bash
    git add .
    git commit -m "feat: Complete Step 1 - MediatR Hello World
@@ -232,11 +232,11 @@ dotnet add package MediatR.Extensions.Microsoft.DependencyInjection --version 11
    - Add PingController
    - Test via Swagger (Success)"
    ```
-3. [ ] Git 태그 생성
+3. [x] Git 태그 생성
    ```bash
    git tag step-1-complete
    ```
-4. [ ] 문서 "현재 상태" 업데이트 (AI에게 요청: "Step 1 완료했어. 문서 업데이트해줘")
+4. [x] 문서 "현재 상태" 업데이트 (AI에게 요청: "Step 1 완료했어. 문서 업데이트해줘")
 
 **학습 포인트**:
 - `IRequest<TResponse>`: Command/Query 인터페이스
@@ -782,9 +782,9 @@ public class MyBehavior<TRequest, TResponse>
 ## 🎓 학습 완료 체크리스트
 
 **CQRS 기본**:
-- [ ] MediatR IRequest, IRequestHandler 이해
-- [ ] Command와 Query의 차이 체감
-- [ ] Mediator 패턴의 장점 이해
+- [x] MediatR IRequest, IRequestHandler 이해 ✅
+- [x] Command와 Query의 차이 체감 ✅
+- [x] Mediator 패턴의 장점 이해 ✅
 
 **Pipeline Behavior**:
 - [ ] ValidationBehavior 동작 원리
@@ -856,6 +856,6 @@ Step 1-7 완료 후 도전:
 
 ---
 
-**마지막 업데이트**: 2025-11-19 (초기 생성)
-**완료 Step**: 0/7
+**마지막 업데이트**: 2025-11-19 (Step 1 완료)
+**완료 Step**: 1/7 (14%)
 **다음 세션 시작 시**: "현재 상태" 섹션부터 읽기
