@@ -1,24 +1,13 @@
 {
   "permissions": {
     "allow": [
-      "Bash(dotnet tool install:*)",
-      "Bash(dotnet ef:*)",
-      "Bash(dotnet tool restore:*)",
-      "Bash(\"D:\\Proj\\IdleGameServer\\.claude\\memories\\specs\\ef-core-migrations\\work-log.md\")",
-      "Bash(cd:*)",
-      "Bash(git remote set-url:*)",
-      "Bash(git add:*)",
-      "Bash(git commit:*)",
-      "Bash(git push:*)",
-      "Bash(dotnet test:*)",
-      "Bash(mkdir:*)",
-      "Bash(dotnet add package:*)",
-      "Bash(dotnet build:*)",
-      "Bash(docker-compose up:*)",
-      "Bash($env:ASPNETCORE_ENVIRONMENT=\"Development\")",
-      "Bash(psql:*)",
-      "Bash(Select-String -Pattern \"Program.cs\")",
-      "Bash(timeout 3 dotnet run:*)"
+      "Bash(gemini:*)",
+      "mcp__zen__listmodels",
+      "mcp__zen__chat",
+      "SlashCommand(/roadmap)",
+      "Bash(find:*)",
+      "mcp__zen__consensus",
+      "Bash(nul)"
     ],
     "deny": [],
     "ask": []

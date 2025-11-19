@@ -25,6 +25,11 @@ builder.Services.AddMiniProfiler(options =>
 }).AddEntityFramework();
 
 builder.Services.AddControllers();
+
+// MediatR 등록 (Command/Query Handler 자동 스캔)
+builder.Services.AddMediatR(cfg =>
+    cfg.RegisterServicesFromAssembly(typeof(IdleRPG.Application.AssemblyMarker).Assembly));
+
 // JWT 설정 바인딩
 builder.Services.Configure<JwtSettings>(
     builder.Configuration.GetSection("Jwt"));
