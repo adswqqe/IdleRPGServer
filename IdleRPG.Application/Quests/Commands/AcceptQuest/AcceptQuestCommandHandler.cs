@@ -1,3 +1,5 @@
+using IdleRPG.Application.Interfaces;
+using IdleRPG.Domain.Entities;
 using MediatR;
 using Microsoft.Extensions.Logging;
 
@@ -9,57 +11,49 @@ namespace IdleRPG.Application.Quests.Commands.AcceptQuest;
 /// <remarks>
 /// Handler의 책임:
 /// 1. Command에 담긴 의도를 해석하고 실행
-/// 2. 비즈니스 로직 처리
+/// 2. 비즈니스 로직 처리 (DB 저장)
 /// 3. 결과 반환
-///
-/// Step 2에서는 로그만 출력합니다.
-/// Step 3에서 실제 DB 저장 로직을 추가합니다.
 /// </remarks>
 public class AcceptQuestCommandHandler : IRequestHandler<AcceptQuestCommand, AcceptQuestResult>
 {
+    private readonly IUnitOfWork _unitOfWork;
     private readonly ILogger<AcceptQuestCommandHandler> _logger;
 
     /// <summary>
     /// 생성자 - 의존성 주입
+    /// IUnitOfWork를 통해 Repository와 트랜잭션에 접근합니다.
     /// </summary>
-    /// <remarks>
-    /// MediatR이 Handler를 실행할 때, DI 컨테이너에서
-    /// ILogger를 자동으로 주입합니다.
-    ///
-    /// Step 3에서 IUnitOfWork도 여기에 추가됩니다:
-    /// public AcceptQuestCommandHandler(IUnitOfWork unitOfWork, ILogger logger)
-    /// </remarks>
-    public AcceptQuestCommandHandler(ILogger<AcceptQuestCommandHandler> logger)
+    public AcceptQuestCommandHandler(
+        IUnitOfWork unitOfWork,
+        ILogger<AcceptQuestCommandHandler> logger)
     {
+        _unitOfWork = unitOfWork;
         _logger = logger;
     }
 
     /// <summary>
     /// Command를 처리하는 핵심 메서드
     /// </summary>
-    /// <param name="request">AcceptQuestCommand (CharacterId, QuestTemplateId 포함)</param>
-    /// <param name="cancellationToken">취소 토큰</param>
-    /// <returns>AcceptQuestResult (성공 여부, 퀘스트 ID, 메시지)</returns>
-    public Task<AcceptQuestResult> Handle(
+    public async Task<AcceptQuestResult> Handle(
         AcceptQuestCommand request,
         CancellationToken cancellationToken)
     {
-        // Step 2: 로그 출력만 수행
-        // Step 3에서 실제 DB 저장 로직으로 대체됩니다
-        _logger.LogInformation(
-            "🎯 Quest {QuestTemplateId} accepted by Character {CharacterId}",
-            request.QuestTemplateId,
-            request.CharacterId);
+        var quest = new Quest()
+        {
+            Id = Guid.NewGuid(),
+            CharacterId = request.CharacterId,
+            QuestTemplateId = request.QuestTemplateId,
+            Status = QuestStatus.InProgress,
+            AcceptedAt = DateTime.UtcNow,
+        };
 
-        // 임시 ID 생성 (Step 3에서 실제 DB 저장 후 반환)
-        var tempQuestId = Guid.NewGuid();
+        await _unitOfWork.Quests.AddAsync(quest);
 
-        var result = new AcceptQuestResult(
-            Success: true,
-            QuestId: tempQuestId,
-            Message: $"Quest {request.QuestTemplateId} accepted successfully!"
-        );
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-        return Task.FromResult(result);
+        _logger.LogInformation("🎯 Quest {QuestId} created for Character {CharacterId}",
+            quest.Id, request.CharacterId);
+
+        return new AcceptQuestResult(true, quest.Id, "Quest accepted successfully!");
     }
 }

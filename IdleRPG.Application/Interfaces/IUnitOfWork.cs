@@ -133,6 +133,11 @@ namespace IdleRPG.Application.Interfaces
         IPvpMatchRepository PvpMatches { get; }
 
         /// <summary>
+        /// 퀘스트 Repository (CQRS Tutorial - Step 3)
+        /// </summary>
+        IQuestRepository Quests { get; }
+
+        /// <summary>
         /// 변경사항을 데이터베이스에 저장 (트랜잭션 커밋)
         /// </summary>
         /// <returns>영향받은 행 수</returns>

@@ -39,6 +39,7 @@ namespace IdleRPG.Infrastructure.UnitOfWork
         private IPvpSeasonRepository? _pvpSeasons;
         private IPvpRankingRepository? _pvpRankings;
         private IPvpMatchRepository? _pvpMatches;
+        private IQuestRepository? _quests;
 
         public UnitOfWork(GameDBContext context)
         {
@@ -417,6 +418,21 @@ namespace IdleRPG.Infrastructure.UnitOfWork
                     _pvpMatches = new PvpMatchRepository(_context);
                 }
                 return _pvpMatches;
+            }
+        }
+
+        /// <summary>
+        /// 퀘스트 Repository (Lazy 초기화) - CQRS Tutorial Step 3
+        /// </summary>
+        public IQuestRepository Quests
+        {
+            get
+            {
+                if (_quests == null)
+                {
+                    _quests = new QuestRepository(_context);
+                }
+                return _quests;
             }
         }
 

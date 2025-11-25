@@ -53,6 +53,9 @@ public class GameDBContext : DbContext
     public DbSet<PvpRanking> PvpRankings { get; set; }
     public DbSet<PvpMatch> PvpMatches { get; set; }
 
+    // Quest System (CQRS Tutorial - Step 3)
+    public DbSet<Quest> Quests { get; set; }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
