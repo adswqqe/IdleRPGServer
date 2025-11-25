@@ -126,12 +126,12 @@
 **시작일**: 2025-11-19
 **마지막 업데이트**: 2025-11-25
 
-**현재 진행 중인 Step**: Step 5 (FluentValidation 추가)
-**완료한 Step**: Step 1 ✅, Step 2 ✅, Step 3 ✅, Step 4 ✅
-**현재 Git 태그**: step-4-complete
-**다음 할 일**: Step 5 시작 (FluentValidation - 검증 로직 분리)
+**현재 진행 중인 Step**: Step 6 (Domain Event)
+**완료한 Step**: Step 1 ✅, Step 2 ✅, Step 3 ✅, Step 4 ✅, Step 5 ✅
+**현재 Git 태그**: step-5-complete
+**다음 할 일**: Step 6 시작 (Domain Events - 느슨한 결합)
 
-**총 진행률**: 4/7 Steps (57%) 🎯
+**총 진행률**: 5/7 Steps (71%) 🎯
 
 > 💡 **중요**: 각 Step 완료 시 반드시 Git 커밋 + 태그를 생성하세요!
 > 이는 컨텍스트 초기화 후 정확한 코드 상태 파악을 위한 필수 조건입니다.
@@ -168,8 +168,8 @@
 - [x] MediatR 기본 (Command/Query 패턴) ✅ Step 1 완료
 - [x] Command + DB 연동 (Repository/UnitOfWork) ✅ Step 3 완료
 - [x] CQRS 구조 (읽기/쓰기 분리) ✅ Step 4 완료
-- [ ] Pipeline Behavior (횡단 관심사 자동화)
-- [ ] FluentValidation (검증 로직 분리)
+- [x] Pipeline Behavior (횡단 관심사 자동화) ✅ Step 5 완료
+- [x] FluentValidation (검증 로직 분리) ✅ Step 5 완료
 - [ ] Domain Events (이벤트 기반 아키텍처)
 - [ ] Clean Architecture 통합
 
@@ -432,17 +432,16 @@ IdleRPG.Application/
 
 ---
 
-### **Step 5: FluentValidation 추가** ⏱️ 20분
+### **Step 5: FluentValidation 추가** ⏱️ 20분 ✅ **완료!**
 
 **목표**: 검증 로직을 Handler에서 분리
 
 **작업 체크리스트**:
-- [ ] FluentValidation NuGet 패키지 설치 (2개)
-- [ ] `Program.cs`에 FluentValidation 등록
-- [ ] `AcceptQuestCommandValidator.cs` 작성
-- [ ] `ValidationBehavior.cs` 작성 (Pipeline)
-- [ ] `Program.cs`에 ValidationBehavior 등록
-- [ ] Swagger 테스트 (잘못된 요청 → 자동 검증)
+- [x] FluentValidation NuGet 패키지 설치 (2개)
+- [x] `ValidationBehavior.cs` 작성 (Pipeline)
+- [x] `AcceptQuestCommandValidator.cs` 작성 - **TODO(human) 직접 구현!**
+- [x] `Program.cs`에 FluentValidation + ValidationBehavior 등록
+- [ ] Swagger 테스트 (배포 후)
 
 **생성할 파일**:
 ```
@@ -477,25 +476,16 @@ dotnet add package FluentValidation.DependencyInjectionExtensions --version 11.9
 2. 에러 응답 확인: "CharacterId is required", "QuestTemplateId must be greater than 0"
 
 **✅ 완료 조건**:
-1. [ ] Validation 에러 자동 발생 확인
-2. [ ] Git 커밋
-   ```bash
-   git add .
-   git commit -m "feat: Complete Step 5 - FluentValidation Integration
-
-   - Install FluentValidation packages
-   - Add AcceptQuestCommandValidator
-   - Implement ValidationBehavior (Pipeline)
-   - Register in Program.cs
-   - Test: Auto validation on invalid requests"
-   ```
-3. [ ] Git 태그 생성: `git tag step-5-complete`
-4. [ ] 문서 "현재 상태" 업데이트
+1. [ ] Validation 에러 자동 발생 확인 (배포 후 테스트)
+2. [x] Git 커밋
+3. [x] Git 태그 생성: `git tag step-5-complete`
+4. [x] 문서 "현재 상태" 업데이트
 
 **학습 포인트**:
 - **Pipeline Behavior**: 모든 Request에 자동 적용
 - 횡단 관심사(Cross-Cutting Concerns) 처리
 - 검증 로직 완전 분리
+- Handler 수가 많아질수록 Pipeline의 가치 증가
 
 ---
 
