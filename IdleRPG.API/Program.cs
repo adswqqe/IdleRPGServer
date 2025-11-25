@@ -10,6 +10,8 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Text;
 using FluentValidation;
+using IdleRPG.Application.Common.Behaviors;
+using MediatR;
 
 // Npgsql DateTime 처리 설정 (UTC DateTime을 timestamp without time zone에 허용)
 AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
@@ -28,7 +30,16 @@ builder.Services.AddControllers();
 
 // MediatR 등록 (Command/Query Handler 자동 스캔)
 builder.Services.AddMediatR(cfg =>
-    cfg.RegisterServicesFromAssembly(typeof(IdleRPG.Application.AssemblyMarker).Assembly));
+{
+    cfg.RegisterServicesFromAssembly(typeof(IdleRPG.Application.AssemblyMarker).Assembly);
+
+    // Pipeline Behavior 등록 - 모든 요청이 이 파이프라인을 통과
+    // 순서: ValidationBehavior → Handler
+    cfg.AddBehavior(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
+});
+
+// FluentValidation 등록 - Application 어셈블리의 모든 Validator 자동 스캔
+builder.Services.AddValidatorsFromAssembly(typeof(IdleRPG.Application.AssemblyMarker).Assembly);
 
 // JWT 설정 바인딩
 builder.Services.Configure<JwtSettings>(
