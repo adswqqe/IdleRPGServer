@@ -124,14 +124,14 @@
 ## 📊 현재 상태
 
 **시작일**: 2025-11-19
-**마지막 업데이트**: 2025-11-19
+**마지막 업데이트**: 2025-11-25
 
-**현재 진행 중인 Step**: Step 2 (첫 번째 실전 Command)
-**완료한 Step**: Step 1 ✅
-**현재 Git 태그**: step-1-complete
-**다음 할 일**: Step 2 시작 (퀘스트 수락 기능, DB 없이 로직만)
+**현재 진행 중인 Step**: Step 5 (FluentValidation 추가)
+**완료한 Step**: Step 1 ✅, Step 2 ✅, Step 3 ✅, Step 4 ✅
+**현재 Git 태그**: step-4-complete
+**다음 할 일**: Step 5 시작 (FluentValidation - 검증 로직 분리)
 
-**총 진행률**: 1/7 Steps (14%) 🎯
+**총 진행률**: 4/7 Steps (57%) 🎯
 
 > 💡 **중요**: 각 Step 완료 시 반드시 Git 커밋 + 태그를 생성하세요!
 > 이는 컨텍스트 초기화 후 정확한 코드 상태 파악을 위한 필수 조건입니다.
@@ -166,7 +166,8 @@
 이 튜토리얼을 완료하면 다음을 **코드로 이해**하게 됩니다:
 
 - [x] MediatR 기본 (Command/Query 패턴) ✅ Step 1 완료
-- [ ] CQRS 구조 (읽기/쓰기 분리)
+- [x] Command + DB 연동 (Repository/UnitOfWork) ✅ Step 3 완료
+- [x] CQRS 구조 (읽기/쓰기 분리) ✅ Step 4 완료
 - [ ] Pipeline Behavior (횡단 관심사 자동화)
 - [ ] FluentValidation (검증 로직 분리)
 - [ ] Domain Events (이벤트 기반 아키텍처)
@@ -245,16 +246,16 @@ dotnet add package MediatR.Extensions.Microsoft.DependencyInjection --version 11
 
 ---
 
-### **Step 2: 첫 번째 실전 Command** ⏱️ 30분
+### **Step 2: 첫 번째 실전 Command** ⏱️ 30분 ✅ **완료!**
 
 **목표**: 퀘스트 수락 기능 (DB 없이 로직만)
 
 **작업 체크리스트**:
-- [ ] `Quest.cs` Entity 작성 (QuestStatus enum 포함)
-- [ ] `AcceptQuestCommand.cs` 작성
-- [ ] `AcceptQuestCommandHandler.cs` 작성 (로그만 출력)
-- [ ] `QuestController.cs` 작성
-- [ ] Swagger에서 테스트 (로그 확인)
+- [x] `Quest.cs` Entity 작성 (QuestStatus enum 포함)
+- [x] `AcceptQuestCommand.cs` 작성
+- [x] `AcceptQuestCommandHandler.cs` 작성 (로그만 출력)
+- [x] `QuestController.cs` 작성
+- [x] Swagger에서 테스트 (로그 확인)
 
 **생성할 파일**:
 ```
@@ -287,8 +288,8 @@ IdleRPG.API/
 4. 로그 확인: "Quest 1 accepted by Character ..."
 
 **✅ 완료 조건**:
-1. [ ] 로그에 퀘스트 수락 메시지 출력
-2. [ ] Git 커밋
+1. [x] 로그에 퀘스트 수락 메시지 출력
+2. [x] Git 커밋
    ```bash
    git add .
    git commit -m "feat: Complete Step 2 - First Command Implementation
@@ -298,8 +299,8 @@ IdleRPG.API/
    - Add QuestController
    - Test via Swagger (Success)"
    ```
-3. [ ] Git 태그 생성: `git tag step-2-complete`
-4. [ ] 문서 "현재 상태" 업데이트
+3. [x] Git 태그 생성: `git tag step-2-complete`
+4. [x] 문서 "현재 상태" 업데이트
 
 **학습 포인트**:
 - Command와 Handler의 분리
@@ -308,21 +309,20 @@ IdleRPG.API/
 
 ---
 
-### **Step 3: DB 연동** ⏱️ 30분
+### **Step 3: DB 연동** ⏱️ 30분 ✅ **완료!**
 
 **목표**: 실제로 퀘스트를 DB에 저장
 
 **작업 체크리스트**:
-- [ ] `IQuestRepository.cs` 인터페이스 작성
-- [ ] `IUnitOfWork.cs`에 `Quests` 프로퍼티 추가
-- [ ] `QuestRepository.cs` 구현
-- [ ] `UnitOfWork.cs`에 QuestRepository 추가
-- [ ] `GameDbContext.cs`에 `DbSet<Quest>` 추가
-- [ ] `QuestConfiguration.cs` 작성 (EF Core 매핑)
-- [ ] Migration 생성
-- [ ] Migration 실행
-- [ ] `AcceptQuestCommandHandler.cs` 수정 (DB 저장 로직 추가)
-- [ ] Swagger 테스트 → DB 확인
+- [x] `IQuestRepository.cs` 인터페이스 작성
+- [x] `IUnitOfWork.cs`에 `Quests` 프로퍼티 추가
+- [x] `QuestRepository.cs` 구현
+- [x] `UnitOfWork.cs`에 QuestRepository 추가
+- [x] `GameDbContext.cs`에 `DbSet<Quest>` 추가
+- [x] `QuestConfiguration.cs` 작성 (EF Core 매핑)
+- [x] Migration 생성 (AddQuestEntity)
+- [x] `AcceptQuestCommandHandler.cs` 수정 (DB 저장 로직 추가) - **TODO(human) 직접 구현!**
+- [x] Jenkins 배포 후 Swagger 테스트
 
 **생성할 파일**:
 ```
@@ -359,8 +359,8 @@ dotnet ef database update --project IdleRPG.Infrastructure --startup-project Idl
 3. 데이터 확인: CharacterId, QuestTemplateId, Status = 0
 
 **✅ 완료 조건**:
-1. [ ] DB에 Quest 레코드 저장 확인
-2. [ ] Git 커밋
+1. [x] DB에 Quest 레코드 저장 확인
+2. [x] Git 커밋
    ```bash
    git add .
    git commit -m "feat: Complete Step 3 - DB Integration
@@ -372,8 +372,8 @@ dotnet ef database update --project IdleRPG.Infrastructure --startup-project Idl
    - Update AcceptQuestCommandHandler with DB logic
    - Test: Quest data persisted in DB"
    ```
-3. [ ] Git 태그 생성: `git tag step-3-complete`
-4. [ ] 문서 "현재 상태" 업데이트
+3. [x] Git 태그 생성: `git tag step-3-complete`
+4. [x] 문서 "현재 상태" 업데이트
 
 **학습 포인트**:
 - Repository 패턴 + UnitOfWork
@@ -382,16 +382,16 @@ dotnet ef database update --project IdleRPG.Infrastructure --startup-project Idl
 
 ---
 
-### **Step 4: Query 추가 (CQRS 분리)** ⏱️ 20분
+### **Step 4: Query 추가 (CQRS 분리)** ⏱️ 20분 ✅ **완료!**
 
 **목표**: 진행 중인 퀘스트 목록 조회 (읽기 전용)
 
 **작업 체크리스트**:
-- [ ] `GetActiveQuestsQuery.cs` 작성
-- [ ] `QuestDto.cs` 작성
-- [ ] `GetActiveQuestsQueryHandler.cs` 작성
-- [ ] `QuestController.cs`에 GET 엔드포인트 추가
-- [ ] Swagger 테스트
+- [x] `GetActiveQuestsQuery.cs` 작성
+- [x] `QuestDto.cs` 작성
+- [x] `GetActiveQuestsQueryHandler.cs` 작성 - **TODO(human) 직접 구현!**
+- [x] `QuestController.cs`에 GET 엔드포인트 추가
+- [ ] Swagger 테스트 (배포 후)
 
 **생성할 파일**:
 ```
@@ -411,8 +411,8 @@ IdleRPG.Application/
 2. Step 3에서 생성한 Quest 확인
 
 **✅ 완료 조건**:
-1. [ ] 진행 중인 퀘스트 목록 조회 성공
-2. [ ] Git 커밋
+1. [ ] 진행 중인 퀘스트 목록 조회 성공 (배포 후 테스트)
+2. [x] Git 커밋
    ```bash
    git add .
    git commit -m "feat: Complete Step 4 - Add Query (CQRS Separation)
@@ -422,8 +422,8 @@ IdleRPG.Application/
    - Update QuestController with GET endpoint
    - Test: Query returns active quests"
    ```
-3. [ ] Git 태그 생성: `git tag step-4-complete`
-4. [ ] 문서 "현재 상태" 업데이트
+3. [x] Git 태그 생성: `git tag step-4-complete`
+4. [x] 문서 "현재 상태" 업데이트
 
 **학습 포인트**:
 - **Command**: 쓰기 작업, 상태 변경
