@@ -1,0 +1,59 @@
+# ⚠️ 이 파일은 템플릿입니다. 실제 사용 시:
+# 1. 이 파일을 docker-compose.prod.yml로 복사
+# 2. .env.production 파일 생성 및 실제 값 입력
+# 3. docker-compose.prod.yml은 Git에 커밋하지 마세요!
+
+services:
+  # ======================================
+  # API 서버 (IdleRPG Backend)
+  # ======================================
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: idlerpg-api
+    ports:
+      - "5172:5172"      # HTTP
+    environment:
+      ASPNETCORE_ENVIRONMENT: "Production"
+      ASPNETCORE_URLS: "http://+:5172"
+      ConnectionStrings__DefaultConnection: "Host=${DB_HOST};Database=${DB_NAME};Username=${DB_USER};Password=${DB_PASSWORD};Port=${DB_PORT}"
+      Jwt__SecretKey: "${JWT_SECRET_KEY}"
+      Redis__Password: "${REDIS_PASSWORD}"
+    env_file:
+      - .env.production
+    depends_on:
+      - redis
+    restart: unless-stopped
+    networks:
+      - idlerpg-network
+
+  # ======================================
+  # Redis (캐싱 및 세션 관리)
+  # ======================================
+  redis:
+    image: redis:7-alpine
+    container_name: idlerpg-redis
+    # ⚠️ 외부 노출 제거 - 내부 네트워크만 사용
+    expose:
+      - "6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD}
+    restart: unless-stopped
+    networks:
+      - idlerpg-network
+
+# ======================================
+# 볼륨 정의
+# ======================================
+volumes:
+  redis_data:
+    driver: local
+
+# ======================================
+# 네트워크 정의
+# ======================================
+networks:
+  idlerpg-network:
+    driver: bridge

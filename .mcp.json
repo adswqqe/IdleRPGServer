@@ -1,0 +1,16 @@
+{
+  "mcpServers": {
+    "project-filesystem": {
+      "type": "stdio",
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-filesystem"
+      ],
+      "env": {
+        "ACCESS_DIRS": "./IdleRPG.API,./IdleRPG.Application,./IdleRPG.Domain,./IdleRPG.Infrastructure,./Documentation,./claude-configs"
+      },
+      "description": "프로젝트 파일 접근"
+    }
+  }
+}

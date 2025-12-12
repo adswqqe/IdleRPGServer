@@ -1,0 +1,343 @@
+{
+  "master": {
+    "tasks": [
+      {
+        "id": 1,
+        "title": "프로젝트 초기 설정 및 기본 구조 구축",
+        "description": "Node.js, TypeScript, Express를 사용하여 Idle RPG 서버의 기본 프로젝트 구조를 설정하고, 상태 확인을 위한 기본 엔드포인트를 구현합니다.",
+        "details": "이 작업은 프로젝트의 기반을 마련합니다. `package.json` 분석 결과, Express와 TypeScript가 이미 설정되어 있습니다. 이 구조를 바탕으로 초기 설정을 완료합니다.\n1. `npm install`을 실행하여 `package.json`에 명시된 의존성(express, typescript 등)을 모두 설치합니다.\n2. `src/` 디렉토리 내에 서버의 메인 로직을 담을 `server.ts`와 서버를 실행시킬 `index.ts` 파일을 생성합니다. (`E:\\StudyGameProj\\IdleRPGServer\\src\\` 경로 확인)\n3. `server.ts` 파일에서 Express 애플리케이션 인스턴스를 생성하고 export하는 함수 `createServer()`를 구현합니다. 이 함수는 기본적인 미들웨어(예: `express.json()`)를 포함해야 합니다.\n4. 서버의 상태를 확인할 수 있도록 `/health` GET 엔드포인트를 추가합니다. 이 엔드포인트는 `200 OK` 상태 코드와 `{ status: 'ok' }` JSON 응답을 반환해야 합니다.\n5. `index.ts` 파일에서 `server.ts`의 `createServer()` 함수를 import하고, 환경 변수 또는 기본값으로 포트를 설정하여 서버를 시작하는 로직을 구현합니다.\n6. `tsconfig.json` 파일에서 컴파일 옵션(예: `\"outDir\": \"./dist\"`, `\"rootDir\": \"./src\"`)이 올바르게 설정되었는지 확인합니다.\n7. `package.json`의 `scripts`에 `\"start\": \"node dist/index.js\"`, `\"build\": \"tsc\"`, `\"dev\": \"ts-node-dev --respawn src/index.ts\"` 와 같은 실행 스크립트를 정의하여 개발 및 배포 편의성을 확보합니다.",
+        "testStrategy": "1. 터미널에서 `npm run dev` 명령어를 실행하여 개발 서버가 오류 없이 시작되는지 확인합니다.\n2. 웹 브라우저나 Postman과 같은 API 테스트 도구를 사용하여 `http://localhost:3000/health` (포트는 설정에 따라 다를 수 있음)로 GET 요청을 보냅니다.\n3. 응답 상태 코드가 `200`이고, 응답 본문이 `{\"status\":\"ok\"}` JSON 객체와 일치하는지 확인합니다.\n4. `npm run build` 명령어를 실행하여 `src` 디렉토리의 TypeScript 파일들이 `dist` 디렉토리에 JavaScript 파일로 성공적으로 컴파일되는지 확인합니다.\n5. `npm start` 명령어를 실행하여 컴파일된 파일로 서버가 정상적으로 구동되는지 확인하고, 다시 한번 `/health` 엔드포인트를 테스트합니다.",
+        "status": "pending",
+        "dependencies": [],
+        "priority": "medium",
+        "subtasks": []
+      },
+      {
+        "id": 2,
+        "title": "Define SkillRarity and SkillType Enums",
+        "description": "Create the enumerations for skill rarity (Common, Rare, Epic, Legendary) and skill type (e.g., Active, Passive) in the Domain layer.",
+        "details": "In the `IdleGameServer.Domain` project, create a new folder `Enums`. Inside, create `SkillRarity.cs` and `SkillType.cs`. These enums will be used throughout the gacha system, especially in the Skill entity.",
+        "testStrategy": "No specific tests required for enums, but they will be validated by their usage in other components' tests.",
+        "priority": "high",
+        "dependencies": [],
+        "status": "done",
+        "subtasks": []
+      },
+      {
+        "id": 3,
+        "title": "Extend SkillTemplate Entity with Description and Type",
+        "description": "Extend the existing `SkillTemplate` entity, which serves as the master template for all skills. It needs additional properties to fully define a skill's behavior and information, as the original concept of a 'Skill' entity is already implemented as `SkillTemplate.cs`.",
+        "status": "done",
+        "dependencies": [
+          2
+        ],
+        "priority": "high",
+        "details": "Based on the existing architecture, the `SkillTemplate` entity in `IdleGameServer.Domain/Entities/SkillTemplate.cs` needs to be expanded.\n\n1.  **Create Enum:** In the `IdleGameServer.Domain/Enums` directory, create a new file `SkillType.cs` to define the `SkillType` enum. Example values could include `Active`, `Passive`, `Aura`.\n    ```csharp\n    // IdleGameServer.Domain/Enums/SkillType.cs\n    namespace IdleGameServer.Domain.Enums;\n\n    public enum SkillType\n    {\n        Active,\n        Passive,\n        Aura\n    }\n    ```\n2.  **Update Entity:** Modify `IdleGameServer.Domain/Entities/SkillTemplate.cs` to add the new properties:\n    - `Description` (string)\n    - `Type` (SkillType)\n\nThe `SkillTemplate` entity already contains `Id` (from its base class), `Name`, and `Rarity`. This change will complete its definition.",
+        "testStrategy": "Entity property validation will be covered by EF Core model configuration tests and integration tests.",
+        "subtasks": []
+      },
+      {
+        "id": 4,
+        "title": "Define PlayerSkill Entity",
+        "description": "Create the `PlayerSkill` entity to represent the link between a player and a skill they own.",
+        "details": "In `IdleGameServer.Domain/Entities`, create `PlayerSkill.cs`. This will be a join table entity. It should contain `PlayerId`, `SkillId`, and `Level` (int). Define navigation properties back to `Player` and `Skill`.",
+        "testStrategy": "Database relationship integrity will be tested via integration tests that add skills to a player.",
+        "priority": "high",
+        "dependencies": [
+          3
+        ],
+        "status": "done",
+        "subtasks": []
+      },
+      {
+        "id": 5,
+        "title": "Define GachaPool Entity",
+        "description": "Create the `GachaPool` entity to define the items available in a specific gacha banner.",
+        "details": "In `IdleGameServer.Domain/Entities`, create `GachaPool.cs`. This entity will link a gacha banner/pool (e.g., 'StandardSkillGacha') to a specific skill and its draw weight/probability. Properties should include `Id`, `PoolName` (string), `SkillId` (int), and `Weight` (int or double).",
+        "testStrategy": "Correct loading and interpretation of this data will be tested in the `GachaService` unit tests.",
+        "priority": "high",
+        "dependencies": [
+          3
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 6,
+        "title": "Define Gacha-related Repository Interfaces",
+        "description": "Define the contracts for data access in the Domain layer for all new entities.",
+        "details": "In the `IdleGameServer.Domain/Interfaces` (or equivalent) folder, create `ISkillRepository.cs`, `IPlayerSkillRepository.cs`, and `IGachaRepository.cs`. These interfaces should define methods for CRUD operations, such as `GetByIdAsync`, `AddAsync`, and any specific query methods needed (e.g., `GetPoolByNameAsync` for `IGachaRepository`).",
+        "testStrategy": "Interfaces themselves are not tested, but their implementations will be.",
+        "priority": "high",
+        "dependencies": [],
+        "status": "done",
+        "subtasks": []
+      },
+      {
+        "id": 7,
+        "title": "Add New DbSets to AppDbContext",
+        "description": "Update the application's DbContext to include the new entities.",
+        "details": "In the `IdleGameServer.Infrastructure/Data/AppDbContext.cs` file, add `DbSet<Skill> Skills { get; set; }`, `DbSet<PlayerSkill> PlayerSkills { get; set; }`, and `DbSet<GachaPool> GachaPools { get; set; }`.",
+        "testStrategy": "Successful migration creation will serve as an initial validation. Further validation in integration tests.",
+        "priority": "high",
+        "dependencies": [
+          3,
+          4,
+          5
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 8,
+        "title": "Configure New Entities in AppDbContext",
+        "description": "Use the Fluent API to configure relationships, keys, and constraints for the new entities.",
+        "details": "In `AppDbContext.cs`, override the `OnModelCreating` method. Add configurations for `Skill`, `PlayerSkill`, and `GachaPool`. Define primary keys, foreign keys (e.g., `PlayerSkill` to `Player` and `Skill`), and any indexes or constraints needed (e.g., a unique constraint on `PlayerSkill` for `PlayerId` and `SkillId`).",
+        "testStrategy": "A successful database migration is the primary test. Integration tests will confirm relationship behavior.",
+        "priority": "high",
+        "dependencies": [
+          7
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 9,
+        "title": "Create EF Core Migration for Gacha Schema",
+        "description": "Generate a new database migration script based on the DbContext changes.",
+        "details": "Using the .NET CLI or Package Manager Console, run the `dotnet ef migrations add AddGachaSystem` command. Verify that the generated migration script correctly creates the `Skills`, `PlayerSkills`, and `GachaPools` tables with the right columns and constraints.",
+        "testStrategy": "Review the generated migration file for correctness. Apply the migration to a local development database to ensure it runs without errors.",
+        "priority": "high",
+        "dependencies": [
+          8
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 10,
+        "title": "Add Currency Property to Player Entity",
+        "description": "Add a 'Crystals' property to the existing Player entity to be used as currency for gacha.",
+        "details": "Locate the `Player.cs` entity in the `IdleGameServer.Domain` project. Add a new property: `public long Crystals { get; set; }`. After adding the property, generate a new EF Core migration (`AddCrystalsToPlayer`) and apply it to the database.",
+        "testStrategy": "Verify the new column is added to the `Players` table after applying the migration. Integration tests for gacha will confirm it can be read and updated.",
+        "priority": "high",
+        "dependencies": [],
+        "status": "done",
+        "subtasks": []
+      },
+      {
+        "id": 11,
+        "title": "Implement SkillRepository",
+        "description": "Create the concrete implementation of the ISkillRepository interface.",
+        "details": "In the `IdleGameServer.Infrastructure/Repositories` folder, create `SkillRepository.cs`. Implement the methods defined in `ISkillRepository` using the `AppDbContext` to query the `Skills` table.",
+        "testStrategy": "Unit test repository methods with an in-memory database or mock DbContext. Integration tests will cover real database interaction.",
+        "priority": "medium",
+        "dependencies": [
+          6,
+          7
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 12,
+        "title": "Implement PlayerSkillRepository",
+        "description": "Create the concrete implementation of the IPlayerSkillRepository interface.",
+        "details": "In `IdleGameServer.Infrastructure/Repositories`, create `PlayerSkillRepository.cs`. Implement methods for adding new skills to a player's inventory and querying their existing skills.",
+        "testStrategy": "Unit test repository methods with an in-memory database or mock DbContext. Integration tests will cover real database interaction.",
+        "priority": "medium",
+        "dependencies": [
+          6,
+          7
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 13,
+        "title": "Implement GachaRepository",
+        "description": "Create the implementation for IGachaRepository to load gacha pool data.",
+        "details": "In `IdleGameServer.Infrastructure/Repositories`, create `GachaRepository.cs`. Implement the `GetPoolByNameAsync` method. The data can be loaded from a dedicated `gacha-pools.json` file in the project (read on startup and cached) or from the `GachaPools` table in the database.",
+        "testStrategy": "Unit test the repository to ensure it correctly parses the JSON file or queries the database and constructs the `GachaPool` objects.",
+        "priority": "medium",
+        "dependencies": [
+          6,
+          7
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 14,
+        "title": "Create Data Seeding Logic for Skills and Gacha Pools",
+        "description": "Populate the database with initial skill and gacha probability data.",
+        "details": "Create a seeder class or use EF Core's `HasData` method in `OnModelCreating`. Define a set of initial skills (e.g., 10-20 skills across different rarities) and configure the 'StandardSkillGacha' pool in the `GachaPools` table, assigning weights to each skill.",
+        "testStrategy": "Run the application and verify that the `Skills` and `GachaPools` tables are populated with the correct initial data.",
+        "priority": "medium",
+        "dependencies": [
+          9,
+          11,
+          13
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 15,
+        "title": "Implement GachaService Domain Service",
+        "description": "Create the core domain service responsible for performing the weighted random draw.",
+        "details": "In `IdleGameServer.Domain/Services`, create `GachaService.cs`. This service will have a method like `DrawSkills(IEnumerable<GachaPoolItem> pool, int count)`. The method will take a gacha pool and the number of items to draw, and return a list of selected `Skill` entities based on their weights.",
+        "testStrategy": "This service is critical and must be unit tested thoroughly. See Task 16.",
+        "priority": "high",
+        "dependencies": [
+          5,
+          6
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 16,
+        "title": "Unit Test GachaService Probability Logic",
+        "description": "Write comprehensive unit tests for the GachaService to ensure its correctness.",
+        "details": "Create a test project for the Domain layer if one doesn't exist. Write tests for `GachaService`. Mock the gacha pool data. Run a large number of draws (e.g., 1,000,000) and assert that the distribution of results is within an acceptable tolerance of the defined weights/probabilities. Test edge cases like an empty pool or drawing zero items.",
+        "testStrategy": "Use a statistical approach to verify probability distribution. For a skill with 10% probability, after 1M draws, the result count should be close to 100,000.",
+        "priority": "high",
+        "dependencies": [
+          15
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 17,
+        "title": "Define Application Layer DTOs and Commands",
+        "description": "Create the Command and DTO objects for the gacha feature in the Application layer.",
+        "details": "In the `IdleGameServer.Application` project, create `PerformGachaCommand.cs` which will contain `PlayerId` and `DrawCount`. Also create `GachaResultDto.cs` which will contain a list of the acquired skills (e.g., `List<SkillDto>`). Create a `SkillDto` to represent a simplified view of a skill for the client.",
+        "testStrategy": "These are data structures; their validation is implicit in the integration tests of the application service.",
+        "priority": "high",
+        "dependencies": [],
+        "status": "done",
+        "subtasks": []
+      },
+      {
+        "id": 18,
+        "title": "Define IPlayerCurrencyService Interface",
+        "description": "Define an interface to abstract currency operations, promoting loose coupling.",
+        "details": "In the `IdleGameServer.Application/Common/Interfaces` folder, create `IPlayerCurrencyService.cs`. It should define methods like `Task<bool> HasSufficientCurrencyAsync(string playerId, long amount)` and `Task DeductCurrencyAsync(string playerId, long amount)`.",
+        "testStrategy": "Interface is not tested directly. Its implementation will be tested.",
+        "priority": "medium",
+        "dependencies": [],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 19,
+        "title": "Implement PlayerCurrencyService",
+        "description": "Create a concrete implementation of the IPlayerCurrencyService.",
+        "details": "In a suitable folder within the `IdleGameServer.Application` project, create `PlayerCurrencyService.cs`. This service will use the `IPlayerRepository` (via `IUnitOfWork`) to fetch player data, check their crystal balance, and update it.",
+        "testStrategy": "Unit test the service logic with a mocked `IUnitOfWork` and `IPlayerRepository` to verify correct balance checking and deduction logic.",
+        "priority": "medium",
+        "dependencies": [
+          10,
+          18
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 20,
+        "title": "Update IUnitOfWork Interface",
+        "description": "Extend the existing IUnitOfWork interface to include the new repositories.",
+        "details": "In `IdleGameServer.Application/Common/Interfaces/IUnitOfWork.cs`, add properties for the new repository interfaces: `ISkillRepository Skills { get; }`, `IPlayerSkillRepository PlayerSkills { get; }`, `IGachaRepository GachaPools { get; }`. Update the concrete `UnitOfWork` implementation in Infrastructure as well.",
+        "testStrategy": "Compilation success and proper function in integration tests will validate this change.",
+        "priority": "medium",
+        "dependencies": [
+          6
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 21,
+        "title": "Implement GachaApplicationService",
+        "description": "Create the application service to orchestrate the entire gacha workflow.",
+        "details": "In `IdleGameServer.Application/Services`, create `GachaApplicationService.cs`. This service will handle the `PerformGachaCommand`. Its logic will be: 1. Calculate total cost. 2. Use `IPlayerCurrencyService` to check and deduct crystals. 3. Use `IGachaRepository` to get the pool. 4. Use `GachaService` to draw skills. 5. Use `IPlayerSkillRepository` to save the results. 6. Commit transaction with `IUnitOfWork`. 7. Return `GachaResultDto`.",
+        "testStrategy": "The full workflow will be tested via integration tests. Unit tests can be written by mocking all dependencies (`IUnitOfWork`, services, etc.) to test the orchestration logic in isolation.",
+        "priority": "high",
+        "dependencies": [
+          12,
+          15,
+          17,
+          19,
+          20
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 22,
+        "title": "Create GachaController API Endpoint",
+        "description": "Expose the gacha functionality through a new API endpoint.",
+        "details": "In the `IdleGameServer.Api/Controllers` folder, create `GachaController.cs`. Create a `POST` endpoint at `/api/gacha/draw`. This endpoint will accept the `PerformGachaCommand` in its body, pass it to the `GachaApplicationService`, and return the `GachaResultDto` with a 200 OK status or an appropriate error response (e.g., 400 Bad Request for insufficient funds).",
+        "testStrategy": "Endpoint behavior will be fully tested via integration tests (Task 24).",
+        "priority": "high",
+        "dependencies": [
+          21
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 23,
+        "title": "Register New Services for Dependency Injection",
+        "description": "Wire up all the new interfaces and implementations in the DI container.",
+        "details": "In `IdleGameServer.Api/Program.cs` (or a service registration extension method), add scoped registrations for all new services and repositories. For example: `services.AddScoped<ISkillRepository, SkillRepository>();`, `services.AddScoped<IGachaApplicationService, GachaApplicationService>();`, etc.",
+        "testStrategy": "The application successfully starting and the API endpoint working correctly in integration tests will confirm proper DI configuration.",
+        "priority": "high",
+        "dependencies": [
+          11,
+          12,
+          13,
+          19,
+          21,
+          22
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 24,
+        "title": "Create Integration Tests for Gacha Endpoint",
+        "description": "Write end-to-end tests for the gacha API endpoint.",
+        "details": "In the integration test project, create `GachaControllerTests.cs`. Use `WebApplicationFactory` to set up an in-memory test server. Write tests that: 1. Create a test player with sufficient crystals. 2. Send a POST request to `/api/gacha/draw` for 1x and 10x draws. 3. Assert a 200 OK response and a valid `GachaResultDto`. 4. Verify in the test database that crystals were deducted and skills were added. 5. Test the failure case where a player has insufficient crystals and assert a 400 Bad Request response.",
+        "testStrategy": "This is a full end-to-end test using a real (in-memory or test container) database to validate the entire feature from API request to database state change.",
+        "priority": "high",
+        "dependencies": [
+          23
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 25,
+        "title": "Document Gacha API and Configuration",
+        "description": "Document the new API endpoint and the format for gacha configuration.",
+        "details": "Update the project's API documentation (e.g., Swagger/OpenAPI annotations on the controller action) to describe the `/api/gacha/draw` endpoint, its request body, and possible responses. Create or update a `README.md` or wiki page explaining how to configure the gacha pools, especially if using a JSON file (`gacha-pools.json`), detailing its structure and how weights are interpreted.",
+        "testStrategy": "Peer review of the documentation for clarity and accuracy. Manually check that Swagger UI displays the information correctly.",
+        "priority": "low",
+        "dependencies": [
+          13,
+          22
+        ],
+        "status": "pending",
+        "subtasks": []
+      }
+    ],
+    "metadata": {
+      "created": "2025-10-19T07:20:43.806Z",
+      "updated": "2025-10-20T07:39:01.397Z",
+      "description": "Tasks for master context"
+    }
+  }
+}

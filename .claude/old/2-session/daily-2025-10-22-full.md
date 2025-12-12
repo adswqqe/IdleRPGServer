@@ -1,0 +1,1368 @@
+# Daily Session: 2025-10-22
+
+**시작 시간**: 14:44
+**Week 3 Day 2**
+
+---
+
+## 🎯 오늘의 목표
+
+> `1-current/status.md`의 "다음 우선순위" 기반
+
+1. [ ] ✅ ~~**스킬 가챠 API**~~ (완료)
+2. [ ] **Drop System**: 던전 클리어 시 Equipment 드랍, 드랍 확률 테이블
+3. [ ] **Combat-Dungeon 통합**: DungeonStage Monster 스탯 적용, BattleLog DungeonStageId 활용
+
+---
+
+## ⚙️ 진행 중
+
+### {시스템명} - {작업명}
+
+**상태**: 🟡 진행 중 / 🟢 완료 / 🔴 블로킹
+
+**변경사항**:
+- API: `POST /api/...` 추가
+- DB: `SkillTemplates` 테이블 생성
+- DTO: `SkillGachaResultDto.cs` 작성
+
+**코드 위치**:
+- `IdleRPG.API/Controllers/SkillController.cs:45`
+- `IdleRPG.Domain/Entities/SkillTemplate.cs`
+
+---
+
+## 🤝 의사결정 & 협업
+
+### 결정 사항
+- **SSR 확률**: 1% (Legendary)
+- **강화 실패 처리**: 레벨 유지, 재화만 소모
+
+### TODO(human) 대기 중
+- [ ] `CalculatePetBuff()` 구현 - 펫 스탯 버프 계산 로직
+  - 위치: `IdleRPG.Domain/Services/PetService.cs:TODO(human)`
+  - 컨텍스트: 펫 레벨별 공격력 증가율 결정 필요
+
+---
+
+## 🐛 발견된 이슈
+
+### Critical
+- [ ] {이슈 설명}
+
+### Normal
+- {이슈 설명}
+
+---
+
+## 💡 메모 & 인사이트
+
+- ValueObject 패턴이 던전 난이도 계산에 유용했음
+- EF Core Include 쿼리 최적화 필요 (N+1 문제)
+- Unity 문서 자동 생성 스크립트 고려
+
+---
+
+## 📊 세션 통계
+
+- **API 엔드포인트**: +3개 (24 → 27)
+- **DB 테이블**: +1개 (9 → 10)
+- **완료한 TODO(human)**: 2개
+- **새로운 TODO(human)**: 1개
+- **Git Commits**: 3개
+
+---
+
+## ⏭️ 다음 세션 우선순위
+
+1. {다음 작업1}
+2. {다음 작업2}
+
+### ✅ 작업 완료 [15:08:48]
+
+✅ **메모리 로드 완료**
+
+---
+
+## 📊 프로젝트 현황
+
+### 전체 진행률
+- **Phase 1 (MVP)**: 6/6 완료 (100%) ✅
+- **Phase 2 (핵심)**: 1/4 완료 (25%) 📋
+- **Phase 3 (소셜)**: 0/5 완료 (0%)
+- **Phase 4 (운영)**: 0/5 완료 (0%)
+
+**총 시스템**: 7개 / 20개 완료 (35%)
+
+### 현재 작업
+- **완료된 시스템**: 
+  - ✅ 시스템 1-6: 인증, 캐릭터 성장, 장비, 전투, 오프라인 보상, 던전
+  - ✅ 시스템 7: 스킬 가챠 (POST /api/skills/gacha, 24개 스킬, 천장 100회, Unity 문서화)
+
+### 다음 우선순위 (Immediate)
+1. ✅ ~~스킬 가챠 API~~ (완료)
+2. **Drop System**: 던전 클리어 시 Equipment 드랍, 드랍 확률 테이블
+3. **Combat-Dungeon 통합**: DungeonStage Monster 스탯 적용, BattleLog DungeonStageId 활용
+
+### 데이터베이스
+- **API 엔드포인트**: 26개
+- **데이터베이스 테이블**: 12개
+
+---
+
+## 📅 세션 정보 (2025-10-22)
+
+### 오늘의 목표
+1. [ ] ✅ ~~스킬 가챠 API~~ (완료)
+2. [ ] Drop System
+3. [ ] Combat-Dungeon 통합
+
+### TODO(human) 대기 중
+- 없음
+
+---
+
+## 💾 로드된 파일
+- **Core**: 3개 파일 (architecture.md, game-design.md, tech-stack.md)
+- **Current**: 2개 파일 (status.md, roadmap.md)
+- **Session**: 1개 파일 (daily-2025-10-22.md)
+
+무엇을 도와드릴까요? 🚀
+
+
+### 🐛 이슈 [15:09:31]
+
+## 📋 다음 우선순위 작업
+
+현재 Immediate 우선순위는 다음과 같습니다:
+
+### 1️⃣ **Drop System** (추천!)
+던전 클리어 시 Equipment 드랍, 드랍 확률 테이블
+- **이유**: 던전 시스템이 완성되었으니 보상 체계 추가
+- **작업 내용**: 
+  - Equipment 드랍 확률 테이블
+  - 던전 클리어 시 랜덤 드랍
+  - 희귀도별 확률 설정
+
+### 2️⃣ **Combat-Dungeon 통합**
+DungeonStage Monster 스탯 적용, BattleLog DungeonStageId 활용
+- **작업 내용**:
+  - 전투 시스템에 DungeonStage 연동
+  - BattleLog에 DungeonStageId FK 추가
+  - 던전별 몬스터 스탯 적용
+
+### 3️⃣ **장비 강화 완성**
+Phase 1 시스템 마무리
+- **작업 내용**:
+  - 강화 성공률 조정
+  - 강화 실패 처리
+  - 강화 비용 밸런싱
+
+---
+
+## 💡 추천
+
+**Drop System**을 먼저 진행하는 것을 추천합니다:
+1. ✅ 던전 시스템이 이미 완성됨
+2. ✅ 게임 경제 순환 구조 완성 (던전 → 보상 → 강화)
+3. ✅ 비교적 독립적인 기능 (다른 시스템 영향 적음)
+
+어떤 작업부터 시작할까요? 🚀
+
+
+### ✅ 작업 완료 [15:10:36]
+
+네, 맞습니다! 현재 **던전 클리어 보상은 Gold와 경험치만** 주고 있습니다.
+
+
+
+## 📦 Drop System이 추가할 기능
+
+### 현재 던전 보상
+```
+POST /api/dungeons/clear
+→ Gold + 경험치만 지급
+```
+
+### Drop System 추가 후
+```
+POST /api/dungeons/clear
+→ Gold + 경험치 + Equipment 랜덤 드랍 (확률 기반)
+```
+
+### 구현할 내용
+1. **드랍 확률 테이블**
+   - Common: 60%
+   - Rare: 30%
+   - Epic: 9%
+   - Legendary: 1%
+
+2. **DungeonClearResultDto 확장**
+   - `List<EquipmentDto>? DroppedEquipments` 추가
+
+3. **드랍 로직**
+   - 던전 난이도별 드랍 개수/확률 조정
+   - 스테이지 레벨에 맞는 장비 생성
+
+Drop System 작업 시작할까요? 🎁
+
+
+### 🐛 이슈 [15:12:36]
+
+좋은 질문입니다! 실제로 **Drop System을 별도로 분리할 필요는 없습니다**.
+
+
+
+## 🤔 두 가지 접근 비교
+
+### ❌ 별도 Drop System 분리 (과도한 설계)
+```
+DungeonService.ClearStageAsync()
+  → DropService.RollEquipmentDrop()  // 별도 서비스
+  → DropRepository.SaveDroppedEquipment()  // 별도 레포지토리
+  
+문제점:
+- 트랜잭션 분산 (던전 보상 실패 시 드랍 롤백?)
+- 의존성 증가 (DungeonService → DropService)
+- 코드 분산 (던전 보상 로직이 여러 곳에)
+```
+
+### ✅ 던전 서비스에 통합 (실용적 설계)
+```
+DungeonService.ClearStageAsync()
+  → CalculateRewards()  // Gold + 경험치
+  → RollEquipmentDrop()  // 장비 드랍 (같은 서비스 내 private 메서드)
+  → 하나의 트랜잭션으로 처리
+  
+장점:
+- 원자성 보장 (보상 + 드랍 + 진행도 업데이트)
+- 응집도 높음 (던전 관련 로직 한 곳에)
+- 유지보수 쉬움 (던전 보상 수정 시 한 파일만)
+```
+
+## 💡 제안: Dungeon System 확장
+
+**"Drop System 추가"가 아니라 "Dungeon Reward 확장"**으로 접근하면:
+
+1. `DungeonService.ClearStageAsync()`에 장비 드랍 로직 추가
+2. `DungeonClearResultDto`에 `DroppedEquipments` 필드 추가
+3. 기존 Equipment 생성 로직 재사용
+
+어떻게 진행할까요?
+- **A**: Dungeon System에 통합 (추천)
+- **B**: 별도 Drop System 분리 (학습 목적)
+
+
+### 🐛 이슈 [15:13:50]
+
+아니요, 그것도 좋은 접근은 아닙니다!
+
+
+
+## 🎯 보상 시스템 설계 철학
+
+### ❌ 중앙집중식 (안티패턴)
+```csharp
+// DropService - 모든 컨텐츠 보상 처리
+public class DropService 
+{
+    public RewardDto CalculateReward(ContentType type, ...)
+    {
+        if (type == ContentType.Dungeon) 
+        {
+            // 던전 보상 로직
+        }
+        else if (type == ContentType.PVP) 
+        {
+            // PVP 보상 로직
+        }
+        else if (type == ContentType.Quest) 
+        {
+            // 퀘스트 보상 로직
+        }
+        // ... 계속 증가하는 if문
+    }
+}
+
+문제점:
+- God Object (하나의 클래스가 모든 책임)
+- 높은 결합도 (모든 컨텐츠가 DropService 의존)
+- 수정 위험 (던전 보상 수정 시 PVP 영향 가능)
+```
+
+### ✅ 분산 설계 (도메인별 캡슐화)
+```csharp
+// 각 도메인 서비스가 자체 보상 로직 보유
+DungeonService.ClearStageAsync()
+  → CalculateDungeonReward()  // 던전 고유 로직
+  
+PvpService.FinishBattleAsync()
+  → CalculatePvpReward()  // PVP 고유 로직
+  
+QuestService.CompleteQuestAsync()
+  → CalculateQuestReward()  // 퀘스트 고유 로직
+```
+
+## 🔧 공통 로직은 어떻게?
+
+보상 **지급 자체**는 공통이지만, **계산 규칙**은 각 도메인이 다릅니다:
+
+### 공통 유틸리티 (재사용)
+```csharp
+// Domain/Services/RewardCalculator.cs (도메인 서비스)
+public class RewardCalculator
+{
+    // 공통 확률 로직만 제공
+    public EquipmentRarity RollRarity(float legendaryRate, float epicRate, ...)
+    {
+        var roll = _random.NextDouble();
+        // 확률 계산
+    }
+}
+
+// 각 도메인 서비스에서 사용
+public class DungeonService
+{
+    private readonly RewardCalculator _rewardCalculator;
+    
+    private Equipment RollEquipmentDrop(int stageLevel)
+    {
+        // 던전 고유 확률 정의
+        var rarity = _rewardCalculator.RollRarity(0.01, 0.09, 0.30, 0.60);
+        // 던전 컨텍스트로 장비 생성
+    }
+}
+```
+
+## 📋 실제 적용 예시
+
+### 던전 보상
+- **고유 로직**: 스테이지별 장비 드랍, 난이도 배수
+- **공통 로직**: 확률 계산, 랜덤 생성
+
+### PVP 보상
+- **고유 로직**: 랭킹 기반 보상 테이블, 시즌 보상
+- **공통 로직**: 없음 (고정 보상)
+
+### 퀘스트 보상
+- **고유 로직**: 퀘스트 타입별 고정 보상
+- **공통 로직**: 없음
+
+---
+
+**결론**: "Drop System"이라는 별도 시스템은 만들지 않습니다. 대신:
+1. **DungeonService**에 장비 드랍 로직 추가
+2. 확률 계산 등 **공통 유틸리티만 추출**
+3. 다른 컨텐츠(PVP, 퀘스트)도 **각자 보상 로직 보유**
+
+이 방식으로 진행할까요? 🎯
+
+
+### 🐛 이슈 [15:19:02]
+
+완전히 맞는 지적입니다! 현재 구조가 **Clean Architecture 원칙을 위반**하고 있습니다.
+
+
+
+## 🔍 현재 문제점
+
+### ❌ 잘못된 구조
+```
+IdleRPG.Application/
+├── Services/
+│   └── DropService.cs  ❌ 구현체가 Application에!
+└── Interfaces/
+    └── IDropService.cs  ✅ 인터페이스는 맞음
+
+IdleRPG.Domain/
+└── Services/
+    └── GachaLogicService.cs  ✅ 순수 로직이라 OK
+```
+
+### 문제점
+1. **Application에 구현체** → Infrastructure 역할을 Application이 함
+2. **테스트 어려움** → Mock 생성 시 혼란
+3. **의존성 역전 위반** → Application이 구체 구현을 가짐
+
+## ✅ 올바른 구조
+
+```
+IdleRPG.Application/
+└── Interfaces/
+    ├── IDropService.cs      # 인터페이스만
+    ├── ISkillService.cs
+    └── IDungeonService.cs
+
+IdleRPG.Infrastructure/
+└── Services/
+    ├── DropService.cs       # 구현체 (DB, 외부 의존성)
+    ├── SkillService.cs
+    └── DungeonService.cs
+
+IdleRPG.Domain/
+└── Services/
+    └── GachaLogicService.cs # 순수 로직 (의존성 없음)
+```
+
+## 🎯 각 Layer의 Service 역할
+
+### Application/Interfaces (인터페이스만)
+```csharp
+// IDropService.cs
+public interface IDropService
+{
+    Task<List<RewardDto>> RollLootTableAsync(int lootTableId);
+}
+```
+
+### Infrastructure/Services (구현체)
+```csharp
+// DropService.cs
+public class DropService : IDropService
+{
+    private readonly GameDBContext _context;  // DB 의존성
+    
+    public async Task<List<RewardDto>> RollLootTableAsync(int lootTableId)
+    {
+        // DB 조회, 외부 서비스 호출 등
+    }
+}
+```
+
+### Domain/Services (순수 비즈니스 로직)
+```csharp
+// GachaLogicService.cs
+public class GachaLogicService
+{
+    // DB/외부 의존성 없음, 순수 계산만
+    public SkillRarity DetermineRarity(int pityCount)
+    {
+        // 확률 계산
+    }
+}
+```
+
+---
+
+## 🛠️ 제안: 코드 정리
+
+`DropService.cs`를 Application에서 Infrastructure로 옮기는 게 맞습니다. 하지만 지금 Drop System 작업을 시작하기 전에:
+
+**A**: 먼저 기존 코드 구조 정리 (DropService 이동)
+**B**: Drop System은 나중에 하고, 구조 정리 먼저
+**C**: 일단 Drop System 작업하면서 올바른 구조로 구현
+
+어떻게 할까요?
+
+
+### ✅ 작업 완료 [15:20:35]
+
+좋습니다! **아직 실제로 사용되는 곳이 없습니다** (Program.cs DI 등록만 있음).
+
+## 🎯 결론: LootTable 시스템 전체 삭제
+
+### 삭제 이유
+1. ✅ **실제 사용 안 함** - Controller나 Service에서 호출 없음
+2. ✅ **과도한 설계** - 던전 보상은 간단한 확률 계산으로 충분
+3. ✅ **GachaLogicService 존재** - 이미 확률 로직 있음
+4. ✅ **YAGNI 위반** - 미래를 위한 과도한 추상화
+
+### 삭제 대상 (14개 파일)
+```
+Application Layer (5개):
+- IDropCalculator.cs
+- IDropService.cs  
+- ILootTableCache.cs
+- DropCalculator.cs
+- DropService.cs
+
+Domain Layer (3개):
+- LootItem.cs
+- LootTable.cs
+- ILootTableRepository.cs
+
+Infrastructure Layer (6개):
+- InMemoryLootTableCache.cs
+- RedisLootTableCache.cs
+- LootItemConfiguration.cs
+- LootTableConfiguration.cs
+- LootTableRepository.cs
+- (Migration은 나중에 처리)
+```
+
+### 대신 할 일
+**DungeonService에 간단한 장비 드랍 로직 추가**
+- `GachaLogicService` 재사용 (확률 계산)
+- 던전 클리어 시 Equipment 직접 생성
+- 간단하고 명확한 코드
+
+---
+
+LootTable 시스템 전체 삭제하고, Dungeon 보상 확장으로 진행할까요? 🗑️
+
+
+### 🐛 이슈 [15:23:10]
+
+제가 완전히 잘못 봤습니다! **LootTable은 정당한 설계**입니다.
+
+## ✅ LootTable은 올바른 통합 구조
+
+### God Object와 차이점
+
+**God Object (나쁨)**:
+```csharp
+// 하나의 클래스가 모든 로직 처리
+class DropService {
+    CalculateDungeonReward()  // 던전 로직
+    CalculatePvpReward()      // PVP 로직
+    CalculateQuestReward()    // 퀘스트 로직
+    // ... 100줄 if문
+}
+```
+
+**LootTable (좋음)**:
+```csharp
+// 데이터 구조만 제공 (로직 없음)
+class LootTable {
+    List<LootItem> Items;  // 보상 데이터
+    int NumberOfRolls;     // 설정값
+}
+
+// 각 도메인이 자기 로직으로 처리
+DungeonService.ClearStage()
+  → dropService.RollLootTable(lootTableId: 1)  // 던전 고유 테이블
+
+QuestService.CompleteQuest()  
+  → dropService.RollLootTable(lootTableId: 100)  // 퀘스트 고유 테이블
+```
+
+## 🎯 LootTable의 장점
+
+### 1. 데이터 중심 밸런싱
+```sql
+-- 코드 수정 없이 DB만 업데이트
+UPDATE LootItems SET Weight = 20 WHERE Id = 5;  -- 드랍률 조정
+INSERT INTO LootItems (...);  -- 새 보상 추가
+```
+
+### 2. 재사용성
+```
+LootTable #1: "던전 Stage 1-5 보상"
+  → DungeonStage 1, 2, 3, 4, 5가 모두 사용
+
+LootTable #100: "일일 퀘스트 공통 보상"  
+  → 모든 일일 퀘스트가 공유
+```
+
+### 3. 통합 로깅/통계
+```csharp
+// 모든 보상이 같은 형식이라 통계 쉬움
+SELECT Type, SUM(Quantity) 
+FROM RewardLogs 
+WHERE LootTableId = 1
+```
+
+## 🤔 그럼 DropService는?
+
+### 현재 구조 문제점
+```
+DropService (Application Layer)
+  → 구현체가 Application에 ❌
+  → Infrastructure로 이동 필요
+```
+
+### 수정 방향
+
+**Option A: DropService 유지 (추천)**
+```
+Application/Interfaces/IDropService.cs  (인터페이스만)
+Infrastructure/Services/DropService.cs  (구현체 이동)
+
+DungeonService → IDropService 사용
+QuestService → IDropService 사용
+```
+
+**Option B: 각 도메인에 분산**
+```
+DungeonService → 자체 RollLoot() 메서드
+QuestService → 자체 RollLoot() 메서드
+→ LootTable 조회 코드 중복
+```
+
+---
+
+## 💡 제안
+
+1. **LootTable/LootItem은 유지** ✅ 정당한 통합
+2. **DropService는 Infrastructure로 이동** 🔧 계층 수정
+3. **던전 보상 확장** → LootTable 활용
+
+이 방향으로 진행할까요?
+
+
+### ✅ 작업 완료 [15:24:19]
+
+아, 이제 이해했습니다. **DropService와 DropCalculator는 이미 완성된 범용 시스템**이네요!
+
+## 💡 최종 판단
+
+### ✅ **유지해야 함** - DropService + LootTable 시스템
+
+**이유**:
+1. **완성도 높은 구현** - 312줄의 상세한 확률 로직
+2. **실제 재사용 가능** - 던전, 퀘스트, PVP 모두 사용 가능
+3. **데이터 중심 설계** - DB만 수정으로 밸런싱
+4. **확장성** - VIP 보너스, 이벤트 배율 적용 가능
+
+### 🔧 **수정만 필요** - 계층 위반 수정
+
+```
+현재 (잘못됨):
+Application/Services/DropService.cs      ❌ 구현체
+Application/Services/DropCalculator.cs   ❌ 구현체
+
+수정:
+Application/Interfaces/IDropService.cs      ✅ 인터페이스만
+Application/Interfaces/IDropCalculator.cs   ✅ 인터페이스만
+Infrastructure/Services/DropService.cs      ✅ 구현체 이동
+Infrastructure/Services/DropCalculator.cs   ✅ 구현체 이동
+```
+
+---
+
+## 🎯 다음 작업: 던전 보상에 LootTable 연동
+
+### 작업 내용
+1. **계층 수정**: DropService/DropCalculator → Infrastructure로 이동
+2. **DungeonStage에 LootTableId 추가**: FK 연결
+3. **DungeonService 수정**: 클리어 시 LootTable 호출
+4. **LootTable 시딩**: 던전용 보상 테이블 생성
+
+이 방향으로 진행할까요?
+
+
+### 🐛 이슈 [15:25:20]
+
+완전히 맞습니다! **DropService는 God Object의 전형적인 예**입니다.
+
+
+
+## 🔍 DropService의 문제점
+
+### 현재: 얼핏 깔끔해 보이지만...
+
+```csharp
+// 현재 DropService
+public async Task<List<RewardDto>> RollLootTableAsync(int lootTableId)
+{
+    var lootTable = await _cache.GetAsync(lootTableId);
+    return _calculator.CalculateRewards(lootTable, seed);
+}
+
+// DungeonService에서 사용
+var rewards = await _dropService.RollLootTableAsync(lootTableId: 1);
+```
+
+**문제: 장비 생성은 어떻게?**
+- RewardDto에는 `Type = Equipment, ItemId = null`만 있음
+- 실제 Equipment 엔티티는 누가 생성? → **각 도메인이 해야 함**
+- 스테이지 레벨, 난이도, 장비 슬롯 결정은? → **던전 컨텍스트 필요**
+
+### 미래: God Object로 진화
+
+```csharp
+// 결국 이렇게 됨
+public async Task<List<RewardDto>> RollLootTableAsync(
+    int lootTableId, 
+    ContentType contentType,  // ❌ 분기 시작
+    int level,
+    Guid characterId,
+    ...)
+{
+    var rewards = _calculator.CalculateRewards(...);
+    
+    // God Object의 증거
+    foreach (var reward in rewards)
+    {
+        if (reward.Type == Equipment)
+        {
+            if (contentType == ContentType.Dungeon)
+            {
+                // 던전용 장비 생성 로직
+            }
+            else if (contentType == ContentType.Raid)
+            {
+                // 레이드용 장비 생성 로직 (세트 옵션)
+            }
+            else if (contentType == ContentType.PvP)
+            {
+                // PVP용 장비 생성 로직 (PVP 전용 옵션)
+            }
+        }
+    }
+}
+```
+
+## ✅ 올바른 설계
+
+### LootTable은 유지, DropService는 분산
+
+```csharp
+// Domain Layer: 순수 확률 계산만
+public class LootCalculator
+{
+    public LootItem RollByWeight(List<LootItem> items, Random random)
+    {
+        // 순수 확률 로직만 (312줄의 DropCalculator 로직)
+    }
+}
+
+// Infrastructure/Services/DungeonService.cs
+public class DungeonService
+{
+    private readonly ILootTableRepository _lootTableRepo;
+    private readonly LootCalculator _lootCalculator;
+    private readonly IEquipmentRepository _equipmentRepo;
+    
+    public async Task<DungeonClearResultDto> ClearStageAsync(...)
+    {
+        // 1. 던전 고유 검증
+        ValidateStageAccess();
+        
+        // 2. LootTable 조회
+        var lootTable = await _lootTableRepo.GetByIdAsync(stage.LootTableId);
+        
+        // 3. 확률 계산 (순수 로직)
+        var lootItems = _lootCalculator.RollItems(lootTable.Items, seed);
+        
+        // 4. 던전 컨텍스트로 보상 생성 (던전만의 로직)
+        var rewards = new List<RewardDto>();
+        foreach (var item in lootItems)
+        {
+            if (item.Type == Equipment)
+            {
+                // 던전 고유: 스테이지 레벨 기반 장비 생성
+                var equipment = CreateDungeonEquipment(
+                    stageLevel: stage.Level,
+                    rarity: DetermineRarity(stage.Difficulty),
+                    slot: RandomSlot()
+                );
+                await _equipmentRepo.AddAsync(equipment);
+                rewards.Add(new RewardDto { Type = Equipment, ItemId = equipment.Id });
+            }
+            else
+            {
+                rewards.Add(item);
+            }
+        }
+        
+        return new DungeonClearResultDto { Rewards = rewards };
+    }
+    
+    private Equipment CreateDungeonEquipment(int stageLevel, EquipmentRarity rarity, EquipmentSlot slot)
+    {
+        // 던전만의 장비 생성 규칙
+        return new Equipment
+        {
+            BaseAttack = stageLevel * 10,
+            Rarity = rarity,
+            Slot = slot
+        };
+    }
+}
+
+// Infrastructure/Services/QuestService.cs  
+public class QuestService
+{
+    // 같은 LootCalculator 사용, 하지만 자체 보상 생성 로직
+    private Equipment CreateQuestEquipment(QuestType type)
+    {
+        // 퀘스트만의 장비 생성 규칙 (고정 등급, 특정 세트)
+    }
+}
+```
+
+## 📊 비교 정리
+
+| 항목 | LootTable (엔티티) | DropService | LootCalculator |
+|------|-------------------|-------------|----------------|
+| **역할** | 보상 데이터 저장 | 모든 컨텐츠 보상 처리 | 순수 확률 계산 |
+| **통합 여부** | ✅ 통합 (공통 데이터) | ❌ 분산 (각 도메인) | ✅ 통합 (공통 로직) |
+| **이유** | DB로 밸런싱 | 컨텍스트 의존적 | 순수 함수 |
+
+---
+
+## 🎯 결론
+
+**삭제 대상**:
+- ❌ DropService
+- ❌ IDropService
+- ❌ InMemoryLootTableCache (나중에 필요하면)
+- ❌ RedisLootTableCache (나중에 필요하면)
+
+**유지 대상**:
+- ✅ LootTable, LootItem (엔티티)
+- ✅ DropCalculator → **LootCalculator로 개명** (순수 로직)
+- ✅ ILootTableRepository
+
+**각 도메인 서비스가**:
+- LootTable 조회
+- LootCalculator로 확률 계산
+- 자신의 컨텍스트로 보상 생성
+
+이제 맞나요? 🎯
+
+
+### ✅ 작업 완료 [15:29:43]
+
+성공! 마이그레이션 파일을 `migration.sql`에 추가해야 합니다. 하지만 시간이 오래 걸릴 것 같으니, 여기서 잠시 정리를 할까요?
+
+현재까지 완료된 작업:
+1. ✅ DropService 관련 파일 삭제
+2. ✅ DropCalculator → LootCalculator로 개명 및 Domain 이동
+3. ✅ DungeonStage에 LootTableId FK 추가 및 마이그레이션 생성
+
+남은 작업:
+4. DungeonService에 장비 드랍 로직 추가
+5. 던전용 LootTable 시딩 데이터 추가
+
+계속 진행할까요, 아니면 여기서 커밋하고 정리할까요?
+
+
+### 🐛 이슈 [15:32:59]
+
+완료! 커밋이 성공적으로 생성되었습니다.
+
+
+
+## 📋 완료된 작업 요약
+
+### ✅ 1. DropService 제거 (God Object 제거)
+- IDropService, DropService 삭제
+- Cache 관련 파일 전체 삭제 (InMemoryLootTableCache, RedisLootTableCache)
+- Program.cs DI 등록 정리
+
+### ✅ 2. LootCalculator 개명 및 Domain 이동
+- `Application/Services/DropCalculator.cs` → `Domain/Services/LootCalculator.cs`
+- RewardDto 의존성 제거 → `List<(LootItem, int Quantity)>` 반환
+- 순수 비즈니스 로직만 포함 (DB, 로깅 의존성 제거)
+
+### ✅ 3. DungeonStage에 LootTableId FK 추가
+- Nullable FK (`int? LootTableId`)
+- LootTable Navigation Property
+- EF Core 마이그레이션 생성
+
+## 🎯 다음 작업
+
+4. **DungeonService에 장비 드랍 로직 추가**
+   - LootCalculator 사용
+   - LootItem → Equipment 생성
+   - DungeonClearResultDto에 DroppedEquipments 추가
+
+5. **던전용 LootTable 시딩 데이터 추가**
+   - 15개 던전 스테이지용 LootTable 생성
+   - 장비 드랍 확률 설정
+
+다음에 계속 진행하시겠습니까? 🚀
+
+
+### ✅ 작업 완료 [15:36:30]
+
+## ● **Learn by Doing**
+
+**Context:** 던전 클리어 시 장비 드랍 시스템의 인프라를 구축했습니다. `LootCalculator`가 확률 계산을 완료하면, 이제 **던전 고유의 장비 생성 규칙**을 결정해야 합니다. 스테이지 레벨이 높을수록 강한 장비가 나와야 하고, 난이도(Normal/Hard/Nightmare)에 따라 희귀도가 달라져야 합니다.
+
+**Your Task:** `DungeonService.cs`의 `ProcessEquipmentDropAsync()` 메서드에서 `TODO(human)` 부분을 구현해주세요. Equipment 엔티티를 생성하고 DB에 저장하는 로직입니다.
+
+**Guidance:** 
+- **BaseAttack 계산**: 스테이지 레벨 * 배율 (예: `stage.RequiredLevel * 10`)
+- **Rarity 결정**: 난이도별로 다르게 (Normal → Common 위주, Nightmare → Epic/Legendary)
+- **EquipmentSlot**: 랜덤 선택 (Weapon, Armor, Helmet, Boots, Accessory)
+- `_unitOfWork.Equipments.AddAsync()`로 DB 저장
+- `droppedEquipments` 리스트에 DTO 추가
+
+코드 위치: `IdleRPG.Infrastructure/Service/DungeonService.cs:309` (TODO(human) 주석)
+
+
+### 🐛 이슈 [16:07:01]
+
+정확한 지적입니다! **두 클래스가 겹치고 있고, 설계에 문제가 있습니다.**
+
+
+
+## 🔍 문제 분석
+
+### 현재 코드의 문제점
+
+```csharp
+// DungeonService.cs:317
+Rarity = _gachaLogicService.DetermineEquipRarity(difficulty),
+Slot = _gachaLogicService.DetermineEquipSlot()
+```
+
+**문제**:
+1. **GachaLogicService는 스킬 가챠 전용** (SkillRarity, 천장 시스템)
+2. `DetermineEquipRarity()`, `DetermineEquipSlot()` 메서드가 **존재하지 않음**
+3. LootTable이 있는데 **왜 다시 확률 계산?** (이중 추첨)
+
+### 올바른 설계
+
+**LootTable에 이미 모든 정보가 있어야 합니다**:
+
+```sql
+-- LootTable: "던전 Stage 1 Normal 보상"
+LootItems:
+1. Type=Equipment, Weight=60, ItemId=null  (Common 무기)
+2. Type=Equipment, Weight=30, ItemId=null  (Rare 방어구)
+3. Type=Equipment, Weight=9,  ItemId=null  (Epic 투구)
+4. Type=Equipment, Weight=1,  ItemId=null  (Legendary 장신구)
+```
+
+**문제**: LootItem에 **EquipmentSlot, EquipmentRarity 정보가 없습니다!**
+
+## 🎯 해결 방안
+
+### Option A: LootItem 확장 (추천)
+
+LootItem에 장비 속성 추가:
+
+```csharp
+// LootItem.cs
+public class LootItem
+{
+    // 기존 필드...
+    public Guid? ItemId { get; set; }
+    
+    // 장비 전용 필드 추가
+    public EquipmentSlot? EquipmentSlot { get; set; }
+    public EquipmentRarity? EquipmentRarity { get; set; }
+}
+```
+
+**장점**:
+- 모든 보상 정보가 LootTable에 집중
+- 코드 수정 없이 DB만으로 밸런싱
+- 확률 계산 한 번만 (LootCalculator)
+
+**단점**:
+- DB 마이그레이션 필요
+- Nullable 필드 증가
+
+### Option B: Equipment 드랍은 별도 로직
+
+LootTable은 Gold/Experience만 처리, Equipment는 별도:
+
+```csharp
+// DungeonService
+private async Task<List<EquipmentDto>> ProcessEquipmentDropAsync(...)
+{
+    // LootTable은 Gold/Experience만
+    var rolledItems = _lootCalculator.RollLootItems(lootTable, random);
+    
+    // Equipment는 별도 확률 계산
+    if (ShouldDropEquipment(difficulty))  // 난이도별 드랍 확률
+    {
+        var equipment = CreateDungeonEquipment(stage, difficulty, random);
+        droppedEquipments.Add(equipment);
+    }
+}
+
+private Equipment CreateDungeonEquipment(DungeonStage stage, Difficulty diff, Random random)
+{
+    // 던전 고유 로직으로 장비 생성
+    var rarity = RollEquipmentRarity(diff, random);  // 난이도별 확률 테이블
+    var slot = (EquipmentSlot)random.Next(0, 5);
+    
+    return new Equipment
+    {
+        BaseAttack = stage.RequiredLevel * 10,
+        Rarity = rarity,
+        Slot = slot,
+        OwnerId = character.PlayerId
+    };
+}
+```
+
+**장점**:
+- LootTable 수정 불필요
+- 던전 고유 로직 명확
+- GachaLogicService 불필요
+
+**단점**:
+- 확률 로직이 코드에 하드코딩
+- DB로 밸런싱 불가
+
+---
+
+## 💡 제안: Option A + 간단한 구현
+
+1. **LootItem 확장은 나중에** (마이그레이션 부담)
+2. **지금은 Option B로 간단히 구현**
+3. **GachaLogicService는 제거**
+
+다음 중 선택해주세요:
+
+**A**: LootItem 확장 (완벽한 설계, 마이그레이션 필요)
+**B**: 던전 고유 로직 (빠른 구현, 코드 기반)
+**C**: 둘 다 설명만 듣고 나중에 결정
+
+어떻게 진행할까요? 🤔
+
+
+### 🐛 이슈 [16:12:20]
+
+완벽합니다! 장비 드랍 시스템이 완성되었습니다.
+
+
+
+## ✅ 완료된 작업 요약
+
+### 1. LootItem 확장
+- `EquipmentSlot?`, `EquipmentRarity?` 필드 추가
+- Type = Equipment일 경우 필수
+- EF Core 마이그레이션 생성
+
+### 2. DungeonService 장비 드랍 구현
+- `ProcessEquipmentDropAsync()`: LootTable 기반 드랍 처리
+- `CreateEquipmentFromLootItem()`: 던전 컨텍스트로 장비 생성
+  - BaseAttack = RequiredLevel * 10 * RarityMultiplier
+  - 희귀도별 배율 (Common 1.0x ~ Legendary 2.0x)
+- GachaLogicService 의존성 제거
+
+### 3. DungeonClearResultDto 확장
+- `List<EquipmentDto>? DroppedEquipments` 추가
+
+## 🎯 다음 작업
+
+**던전용 LootTable 시딩 데이터 추가**만 남았습니다!
+- 15개 스테이지용 LootTable 생성
+- 장비 드랍 확률 설정 (슬롯별, 희귀도별)
+
+계속 진행할까요? 🚀
+
+
+### 🐛 이슈 [16:14:50]
+
+좋은 질문입니다! **스킬 보상도 LootTable로 통합**해야 합니다.
+
+
+
+## 🎯 스킬 보상 처리 방안
+
+### 현재 RewardType
+
+```csharp
+public enum RewardType
+{
+    Gold,        // 재화 (직접 지급)
+    Experience,  // 경험치 (직접 지급)
+    Item,        // ItemTemplate 참조 (소모품, 재료)
+    Equipment    // 동적 생성 (EquipmentSlot, EquipmentRarity)
+}
+```
+
+### Option A: RewardType.Skill 추가 (권장)
+
+```csharp
+public enum RewardType
+{
+    Gold,
+    Experience,
+    Item,
+    Equipment,
+    Skill        // ← 추가
+}
+
+// LootItem 사용법
+new LootItem
+{
+    Type = RewardType.Skill,
+    ItemId = skillTemplateId,  // SkillTemplate.Id
+    Weight = 10
+}
+```
+
+**DungeonService 처리**:
+```csharp
+foreach (var (item, quantity) in rolledItems)
+{
+    if (item.Type == RewardType.Equipment)
+    {
+        // 장비 생성 (현재 구현)
+    }
+    else if (item.Type == RewardType.Skill)
+    {
+        // 스킬 지급
+        var skillTemplate = await _unitOfWork.SkillTemplates.GetByIdAsync(item.ItemId.Value);
+        
+        // CharacterSkill 생성 (중복 체크)
+        var existingSkill = await _unitOfWork.CharacterSkills
+            .GetByCharacterAndSkillAsync(character.Id, skillTemplate.Id);
+            
+        if (existingSkill == null)
+        {
+            await _unitOfWork.CharacterSkills.AddAsync(new CharacterSkill
+            {
+                CharacterId = character.Id,
+                SkillTemplateId = skillTemplate.Id,
+                SkillLevel = 1,
+                IsEquipped = false
+            });
+        }
+        else
+        {
+            // 이미 보유 중 → 스킬 레벨업 or 다른 보상
+            existingSkill.SkillLevel++;
+        }
+    }
+}
+```
+
+### Option B: RewardType.Item으로 통합 (복잡)
+
+Item 타입에 스킬, 소모품, 재료를 모두 포함:
+
+```csharp
+// LootItem
+new LootItem
+{
+    Type = RewardType.Item,
+    ItemId = skillTemplateId  // SkillTemplate? ItemTemplate? 구분 필요
+}
+```
+
+**문제**: ItemId가 어느 테이블을 참조하는지 알 수 없음
+- Skill인지 Item인지 구분 필드 필요
+- 코드 복잡도 증가
+
+---
+
+## 🤔 GachaLogicService vs LootTable
+
+### GachaLogicService (가챠 전용)
+
+**역할**: 
+- 크리스탈 소모
+- 천장 카운트 관리
+- 단일 스킬 추첨
+- UI: "10연차" 버튼
+
+**사용처**: `POST /api/skills/gacha`
+
+### LootTable (보상 시스템)
+
+**역할**:
+- 던전 클리어 보상
+- 퀘스트 완료 보상
+- 일일 출석 보상
+- 무료 복합 보상
+
+**사용처**: 모든 컨텐츠 클리어 시
+
+---
+
+## 💡 제안: 통합 설계
+
+### 1. RewardType.Skill 추가
+```csharp
+public enum RewardType
+{
+    Gold,
+    Experience,
+    Item,        // 소모품, 재료 (미래)
+    Equipment,   // 장비
+    Skill        // 스킬
+}
+```
+
+### 2. DungeonService 확장
+```csharp
+else if (item.Type == RewardType.Skill)
+{
+    // 스킬 지급 로직
+    await GrantSkillToCharacter(character, item.ItemId.Value);
+}
+```
+
+### 3. GachaLogicService는 유지
+- **가챠 UI 전용**: 크리스탈 소모, 천장, 애니메이션
+- **보상 시스템**: LootTable 사용
+
+---
+
+## 📋 예시: 던전 보상에 스킬 포함
+
+```sql
+-- LootTable: "던전 Stage 5 보상"
+INSERT INTO LootTables (Id, Name, NumberOfRolls) 
+VALUES (5, '던전 Stage 5 보상', 2);
+
+INSERT INTO LootItems (LootTableId, Type, Weight, ItemId, ...) VALUES
+(5, 'Gold', 100, null, ...),           -- 100% Gold
+(5, 'Equipment', 60, null, ...),       -- 60% 장비 (Common 무기)
+(5, 'Skill', 10, 3, ...);              -- 10% 스킬 (SkillTemplate.Id = 3)
+```
+
+**결과**: 던전 클리어 시
+- Gold 확정 지급
+- 60% 확률로 Common 무기
+- 10% 확률로 스킬 ID 3 획득
+
+---
+
+지금 **RewardType.Skill 추가**하고 DungeonService 확장할까요?
+
+
+### ✅ 작업 완료 [16:23:40]
+
+완료했습니다! 스킬 보상 시스템 구현이 마무리되었습니다.
+
+## 작업 완료 요약
+
+✅ **RewardType.Skill 추가**
+- `RewardType` enum에 `Skill` 값 추가
+- 스킬 템플릿 기반 보상 지원
+
+✅ **DungeonService 스킬 보상 처리**
+- `GrantSkillToCharacterAsync()` 메서드 구현
+- 미보유 스킬: 새로 지급
+- 중복 스킬: TODO(human) - 처리 방안 결정 필요 (무시/재화 전환/경험치 전환)
+
+✅ **LootItem 엔티티 확장**
+- `ItemTemplateId` (int?) 필드 추가
+- int PK를 사용하는 템플릿 (SkillTemplate) 참조 지원
+
+✅ **migration.sql 업데이트**
+- `20251022072205_AddSkillRewardSupport` 마이그레이션 추가
+- Idempotent 패턴으로 안전한 재실행 보장
+- Jenkins CI/CD에서 자동 배포 대기
+
+
+
+**다음 작업**: 던전용 LootTable 시딩 데이터를 추가하면 실제로 던전에서 장비와 스킬이 드랍되도록 설정할 수 있습니다.
+
+
+### ✅ 작업 완료 [16:26:49]
+
+완벽합니다! 모든 작업이 완료되었습니다. 
+
+## 🎉 작업 완료 요약
+
+### ✅ 완료된 작업
+
+1. **RewardType.Skill 추가**
+   - `RewardType` enum에 Skill 타입 추가
+   - 스킬 템플릿 기반 보상 시스템 지원
+
+2. **스킬 보상 처리 로직 구현** (DungeonService.cs:450-501)
+   - `GrantSkillToCharacterAsync()` 메서드 구현
+   - 미보유 스킬: CharacterSkill 생성하여 지급
+   - 중복 스킬: 무시 처리 (중복 지급 없음)
+
+3. **LootItem 확장**
+   - `ItemTemplateId` (int?) 필드 추가
+   - int PK 템플릿 (SkillTemplate) 참조 지원
+   - `migration.sql`에 Idempotent 패턴으로 추가
+
+4. **LootTable Seeder 생성** (LootTableSeeder.cs)
+   - 던전 스테이지별 보상 테이블 자동 생성
+   - **초보 던전 (Stage 1-5)**: Common 장비 80% + Common 스킬 10%
+   - **중급 던전 (Stage 6-10)**: Rare 장비 60% + Rare 스킬 15%
+   - **고급 던전 (Stage 11-15)**: Epic/Legendary 장비 40% + Epic 스킬 20%
+   - Gold/Experience는 100% 보장 보상
+   - 장비는 모든 슬롯(Weapon, Helmet, Armor, Gloves, Boots) 포함
+   - 스킬은 각 스테이지 난이도에 맞는 희귀도로 2-3개씩 랜덤 선택
+
+5. **Program.cs 시딩 등록**
+   - LootTableSeeder를 시작 시 자동 실행하도록 등록
+   - DungeonStage → SkillTemplate → LootTable 순서로 시딩
+
+
+
+**다음 배포 시**: Jenkins CI/CD가 `migration.sql`을 자동으로 프로덕션에 적용하고, 서버 시작 시 LootTable Seeder가 던전 보상 테이블을 자동 생성합니다.
+
+
+### ✅ 작업 완료 [16:28:28]
+
+완벽합니다! 커밋과 push가 성공적으로 완료되었습니다.
+
+## ✅ Git 작업 완료
+
+**커밋 메시지**: `feat: LootTable 기반 스킬 보상 시스템 및 던전 시딩 데이터 완성`
+
+**포함된 변경사항**:
+- ✅ RewardType.Skill 추가
+- ✅ LootItem 엔티티 확장 (ItemTemplateId 필드)
+- ✅ DungeonService 스킬 보상 로직
+- ✅ LootTableSeeder 생성 (던전별 보상 테이블)
+- ✅ migration.sql 업데이트 (Idempotent 패턴)
+- ✅ Program.cs 시딩 등록
+
+**Push 완료**: 3개의 커밋이 origin/master에 성공적으로 push되었습니다.
+
+
+### ✅ 작업 완료 [16:29:45]
+
+로드맵을 확인했습니다. 다음 진행 작업을 정리하겠습니다.
+
+## 📋 다음 작업: Phase 2 진행
+
+### 현재 상태
+- **Phase 1 (MVP)**: 6/6 완료 (100%) ✅
+- **Phase 2 (핵심 게임플레이)**: 1/4 완료 (25%)
+  - ✅ 시스템 7: 스킬 가챠 (완료)
+  - ✅ Drop System (LootTable 기반 던전 보상 - 방금 완료)
+
+### 🎯 다음 우선순위 작업
+
+roadmap에 따르면 **Week 3-4 목표**에 다음 작업들이 있습니다:
+
+1. **Combat-Dungeon 통합** ⚡ 우선순위 높음
+   - 던전 스테이지의 Monster 스탯을 전투 시스템에 적용
+   - BattleLog에 DungeonStageId 연결
+   - 던전 클리어가 실제 전투 결과와 연동되도록
+
+2. **스킬 장착/해제 API** ⚔️
+   - POST /api/characters/{id}/skills/equip
+   - POST /api/characters/{id}/skills/unequip
+   - 장착된 스킬이 전투에서 실제로 사용되도록
+
+3. **시스템 8: 펫 시스템** 🐾
+   - Phase 2의 다음 메인 시스템
+   - 펫 육성, 스탯 버프, 펫 스킬
+
+
+
+**추천 순서**:
+1. **Combat-Dungeon 통합** (가장 높은 우선순위 - 기존 시스템 연결)
+2. **스킬 장착/해제 API** (스킬을 실제로 사용 가능하게)
+3. **펫 시스템** (Phase 2의 다음 메인 시스템)
+
+어떤 작업부터 진행할까요?
+
+
+### 🔧 API 변경 [16:32:36]
+
+현재 세션 파일이 **36KB (~8k tokens)**로 매우 작습니다. 압축 권장 기준인 1MB (300k tokens)에 훨씬 못 미치므로 **압축이 필요하지 않습니다**.
+
+## ❌ 압축 불필요
+
+**현재 상태**:
+- 파일 크기: 36KB
+- 토큰 수: ~8k tokens
+
+**압축 권장 기준**:
+- 파일 크기 > 1MB (1024KB)
+- 토큰 수 > 300k
+
+**결론**: 현재 세션은 압축하기에는 너무 작습니다. 압축 효과도 미미하고, 오히려 정보 손실만 발생할 수 있습니다.
+
+
+
+**다시 원래 질문으로 돌아가겠습니다**: 다음 작업으로 무엇을 진행할까요?
+
+추천 순서:
+1. **Combat-Dungeon 통합** (던전 Monster 스탯을 전투에 적용)
+2. **스킬 장착/해제 API** (스킬을 실제로 사용 가능하게)
+3. **펫 시스템** (Phase 2의 다음 메인 시스템)
+

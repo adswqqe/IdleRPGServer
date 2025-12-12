@@ -1,0 +1,6 @@
+@IdleRPG.API_HostAddress = http://localhost:5172
+
+GET {{IdleRPG.API_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

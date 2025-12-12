@@ -1,0 +1,45 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(dotnet tool install:*)",
+      "Bash(dotnet ef:*)",
+      "Bash(dotnet tool restore:*)",
+      "Bash(\"D:\\Proj\\IdleGameServer\\.claude\\memories\\specs\\ef-core-migrations\\work-log.md\")",
+      "Bash(cd:*)",
+      "Bash(git remote set-url:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Bash(dotnet test:*)",
+      "Bash(mkdir:*)",
+      "Bash(dotnet add package:*)",
+      "Bash(dotnet build:*)",
+      "Bash(docker-compose up:*)",
+      "Bash($env:ASPNETCORE_ENVIRONMENT=\"Development\")",
+      "Bash(psql:*)",
+      "Bash(Select-String -Pattern \"Program.cs\")",
+      "Bash(timeout 3 dotnet run:*)",
+      "WebFetch(domain:code.claude.com)",
+      "Bash(echo:*)",
+      "Bash(chmod:*)",
+      "Bash(~/.claude/statusline.sh)",
+      "Bash(Select-String -Pattern \"\\.env|appsettings|secret|password\" -SimpleMatch)",
+      "Bash(git rm:*)",
+      "Bash(git init:*)"
+    ],
+    "deny": [],
+    "ask": []
+  },
+  "enableAllProjectMcpServers": true,
+  "enabledMcpjsonServers": [
+    "project-filesystem",
+    "project-memory",
+    "project-unity"
+  ],
+  "hooks": {
+    "SessionStart": [],
+    "Stop": [],
+    "SessionEnd": []
+  },
+  "outputStyle": "Learning"
+}

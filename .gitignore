@@ -1,0 +1,74 @@
+# Custom ignores for Idle RPG Server
+*.user
+appsettings.Development.json
+logs/
+*.db
+.env
+.idea/
+bin/
+obj/
+# Claude MCP 보안 설정
+claude-configs/.env.home
+claude-configs/.env.work
+claude-configs/secrets/
+claude-configs/*.key
+claude-configs/*token*
+
+# Claude 작업 데이터
+.memory-bank/
+.claude-shared/
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+dev-debug.log
+# Dependency directories
+node_modules/
+# Environment variables
+.env
+.env.*
+!.env.example
+# Editor directories and files
+.idea
+.vscode
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+# OS specific
+.DS_Store
+
+# Local development settings with secrets
+appsettings.Development.json
+appsettings.Production.json
+appsettings.*.json
+!appsettings.json
+
+# Production configurations with secrets
+docker-compose.prod.yml
+*.BACKUP*
+*.BACKUP_WITH_SECRETS
+
+# Obsidian (contains API keys and certificates)
+.obsidian/
+**/.obsidian/
+
+# AWS SSH Keys (절대 커밋 금지!)
+*.pem
+*.ppk
+
+# Temporary files
+nul
+nul*
+nuldocker-compose.prod.yml.BACKUP_WITH_SECRETS
+
+# Jenkinsfile backups
+Jenkinsfile.backup-*
+
+# Task files
+# tasks.json
+# tasks/ 
