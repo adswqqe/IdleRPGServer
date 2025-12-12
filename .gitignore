@@ -7,6 +7,32 @@ Gemini/
 tests/
 .serena/
 claude-configs/
+
+# MCP 설정 (로컬용)
+.mcp.json
+.mcp_Original.json
+
+# 로컬 스크립트
+set-github-token.bat
+test-api.http
+test-dungeon.ps1
+test-dungeon-v2.ps1
+
+# 중복/불필요 파일
+Migrations/
+skill-gacha-prd.md
+migration.sql
+fix-dungeon-migration.sql
+
+# 로컬/서버 관리 스크립트
+setup-https-cert.ps1
+setup-https-cert.sh
+setup-swap.sh
+diagnose-https.sh
+dev-start.sh
+docker-start.sh
+deploy.sh
+project_intergration.sh
 *.user
 appsettings.Development.json
 logs/
