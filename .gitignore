@@ -24,6 +24,9 @@ skill-gacha-prd.md
 migration.sql
 fix-dungeon-migration.sql
 
+# Docker (로컬 개발용 - 비밀번호 포함)
+docker-compose.yml
+
 # 로컬/서버 관리 스크립트
 setup-https-cert.ps1
 setup-https-cert.sh
