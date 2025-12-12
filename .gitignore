@@ -1,5 +1,11 @@
 # Custom ignores for Idle RPG Server
 docs/
+.claude/
+.NetApiForUnity/
+.gemini/
+Gemini/
+tests/
+.serena/
 *.user
 appsettings.Development.json
 logs/
