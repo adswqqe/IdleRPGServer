@@ -1,4 +1,5 @@
 # Custom ignores for Idle RPG Server
+docs/
 *.user
 appsettings.Development.json
 logs/
