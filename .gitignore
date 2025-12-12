@@ -32,7 +32,9 @@ diagnose-https.sh
 dev-start.sh
 docker-start.sh
 deploy.sh
+deploy-ec2.sh
 project_intergration.sh
+.env.example
 *.user
 appsettings.Development.json
 logs/
