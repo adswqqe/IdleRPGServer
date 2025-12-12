@@ -6,6 +6,7 @@ docs/
 Gemini/
 tests/
 .serena/
+claude-configs/
 *.user
 appsettings.Development.json
 logs/
